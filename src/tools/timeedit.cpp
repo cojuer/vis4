@@ -18,7 +18,7 @@ TimeEdit::TimeEdit(QWidget * parent) : QAbstractSpinBox(parent),
     mErrorPalette.setColor(QPalette::Base, Qt::red);
     mNormalPalette = palette();
 
-    // ÐÏËÁ ÎÅ ÚÁÄÁÎÏ ×ÒÅÍÑ, ÒÅÄÁËÔÉÒÏ×ÁÎÉÅ ÚÁÐÒÅÝÅÎÏ
+    // Ð¿Ð¾ÐºÐ° Ð½Ðµ Ð·Ð°Ð´Ð°Ð½Ð¾ Ð²Ñ€ÐµÐ¼Ñ, Ñ€ÐµÐ´Ð°ÐºÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð·Ð°Ð¿Ñ€ÐµÑ‰ÐµÐ½Ð¾
     setEnabled(false);
 }
 
@@ -30,13 +30,13 @@ void TimeEdit::stepBy(int steps)
     }
 
     Time t = cur_time_.fromString(lineEdit()->text());
-    int u = Time::unit();
+    int u = Time::getUnit();
 
     long long newUs = (long long)getUs(t);
     newUs += Time::unit_scale(u)*steps;
     if (newUs < 0)
     {
-	// ÐÒÏ×ÅÒÉÍ, ÞÔÏÂÙ ÎÅ ÕÊÔÉ × ÍÉÎÕÓ
+	// Ð¿Ñ€Ð¾Ð²ÐµÑ€Ð¸Ð¼, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð½Ðµ ÑƒÐ¹Ñ‚Ð¸ Ð² Ð¼Ð¸Ð½ÑƒÑ
 	return;
     }
 
@@ -145,7 +145,7 @@ void TimeEdit::onEditingFinished()
 
     if (!validate(t) || !mNoError)
     {
-	// ×ÏÚ×ÒÁÝÁÅÍÓÑ × ËÏÒÒÅËÔÎÏÅ ÓÏÓÔÏÑÎÉÅ
+	// Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÐ¼ÑÑ Ð² ÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½Ð¾Ðµ ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ
 	setTime(cur_time_);
 	return;
     }

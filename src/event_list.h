@@ -17,7 +17,7 @@ class Event_list : public QTreeView
 public:
     Event_list(QWidget* parent);
 
-    void showEvents(Trace_model::Ptr & model, const common::Time & time);
+    void showEvents(TraceModelPtr & model, const common::Time & time);
 
     void updateTime();
 

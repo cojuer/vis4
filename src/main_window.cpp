@@ -1,9 +1,3 @@
-#include "main_window.h"
-#include "trace_model.h"
-#include "trace_painter.h"
-#include "canvas.h"
-#include "tools/tool.h"
-
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QToolBar>
@@ -17,51 +11,36 @@
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QMenu>
 
-/*
-inline void initMyResource()
-{
-    Q_INIT_RESOURCE(vis3);
-}
-*/
+#include "main_window.h"
+#include "trace_model.h"
+#include "trace_painter.h"
+#include "canvas.h"
+#include "tools/tool.h"
 
 namespace vis4 {
 
 using common::Time;
 
-MainWindow::MainWindow()
-: QMainWindow(0), currentTool(0),
-  modeActions(new QActionGroup(this))
+MainWindow::MainWindow() : 
+    QMainWindow(0), 
+    currentTool(0),
+    modeActions(new QActionGroup(this))
+{}
 
+void MainWindow::initialize(TraceModelPtr & model)
 {
-    //initMyResource();
-}
-
-void MainWindow::initialize(Trace_model::Ptr & model)
-{
-    model = restore_model(model);
-    canvas = new Canvas(this);
-
-    if (char *e = getenv("VIS3_PORTABLE_DRAWING"))
-    {
-        char *v = strstr(e, "=");
-        if (!v || strcmp(v, "1") == 0)
-            canvas->setPortableDrawing(true);
-    }
-
-    // Prevent trace drawing until window geometry restore.
-    canvas->setVisible(false);
-
-    canvas->setModel(model);
-    setCentralWidget(canvas);
-
+    model = restore_model(model);//? why?
+    initCanvas(model);
     // Restore window geometry
     QRect r = restore_geometry();
     if (r.isValid())
+    {
         setGeometry(r);
+    }
     else
     {
         r = QApplication::desktop()->screenGeometry();
-        resize(r.width(), r.height()*80/100);
+        resize(r.width(), r.height() * 80 / 100);
     }
 
     toolbar = new QToolBar(tr("Toolbar"), this);
@@ -82,7 +61,7 @@ void MainWindow::initialize(Trace_model::Ptr & model)
     sidebarContents = new QStackedWidget(sidebar);
     sidebar->setWidget(sidebarContents);
 
-    QAction * sidebarTrigger = new QAction(this);
+    QAction *sidebarTrigger = new QAction(this);
     sidebarTrigger->setShortcut(Qt::Key_F9);
     sidebarTrigger->setShortcutContext(Qt::WindowShortcut);
     addAction(sidebarTrigger);
@@ -97,7 +76,7 @@ void MainWindow::initialize(Trace_model::Ptr & model)
     Q_ASSERT(browser);
     browser->addToolbarActions(toolbar);
 
-    QAction * resetView = new QAction(this);
+    QAction *resetView = new QAction(this);
     resetView->setShortcut(Qt::Key_Escape);
     resetView->setShortcutContext(Qt::WindowShortcut);
     addAction(resetView);
@@ -119,11 +98,15 @@ void MainWindow::initialize(Trace_model::Ptr & model)
         }
     }
     if (settings.value("time_format", "separated") == "separated")
+    {
         Time::setFormat(Time::Advanced);
+    }
 
     // Adding freestanding tools
     foreach (QAction * action, freestandingTools)
+    {
         toolbar->addAction(action);
+    }
 
     actPrint = new QAction(tr("Print"), this);
     actPrint->setIcon(QIcon(":/printer.png"));
@@ -178,30 +161,41 @@ void MainWindow::initialize(Trace_model::Ptr & model)
     }
 
     if (!tool_set)
+    {
         activateTool(browser);
+    }
 
-    // Ugly way to move focus to canvas.
-    //canvas->setModel(canvas->model());
+    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const common::Time&, bool)), this,
+                    SLOT(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const common::Time&, bool)));
 
-    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget,
-                                        int,
-                                        State_model*, const common::Time&, bool)),
-            this, SLOT(mouseEvent(QEvent*, Canvas::clickTarget,
-                                        int,
-                                        State_model*, const common::Time&, bool)));
+    connect(canvas, SIGNAL(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const common::Time&)), this,
+                    SLOT(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const common::Time&)));
 
-    connect(canvas, SIGNAL(mouseMoveEvent(QMouseEvent*,
-                                            Canvas::clickTarget,
-                                            int, const common::Time&)),
-            this, SLOT(mouseMoveEvent(QMouseEvent*,
-                                      Canvas::clickTarget,
-                                      int, const common::Time&)));
-
-    connect(canvas, SIGNAL(modelChanged(Trace_model::Ptr &)),
-            this, SLOT(modelChanged(Trace_model::Ptr &)));
+    connect(canvas, SIGNAL(modelChanged(TraceModelPtr &)), this,
+                    SLOT(modelChanged(TraceModelPtr &)));
 
     // Now we can draw the trace
     canvas->setVisible(true);
+}
+
+void MainWindow::initCanvas(TraceModelPtr & model)
+{
+    canvas = new Canvas(this);
+
+    if (char *e = getenv("VIS3_PORTABLE_DRAWING"))
+    {
+        char *v = strstr(e, "=");
+        if (!v || strcmp(v, "1") == 0)
+        {
+            canvas->setPortableDrawing(true);
+        }
+    }//? is this working?
+
+    // Prevent trace drawing until window geometry restore.
+    canvas->setVisible(false);
+
+    canvas->setModel(model);
+    setCentralWidget(canvas);
 }
 
 void MainWindow::installTool(Tool* controllingWidget)
@@ -215,26 +209,25 @@ void MainWindow::installTool(Tool* controllingWidget)
     sidebarContents->addWidget(controllingWidget);
     modeActions->addAction(action);
 
-    connect(action, SIGNAL(triggered(bool)),
-            this, SLOT(actionTriggered()));
+    connect(action, SIGNAL(triggered(bool)), this,
+                    SLOT(actionTriggered()));
 
-    connect(controllingWidget, SIGNAL(activateMe()),
-            this, SLOT(activateTool()));
+    connect(controllingWidget, SIGNAL(activateMe()), this,
+                               SLOT(activateTool()));
 
-    connect(controllingWidget, SIGNAL(showEvent(Event_model*)),
-            this, SLOT(showEvent(Event_model*)));
+    connect(controllingWidget, SIGNAL(showEvent(Event_model*)), this,
+                               SLOT(showEvent(Event_model*)));
 
-    connect(controllingWidget, SIGNAL(showState(State_model*)),
-            this, SLOT(showState(State_model*)));
+    connect(controllingWidget, SIGNAL(showState(State_model*)), this,
+                               SLOT(showState(State_model*)));
 
-
-    connect(controllingWidget, SIGNAL(browse()),
-            this, SLOT(browse()));
+    connect(controllingWidget, SIGNAL(browse()), this,
+                               SLOT(browse()));
 
     action->setWhatsThis(controllingWidget->whatsThis());
 }
 
-void MainWindow::installBrowser(Browser* browser)
+void MainWindow::installBrowser(Browser *browser)
 {
     installTool(browser);
     this->browser = browser;
@@ -243,20 +236,24 @@ void MainWindow::installBrowser(Browser* browser)
         tr("(Shortcut: <b>%1</b>)").arg("Esc"));
 }
 
-void MainWindow::installFreestandingTool(QAction * action)
+void MainWindow::installFreestandingTool(QAction *action)
 {
     freestandingTools.push_back(action);
 }
 
-void MainWindow::activateTool(Tool * tool)
+void MainWindow::activateTool(Tool *tool)
 {
-    bool first_time = (currentTool == 0);
+    bool firstTime = (currentTool == nullptr);
 
-    if (tool == 0)
+    if (tool == nullptr)
+    {
         tool = static_cast<Tool*>(sender());
+    }
 
     if (currentTool)
+    {
         currentTool->deactivate();
+    }
 
     sidebarContents->setCurrentWidget(tool);
     sidebar->setWindowTitle(tool->windowTitle());
@@ -265,21 +262,21 @@ void MainWindow::activateTool(Tool * tool)
     tool->activate();
 
     if (sidebar->isVisible())
+    {
         tool->action()->setChecked(true);
+    }
 
     // Save current tool in settings
-
     QSettings settings;
     prepare_settings(settings, model());
 
-    QString toolName = (sidebar->isVisible() || first_time) ?
-        tool->objectName() : "none";
+    QString toolName = (sidebar->isVisible() || firstTime) ? tool->objectName() : "none";
     settings.setValue("current_tool", toolName);
 }
 
-void MainWindow::addShortcuts(QWidget* w)
+void MainWindow::addShortcuts(QWidget *widget)
 {
-    foreach(QAction* action, w->actions())
+    foreach(QAction *action, widget->actions())
     {
         QString tooltip = action->toolTip();
         if (!tooltip.isEmpty())
@@ -295,7 +292,7 @@ void MainWindow::addShortcuts(QWidget* w)
 }
 
 void MainWindow::prepare_settings(QSettings& settings,
-                                  const Trace_model::Ptr & model) const
+                                  const TraceModelPtr & model) const
 {
     // No per-trace settings, everything is global.
     settings.beginGroup("settings");
@@ -320,18 +317,27 @@ void MainWindow::sidebarShowHide()
     sidebar->setVisible(sidebar->isHidden());
 }
 
-bool MainWindow::eventFilter(QObject * watched, QEvent * event)
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched != sidebar)
+    {
         return QMainWindow::eventFilter(watched, event);
+    }
 
-    if (!currentTool) return false;
+    if (!currentTool)
+    {
+        return false;
+    }
 
     if (event->type() == QEvent::Close || event->type() == QEvent::Hide)
+    {
         currentTool->action()->setChecked(false);
+    }
 
     if (event->type() == QEvent::Show)
+    {
         currentTool->action()->setChecked(true);
+    }
 
     return false;
 }
@@ -354,28 +360,27 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::actionTriggered()
 {
-    QAction * action = static_cast<QAction*>(sender());
-    Tool * tool = qobject_cast<Tool*>(action->parent());
+    QAction *action = static_cast<QAction*>(sender());
+    Tool *tool = qobject_cast<Tool*>(action->parent());
 
     sidebar->show();
     activateTool(tool);
 }
 
-void MainWindow::modelChanged(Trace_model::Ptr & m)
+void MainWindow::modelChanged(TraceModelPtr & m)
 {
     save_model(m);
-
     // Disable/enable printing button
     actPrint->setEnabled(m->visible_components().size() != 0);
 }
 
-void MainWindow::showEvent(Event_model* event)
+void MainWindow::showEvent(Event_model *event)
 {
     browser->doShowEvent(event);
     activateTool(browser);
 }
 
-void MainWindow::showState(State_model* state)
+void MainWindow::showState(State_model *state)
 {
     browser->doShowState(state);
     activateTool(browser);
@@ -391,7 +396,7 @@ void MainWindow::actionPrint()
 {
     QPrinter printer;
     printer.setOrientation(QPrinter::Landscape);
-//    printer.setOutputFormat(QPrinter::PostScriptFormat);
+    // printer.setOutputFormat(QPrinter::PostScriptFormat);
 
     QPrintDialog printDialog(&printer, this->parentWidget());
 
@@ -401,13 +406,16 @@ void MainWindow::actionPrint()
     printDialog.setPrintRange(QAbstractPrintDialog::Selection);
 
     // Convert max_time from Time to int
-    Trace_model::Ptr model = canvas->model();
+    TraceModelPtr model = canvas->model();
     boost::any max_time_raw = model->root()->max_time().raw();
-    long long * max_time_ll = boost::any_cast<long long>(&max_time_raw);
+    long long *max_time_ll = boost::any_cast<long long>(&max_time_raw);
     if (max_time_ll)
-        printDialog.setMinMax(0, (int)(*max_time_ll));
-    else {
-        int * max_time = boost::any_cast<int>(&max_time_raw);
+    {
+        printDialog.setMinMax(0, static_cast<int>(*max_time_ll));
+    }
+    else
+    {
+        int *max_time = boost::any_cast<int>(&max_time_raw);
         printDialog.setMinMax(0, *max_time);
     }
 
@@ -417,20 +425,27 @@ void MainWindow::actionPrint()
         Time min_time, max_time;
         Time timePerPage = model->max_time() - model->min_time();
 
-        if (printDialog.printRange() == QAbstractPrintDialog::Selection) {
+        if (printDialog.printRange() == QAbstractPrintDialog::Selection)
+        {
             min_time = model->min_time();
             max_time = model->max_time();
-        } else if (printDialog.printRange() == QAbstractPrintDialog::AllPages) {
+        }
+        else if (printDialog.printRange() == QAbstractPrintDialog::AllPages)
+        {
             min_time = model->root()->min_time();
             max_time = model->root()->max_time();
-        } else { /* printDialog->printRange() == QAbstractPrintDialog:::PageRange */
+        } else
+        { /* printDialog->printRange() == QAbstractPrintDialog:::PageRange */
 
             // Convert time interval from int to Time
             min_time = max_time = model->min_time();
-            if (max_time_ll) {
+            if (max_time_ll)
+            {
                 min_time = Time(min_time.setRaw(boost::any((long long)printDialog.fromPage())));
                 max_time = Time(max_time.setRaw(boost::any((long long)printDialog.toPage())));
-            } else {
+            }
+            else
+            {
                 min_time = Time(min_time.setRaw(boost::any((int)printDialog.fromPage())));
                 max_time = Time(max_time.setRaw(boost::any((int)printDialog.toPage())));
             }
@@ -450,14 +465,14 @@ void MainWindow::actionPrint()
     }
 }
 
-void MainWindow::save_model(Trace_model::Ptr & m)
+void MainWindow::save_model(TraceModelPtr & m)
 {
     QSettings settings;
     prepare_settings(settings, m);
     settings.setValue("trace_state", m->save());
 }
 
-Trace_model::Ptr & MainWindow::restore_model(Trace_model::Ptr & model)
+TraceModelPtr & MainWindow::restore_model(TraceModelPtr & model)
 {
     QSettings settings;
     prepare_settings(settings, model);
@@ -469,16 +484,16 @@ Trace_model::Ptr & MainWindow::restore_model(Trace_model::Ptr & model)
     return model;
 }
 
-Trace_model::Ptr MainWindow::model() const
+TraceModelPtr MainWindow::model() const
 {
     return canvas->model();
 }
 
 
-void MainWindow::mouseEvent(QEvent* event,
+void MainWindow::mouseEvent(QEvent *event,
                     Canvas::clickTarget target,
                     int component,
-                    State_model* state,
+                    State_model *state,
                     const Time& time,
                     bool events_near)
 {
@@ -489,35 +504,38 @@ void MainWindow::mouseEvent(QEvent* event,
         {
             Tool* t = tools_list[i];
             if (t != currentTool)
+            {
                 t->mouseEvent(event, target, component, state, time, events_near);
+            }
         }
     }
 }
 
- void MainWindow::mouseMoveEvent(QMouseEvent* event, Canvas::clickTarget target,
-                        int component, const Time& time)
+ void MainWindow::mouseMoveEvent(QMouseEvent *event, Canvas::clickTarget target, int component, const Time& time)
 {
     bool done = currentTool->mouseMoveEvent(event, target, component, time);
     if (!done)
     {
         for (int i = 0; i < tools_list.size(); ++i)
         {
-            Tool* t = tools_list[i];
+            Tool *t = tools_list[i];
             if (t != currentTool)
+            {
                 t->mouseMoveEvent(event, target, component, time);
+            }
         }
     }
 }
 
 void MainWindow::toolbarContextMenu(const QPoint & pos)
 {
-    QMenu * menu = new QMenu(this);
+    QMenu *menu = new QMenu(this);
     menu->setAttribute(Qt::WA_DeleteOnClose, true);
-    connect(menu, SIGNAL( triggered(QAction *) ),
-        this, SLOT( toolbarSettingsChanged(QAction *) ));
+    connect(menu, SIGNAL(triggered(QAction*)), this,
+                  SLOT( toolbarSettingsChanged(QAction *)));
 
     // Adding nice menu title
-    QLabel * title = new QLabel(tr("Toolbar menu"), menu);
+    QLabel *title = new QLabel(tr("Toolbar menu"), menu);
     title->setFrameStyle(QFrame::Panel);
     title->setFrameShadow(QFrame::Raised);
     title->setMargin(4);
@@ -525,15 +543,15 @@ void MainWindow::toolbarContextMenu(const QPoint & pos)
     QFont boldFont(title->font()); boldFont.setBold(true);
     title->setFont(boldFont);
 
-    QWidgetAction * titleAction = new QWidgetAction(menu);
+    QWidgetAction *titleAction = new QWidgetAction(menu);
     titleAction->setDefaultWidget(title);
     titleAction->setDisabled(true);
     menu->addAction(titleAction);
 
-    QAction * action;
+    QAction *action;
 
     // Adding icon size menu
-    QMenu * iconsMenu = menu->addMenu(tr("Size of icons"));
+    QMenu *iconsMenu = menu->addMenu(tr("Size of icons"));
 
     action = iconsMenu->addAction(tr("Small icons"));
     action->setObjectName("act_smallIcons");
@@ -546,7 +564,7 @@ void MainWindow::toolbarContextMenu(const QPoint & pos)
     action->setChecked(toolbar->iconSize().width() == 24);
 
     // Adding text position menu
-    QMenu * textposMenu = menu->addMenu(tr("Position of text"));
+    QMenu *textposMenu = menu->addMenu(tr("Position of text"));
 
     action = textposMenu->addAction(tr("Icon only"));
     action->setObjectName("act_iconOnly");
@@ -571,32 +589,38 @@ void MainWindow::toolbarContextMenu(const QPoint & pos)
     menu->popup(toolbar->mapToGlobal(pos));
 }
 
-void MainWindow::toolbarSettingsChanged(QAction * action)
+void MainWindow::toolbarSettingsChanged(QAction *action)
 {
     QSettings settings;
 
-    if (action->objectName() == "act_smallIcons") {
+    if (action->objectName() == "act_smallIcons")
+    {
         toolbar->setIconSize(QSize(16, 16));
         settings.setValue("toolbar_icon_size", "small");
     }
-    if (action->objectName() == "act_bigIcons") {
+    if (action->objectName() == "act_bigIcons")
+    {
         toolbar->setIconSize(QSize(24, 24));
         settings.setValue("toolbar_icon_size", "big");
     }
 
-    if (action->objectName() == "act_iconOnly") {
+    if (action->objectName() == "act_iconOnly")
+    {
         toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
         settings.setValue("toolbar_text_position", "icon only");
     }
-    if (action->objectName() == "act_textOnly") {
+    if (action->objectName() == "act_textOnly")
+    {
         toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
         settings.setValue("toolbar_text_position", "text only");
     }
-    if (action->objectName() == "act_textBeside") {
+    if (action->objectName() == "act_textBeside")
+    {
         toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         settings.setValue("toolbar_text_position", "text beside icon");
     }
-    if (action->objectName() == "act_textUnder") {
+    if (action->objectName() == "act_textUnder")
+    {
         toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         settings.setValue("toolbar_text_position", "text under icon");
     }
@@ -605,7 +629,9 @@ void MainWindow::toolbarSettingsChanged(QAction * action)
 void MainWindow::resetView()
 {
     for (int i = 0; i < tools_list.size(); ++i)
+    {
         tools_list[i]->reset();
+    }
     activateTool(browser);
     canvas->setFocus(Qt::OtherFocusReason);
 }

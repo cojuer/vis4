@@ -10,11 +10,9 @@ int main(int ac, char* av[])
     QApplication app(ac, av);
     app.setOrganizationName("Computer Systems Laboratory");
     app.setOrganizationDomain("lvk.cs.msu.su");
-    app.setApplicationName("otf-vis");
+    app.setApplicationName("vis4");
 
-    Trace_model::Ptr model(new OTF_trace_model("../otf_traces/philosophers/philosophers.otf"));
-    //Trace_model::Ptr model(new OTF_trace_model("philosophers.otf"));
-    //Trace_model::Ptr model(new OTF_trace_model("wrf.otf"));
+    TraceModelPtr model(new OTF_trace_model("../otf_traces/philosophers/philosophers.otf"));
 
     OTF_main_window mw;
     mw.initialize(model);

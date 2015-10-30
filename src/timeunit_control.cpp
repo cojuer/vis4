@@ -1,27 +1,27 @@
-#include "timeunit_control.h"
-#include "time_vis3.h"
-
 #include <QtWidgets/QStyleOption>
 #include <QtWidgets/QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 
-namespace vis4 { namespace common {
+#include "timeunit_control.h"
+#include "time_vis3.h"
 
-TimeUnitControl::TimeUnitControl(QWidget * parent)
-    : QWidget(parent)
+namespace vis4 {
+namespace common {
+
+TimeUnitControl::TimeUnitControl(QWidget *parent) :
+    QWidget(parent)
 {
     setAttribute(Qt::WA_Hover, true);
 
     // Create popup menu with unit and format settings
     menu = new QMenu(this);
-    connect(menu, SIGNAL( triggered(QAction *) ),
-        this, SLOT( menuActionTriggered(QAction *) ));
+    connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(menuActionTriggered(QAction*)));
 
-    QAction * action;
-    QActionGroup * actionGroup;
+    QAction *action;
+    QActionGroup *actionGroup;
 
-    QMenu * timeUnitMenu = menu->addMenu(tr("Time unit"));
+    QMenu *timeUnitMenu = menu->addMenu(tr("Time unit"));
     timeUnitMenu->setObjectName("timeunit_menu");
 
     actionGroup = new QActionGroup(timeUnitMenu);
@@ -32,7 +32,7 @@ TimeUnitControl::TimeUnitControl(QWidget * parent)
     }
     timeUnitMenu->addActions(actionGroup->actions());
 
-    QMenu * timeFormatMenu = menu->addMenu(tr("Time format"));
+    QMenu *timeFormatMenu = menu->addMenu(tr("Time format"));
     timeFormatMenu->setObjectName("timeformat_menu");
 
     actionGroup = new QActionGroup(timeFormatMenu);
@@ -45,6 +45,9 @@ TimeUnitControl::TimeUnitControl(QWidget * parent)
 
 // !!! All QStyle stuff was copy-pasted from qcombobox.cpp
 
+/**
+ * Initialize TimeUnitControl and set its size.
+ */
 QSize TimeUnitControl::sizeHint() const
 {
     QSize size;
@@ -54,7 +57,7 @@ QSize TimeUnitControl::sizeHint() const
 
     QFontMetrics fm = fontMetrics();
     size.setHeight(qMax(fm.lineSpacing(), 14) + 2);
-    size.setWidth(fm.width(tr("h:m:s.us")));
+    size.setWidth(fm.width(tr("h:m:s.us  ")));
 
     size = style()->sizeFromContents(QStyle::CT_ComboBox, &opt, size, this);
     return size;
@@ -72,21 +75,25 @@ void TimeUnitControl::paintEvent(QPaintEvent * event)
     style()->drawControl(QStyle::CE_ComboBoxLabel, &opt, &painter, this);
 
     // Set tooltip
-    QString toolTip = Time::unit_name(Time::unit()) + " (" +
+    QString toolTip = Time::unit_name(Time::getUnit()) + " (" +
         (Time::format() == Time::Plain ? tr("plain") :  tr("separated")) + ")";
     setToolTip(toolTip);
 }
 
-void TimeUnitControl::mousePressEvent(QMouseEvent *e)
+void TimeUnitControl::mousePressEvent(QMouseEvent *event)
 {
-    QMenu * timeUnitMenu = menu->findChild<QMenu*>(("timeunit_menu"));
+    QMenu *timeUnitMenu = menu->findChild<QMenu*>(("timeunit_menu"));
     if (Time::format() == Time::Plain)
+    {
         timeUnitMenu->setTitle(tr("Time unit"));
+    }
     else
+    {
         timeUnitMenu->setTitle(tr("Precision"));
-    timeUnitMenu->actions()[Time::unit()]->setChecked(true);
+    }
+    timeUnitMenu->actions()[Time::getUnit()]->setChecked(true);
 
-    QMenu * timeFormatMenu = menu->findChild<QMenu*>(("timeformat_menu"));
+    QMenu *timeFormatMenu = menu->findChild<QMenu*>(("timeformat_menu"));
     timeFormatMenu->actions()[Time::format()]->setChecked(true);
 
     // Show popup menu with time unit and format choice
@@ -103,7 +110,8 @@ void TimeUnitControl::initStyleOption(QStyleOptionComboBox *option) const
     option->frame = false;
     if (Time::format() == Time::Advanced){
         QString text;
-        switch (Time::unit()){
+        switch (Time::getUnit())
+        {
             case Time::hour:
                 text = tr("h");
                 break;
@@ -123,17 +131,20 @@ void TimeUnitControl::initStyleOption(QStyleOptionComboBox *option) const
         }
         option->currentText = text;
     }
-    else {
-        option->currentText = Time::unit_name(Time::unit());
+    else
+    {
+        option->currentText = Time::unit_name(Time::getUnit());
     }
 
     if (menu->isVisible())
+    {
         option->state |= QStyle::State_On;
+    }
 }
 
-void TimeUnitControl::menuActionTriggered(QAction * action)
+void TimeUnitControl::menuActionTriggered(QAction *action)
 {
-    QMenu * menu = qobject_cast<QMenu*>(action->parentWidget());
+    QMenu *menu = qobject_cast<QMenu*>(action->parentWidget());
     if (menu->objectName() == "timeunit_menu")
     {
         int unit = menu->actions().indexOf(action);
@@ -143,9 +154,13 @@ void TimeUnitControl::menuActionTriggered(QAction * action)
     {
         int format = menu->actions().indexOf(action);
         if (format == 1)
+        {
             Time::setFormat(Time::Advanced);
+        }
         else
+        {
             Time::setFormat(Time::Plain);
+        }
     }
 
     emit timeSettingsChanged();

@@ -1,5 +1,5 @@
-#ifndef TIMELINE_HPP_VP_2006_03_21
-#define TIMELINE_HPP_VP_2006_03_21
+#ifndef TIMELINE_H
+#define TIMELINE_H
 
 #include <QtWidgets/QWidget>
 

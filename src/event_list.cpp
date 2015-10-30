@@ -18,7 +18,7 @@ Event_list::Event_list(QWidget* parent) : QTreeView(parent), model_(0)
     header()->hide();
 }
 
-void Event_list::showEvents(Trace_model::Ptr & model, const Time & time)
+void Event_list::showEvents(TraceModelPtr & model, const Time & time)
 {
     delete model_;
     events.clear();

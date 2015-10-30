@@ -147,8 +147,8 @@ public:
         connect(setRangeShortcut, SIGNAL(activated()),
                 this, SLOT(setRange()));
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::Ptr &)),
-                this, SLOT(modelChanged(Trace_model::Ptr &)));
+        connect(canvas(), SIGNAL(modelChanged(TraceModelPtr &)),
+                this, SLOT(modelChanged(TraceModelPtr &)));
 
         modelChanged(model());
         restoreState();
@@ -207,9 +207,9 @@ public:
 
 private slots:
 
-    void modelChanged(Trace_model::Ptr & model)
+    void modelChanged(TraceModelPtr & model)
     {
-        Trace_model::Ptr root = model->root();
+        TraceModelPtr root = model->root();
 
         setStart_time->setMinimum(root->min_time());
         setRange_begin->setMinimum(root->min_time());
@@ -249,7 +249,7 @@ private slots:
         }
         else if (showAllTrace->isChecked())
         {
-            Trace_model::Ptr root = model()->root();
+            TraceModelPtr root = model()->root();
 
             canvas()->setModel(model()->set_range(
                                    root->min_time(), root->max_time()));

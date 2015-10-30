@@ -1,14 +1,13 @@
-#ifndef CANVAS_HPP_VP_2006_03_20
-#define CANVAS_HPP_VP_2006_03_20
-
-#include "trace_model.h"
-#include "trace_painter.h"
+#ifndef CANVAS_H
+#define CANVAS_H
 
 #include <QtWidgets/QScrollArea>
 #include <QPair>
 #include <QTime>
 
-#include <time_vis3.h>
+#include "trace_model.h"
+#include "trace_painter.h"
+#include "time_vis3.h"
 
 class QKeyEvent;
 
@@ -16,26 +15,26 @@ namespace vis4 {
 
 class State_model;
 
-/** Класс для показа и взаимодействия с трассой.
-
-    Показывает связанный с собой экземпляр Trace_model в виде временной
-    диаграммы, и предоставляет интерфейсы, позволяющие инструментам получать уведомления о
-    действиях пользователя и добавлять дополнительные графические объекты.
-*/
-class Canvas : public QScrollArea {
-
+/**
+ * Класс для показа и взаимодействия с трассой.
+ *
+ * Показывает связанный с собой экземпляр Trace_model в виде временной
+ * диаграммы и предоставляет интерфейсы, позволяющие инструментам получать уведомления о
+ * действиях пользователя и добавлять дополнительные графические объекты.
+ */
+class Canvas : public QScrollArea
+{
 Q_OBJECT
-
 public:
+    Canvas(QWidget *parent);
 
-    Canvas(QWidget* parent);
-
-    /** Устанавливает модель, показываемую в данный момент, и обновляет
-       объект. При всех изменениях модели, этот метод должен быть вызван явно.
-       Генерирует сигнал modelChanged.
-    */
-    void setModel(Trace_model::Ptr model);
-    Trace_model::Ptr & model() const;
+    /**
+     * Устанавливает модель, показываемую в данный момент, и обновляет
+     * объект. При всех изменениях модели, этот метод должен быть вызван явно.
+     * Генерирует сигнал modelChanged.
+     */
+    void setModel(TraceModelPtr model);
+    TraceModelPtr & model() const;
 
     void setCursor(const QCursor& c);
 
@@ -65,7 +64,7 @@ public:
     /** Добавляет новый графический элемент. Все элементы рисуются поверх собственно
         трасы. Все управление элементами должно делаться интструментами, которые их
         добавили. */
-    void addItem(class CanvasItem* item);
+    void addItem(class CanvasItem *item);
 
 public slots:
 
@@ -75,7 +74,7 @@ public slots:
 
 signals:
     /** Сигнал, генерируемый при изменении модели методом setModel. */
-    void modelChanged(Trace_model::Ptr & new_model);
+    void modelChanged(TraceModelPtr & new_model);
 
     /**
      * Сигнал, генерируемый при нажатии на какую-либо кнопку мышки.
@@ -142,9 +141,9 @@ public:
     /** If false is true, always redraw, don't suppress redraw
         if the model seem unchanged.
      */
-    void setModel(Trace_model::Ptr model, bool force = false);
+    void setModel(TraceModelPtr model, bool force = false);
 
-    Trace_model::Ptr model() const;
+    TraceModelPtr model() const;
 
     void scrolledBy(int dx, int dy);
 
@@ -182,7 +181,7 @@ private: /* QWidget overrides */
 private: /* members */
 
     Canvas* parent_;
-    Trace_model::Ptr model_;
+    TraceModelPtr model_;
     std::auto_ptr<Trace_painter> trace_painter;
     std::auto_ptr<Trace_geometry> trace_geometry;
 

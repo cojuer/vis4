@@ -1,6 +1,7 @@
 QT += xml \
     widgets \
     printsupport
+CONFIG += c++11
 LIBS = -L/usr/lib \
     -lm \
     -lotf \
@@ -25,7 +26,8 @@ SOURCES += vis4.cpp \
     checker.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
-    grx.cpp
+    grx.cpp \
+    otf_trace_data.cpp
 HEADERS += trace_model.h \
     selection.h \
     time_vis3.h \
@@ -51,6 +53,7 @@ HEADERS += trace_model.h \
     checker.h \
     tools/timeedit.h \
     tools/selection_widget.h \
-    grx.h
+    grx.h \
+    otf_trace_data.h
 RESOURCES += vis3.qrc
 OTHER_FILES += 

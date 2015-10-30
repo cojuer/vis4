@@ -1,12 +1,12 @@
-#ifndef MAIN_WINDOW_HPP_VP_20060719
-#define MAIN_WINDOW_HPP_VP_20060719
-
-#include "trace_model.h"
-#include "canvas.h"
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
 #include <QMap>
 #include <QtWidgets/QMainWindow>
 #include <QSettings>
+
+#include "trace_model.h"
+#include "canvas.h"
 
 class QAction;
 class QWidget;
@@ -25,19 +25,20 @@ class Tool;
 class Browser;
 
 
-/** Основное окно приложения.
-    Содержит панель инструментов, изображение временной диаграммы, и набор
-    пользовательских инструментов. Инструменты деляться на "управляемые" и
-    независимые.
-
-    Управляемые элементы показываются в правом sidebar, и в каждый
-    момент показывается только один инструмент. На панели инструментов есть набор
-    кнопок, переключающих между управляемыми инструментами.
-
-    Независимые инструмент -- это кнопка в отдельной области панели инструментов. Обработка
-    нажатия на это кнопку задается автором инструмента. Например, может появляться дополнительное
-    окно с графиками.
-*/
+/**
+ * Основное окно приложения.
+ * Содержит панель инструментов, изображение временной диаграммы, и набор
+ * пользовательских инструментов. Инструменты деляться на "управляемые" и
+ * независимые.
+ *
+ * Управляемые элементы показываются в правом sidebar, и в каждый
+ * момент показывается только один инструмент. На панели инструментов есть набор
+ * кнопок, переключающих между управляемыми инструментами.
+ *
+ * Независимые инструмент -- это кнопка в отдельной области панели инструментов. Обработка
+ * нажатия на это кнопку задается автором инструмента. Например, может появляться дополнительное
+ * окно с графиками.
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -51,14 +52,15 @@ public:
         but we can't call virtual methods from constructor. So,
         this method does real initialization, and will be called from
         'show', below. */
-    void initialize(Trace_model::Ptr & model);
+    void initialize(TraceModelPtr & model);
+    void initCanvas(TraceModelPtr & model);
 
     /** Preparing current path in QSettings to store settings per trace. */
     virtual void prepare_settings(QSettings& settings,
-                                  const Trace_model::Ptr & model) const;
+                                  const TraceModelPtr & model) const;
 
 protected:
-    /** Добавляет controllingWindget к списку инструментов, доступных пользователю
+    /** Добавляет controllingWidget к списку инструментов, доступных пользователю
     в sidebar. */
     void installTool(Tool* tool);
 
@@ -80,74 +82,73 @@ private:
     /** Данная функция создает набор используемых инструментов с
     помощью вызовов функций installTool, installBrowser и
     installFreestandingTool. */
-    virtual void xinitialize(QWidget* toolContainer, Canvas* canvas) = 0;
+    virtual void xinitialize(QWidget* toolContainer, Canvas* canvas) = 0;//? strange func name
 
-    void addShortcuts(QWidget* w);
+    void addShortcuts(QWidget *w);
     void moveEvent(QMoveEvent*);
     void resizeEvent(QResizeEvent*);
-    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent*);
 
-    virtual void save_model(Trace_model::Ptr & m);
-    virtual Trace_model::Ptr &
-    restore_model(Trace_model::Ptr & m);
+    virtual void save_model(TraceModelPtr & m);//? different coding styles=\
+
+    virtual TraceModelPtr & restore_model(TraceModelPtr & m);
 
     virtual void save_geometry(const QRect& rect) const;
     virtual QRect restore_geometry() const;
 
 private slots:
 
-    void activateTool(Tool * tool = 0);
+    void activateTool(Tool *tool = 0);
 
     void actionTriggered();
 
     void sidebarShowHide();
 
-    void modelChanged(Trace_model::Ptr &);
+    void modelChanged(TraceModelPtr &);
 
-    void showEvent(Event_model* event);
+    void showEvent(Event_model *event);
 
-    void showState(State_model* state);
+    void showState(State_model *state);
 
     void browse();
 
     /** Print trace on printer. */
     void actionPrint();
 
-    void mouseEvent(QEvent* event,
+    void mouseEvent(QEvent *event,
                     Canvas::clickTarget target,
                     int component,
-                    State_model* state,
+                    State_model *state,
                     const common::Time& time,
                     bool events_near);
 
-    void mouseMoveEvent(QMouseEvent* event, Canvas::clickTarget target,
+    void mouseMoveEvent(QMouseEvent *event, Canvas::clickTarget target,
                         int component, const common::Time& time);
 
     // Shows context menu with toolbar's settings
     void toolbarContextMenu(const QPoint & pos);
 
     // Handles context menu with toolbar's settings
-    void toolbarSettingsChanged(QAction * action);
+    void toolbarSettingsChanged(QAction *action);
 
     /** Resets all tools, activate browser and set focus to trace. */
     void resetView();
 
 protected:
 
-    Trace_model::Ptr model() const;
+    TraceModelPtr model() const;
 
 private:
+    Canvas *canvas;
+    Tool *currentTool;
+    QActionGroup *modeActions;
+    QAction *browse_action;
+    Browser *browser;
+    QToolBar *toolbar;
+    QDockWidget *sidebar;
+    QStackedWidget *sidebarContents;
 
-    Canvas* canvas;
-    Tool* currentTool;
-    QActionGroup* modeActions;
-    QAction* browse_action;
-    Browser* browser;
-    QToolBar* toolbar;
-    QDockWidget* sidebar;
-    QStackedWidget* sidebarContents;
-
-    QAction * actPrint;
+    QAction *actPrint;
 
     QList<QAction*> freestandingTools;
     QVector<Tool*> tools_list;

@@ -15,6 +15,7 @@
 #include <assert.h>
 
 #include <boost/enable_shared_from_this.hpp>
+#include <otf.h>
 
 #include "trace_model.h"
 #include "state_model.h"
@@ -23,8 +24,6 @@
 #include "group_model.h"
 #include "event_list.h"
 #include "grx.h"
-
-#include <otf.h>
 
 namespace vis4 {
 
@@ -39,11 +38,12 @@ typedef struct {
     uint64_t countRecv;
 } HandlerArgument;
 
-class OTF_trace_model : public Trace_model,
-                        public boost::enable_shared_from_this<OTF_trace_model>
+class OTF_trace_model : 
+    public Trace_model,
+    public boost::enable_shared_from_this<OTF_trace_model>
 {
 public: /* members */
-    typedef boost::shared_ptr<OTF_trace_model> Ptr;
+    typedef boost::shared_ptr<OTF_trace_model> OTFTraceModelPtr;//? very meaningful name
 
 public: /* methods */
     OTF_trace_model(const QString& filename);
@@ -67,29 +67,29 @@ public: /* methods */
     std::auto_ptr<Event_model> next_event_unsorted();
     std::auto_ptr<Event_model> next_event();
 
-    Trace_model::Ptr root();
-    Trace_model::Ptr set_parent_component(int component);
-    Trace_model::Ptr set_range(const Time& min, const Time& max);
+    TraceModelPtr root();
+    TraceModelPtr set_parent_component(int component);
+    TraceModelPtr set_range(const Time& min, const Time& max);
 
     const Selection & components() const;
-    Trace_model::Ptr filter_components(const Selection & filter);
+    TraceModelPtr filter_components(const Selection & filter);
 
     const Selection & events() const;
     const Selection & states() const;
     const Selection& available_states() const;
 
-    Trace_model::Ptr filter_states(const Selection & filter);
-    Trace_model::Ptr install_checker(Checker * checker);
-    Trace_model::Ptr filter_events(const Selection & filter);
+    TraceModelPtr filter_states(const Selection & filter);
+    TraceModelPtr install_checker(Checker * checker);
+    TraceModelPtr filter_events(const Selection & filter);
 
     QString save() const;
     bool groupsEnabled() const;
-    Trace_model::Ptr setGroupsEnabled(bool enabled);
+    TraceModelPtr setGroupsEnabled(bool enabled);
     void restore(const QString& s);
 
 private:    /* members */
-    OTF_FileManager* manager;
-    OTF_Reader* reader;
+    OTF_FileManager *manager;
+    OTF_Reader *reader;
 
     int parent_component_;
     Selection components_;
@@ -101,7 +101,7 @@ private:    /* members */
     Time min_time_;
     Time max_time_;
 
-    OTF_HandlerArray* handlers;
+    OTF_HandlerArray *handlers;
     HandlerArgument ha;
     uint64_t ret;
 

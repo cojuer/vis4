@@ -80,7 +80,7 @@ public:
 
     void update(Canvas* canvas)
     {
-        Trace_model::Ptr model = canvas->model();
+        TraceModelPtr model = canvas->model();
 
         startTimeLabel->setText(model->min_time().toString(true));
         endTimeLabel->setText(model->max_time().toString(true));
@@ -304,8 +304,8 @@ private:
     QWidget* details;
     bool using_default_details;
 
-    Trace_model::Ptr trace_;
-    Trace_model::Ptr filtered_;
+    TraceModelPtr trace_;
+    TraceModelPtr filtered_;
 };
 
 
@@ -358,7 +358,7 @@ public:
         infoLayout->addStretch();
     }
 
-    void update(Trace_model::Ptr model, State_model* state)
+    void update(TraceModelPtr model, State_model* state)
     {
         startTimeLabel->setText(state->begin.toString());
         endTimeLabel->setText(state->end.toString());
@@ -446,8 +446,8 @@ public:
 
         createToolbarActions();
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::Ptr &)),
-                this, SLOT(modelChanged(Trace_model::Ptr &)));
+        connect(canvas(), SIGNAL(modelChanged(TraceModelPtr &)),
+                this, SLOT(modelChanged(TraceModelPtr &)));
     }
 
     ~BrowserReal()
@@ -566,7 +566,7 @@ private:
         {
             if (model()->has_children(component) && mEvent->button() == Qt::LeftButton)
             {
-                Trace_model::Ptr new_model
+                TraceModelPtr new_model
                     = model()->set_parent_component(component);
                 canvas()->setModel(new_model);
 
@@ -638,7 +638,7 @@ private slots:
 
     void goHome()
     {
-        Trace_model::Ptr m = model();
+        TraceModelPtr m = model();
         Time delta = m->max_time() - m->min_time();
 
         Time new_min = m->root()->min_time();
@@ -648,7 +648,7 @@ private slots:
 
     void goEnd()
     {
-        Trace_model::Ptr m = model();
+        TraceModelPtr m = model();
         Time delta = m->max_time() - m->min_time();
 
         Time new_max = m->root()->max_time();
@@ -658,7 +658,7 @@ private slots:
 
     void fit()
     {
-        Trace_model::Ptr root = model()->root();
+        TraceModelPtr root = model()->root();
 
         canvas()->setModel(
             model()->set_range(root->min_time(), root->max_time()));
@@ -666,7 +666,7 @@ private slots:
 
     void goLeft()
     {
-        Trace_model::Ptr m = model();
+        TraceModelPtr m = model();
         Time delta = m->max_time() - m->min_time();
 
         Time new_min = m->min_time()-delta/4;
@@ -682,7 +682,7 @@ private slots:
 
     void goRight()
     {
-        Trace_model::Ptr m = model();
+        TraceModelPtr m = model();
         Time delta = m->max_time() - m->min_time();
 
         Time new_max = m->max_time()+delta/4;
@@ -711,7 +711,7 @@ private slots:
         }
     }
 
-    void modelChanged(Trace_model::Ptr &)
+    void modelChanged(TraceModelPtr &)
     {
         trace_info_->update(canvas());
         if (infoStack->currentWidget() == event_info_)
@@ -756,7 +756,7 @@ private:
         Time new_max = time
             + (model()->max_time() - time)*2;
 
-        Trace_model::Ptr r = model()->root();
+        TraceModelPtr r = model()->root();
         if ((new_max - new_min) >
             (r->max_time() - r->min_time()))
         {
@@ -782,8 +782,8 @@ private:
     /** Disables unavailable toolbar's actions. */
     void checkActions()
     {
-        Trace_model::Ptr m = model();
-        Trace_model::Ptr r = model()->root();
+        TraceModelPtr m = model();
+        TraceModelPtr r = model()->root();
 
         bool min_time = m->min_time() == r->min_time();
         startAction->setEnabled(!min_time);

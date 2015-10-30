@@ -46,7 +46,7 @@ public: /* methods */
 
     virtual bool isReady() const = 0;
 
-    virtual void setModel(const Trace_model::Ptr & model) = 0;
+    virtual void setModel(const TraceModelPtr & model) = 0;
 
 private: /* methods */
 

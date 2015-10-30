@@ -127,7 +127,7 @@ Trace_painter::~Trace_painter()
 
 #define NP if (!printer_flag)
 
-void Trace_painter::setModel(Trace_model::Ptr & model_)
+void Trace_painter::setModel(TraceModelPtr & model_)
 {
     Q_ASSERT(model_.get());
     model = model_;
@@ -395,7 +395,7 @@ void Trace_painter::drawPage(int i, int j)
     if (max_time > model->max_time()) max_time = model->max_time();
 
     // FIXME: this temporary change of model is ugly.
-    Trace_model::Ptr saved_model = model;
+    TraceModelPtr saved_model = model;
     model = model->set_range(min_time, max_time);
 
     if (i == 0) left_margin = left_margin1;

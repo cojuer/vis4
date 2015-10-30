@@ -1,5 +1,5 @@
-#ifndef TIMEUNIT_CONTROL_HPP
-#define TIMEUNIT_CONTROL_HPP
+#ifndef TIMEUNIT_CONTROL_H
+#define TIMEUNIT_CONTROL_H
 
 #include <QtWidgets/QWidget>
 
@@ -7,40 +7,27 @@ class QStyleOptionComboBox;
 class QMenu;
 
 namespace vis4 {
-    namespace common {
+namespace common {
 
-/** Class for dislpay and change time unit and format settings. */
+/**
+ * Widget that displays and controls unit and format settings.
+ */
 class TimeUnitControl : public QWidget
 {
-
     Q_OBJECT
-
 public: /* methods */
-
-    TimeUnitControl(QWidget * parent);
-
+    TimeUnitControl(QWidget *parent);
     QSize sizeHint() const;
-
 signals:
-
     void timeSettingsChanged();
-
 protected: /* methods */
-
-    void paintEvent(QPaintEvent * event);
-
-    void mousePressEvent(QMouseEvent *e);
-
+    void paintEvent(QPaintEvent *event);
+    void mousePressEvent(QMouseEvent *event);
     void initStyleOption(QStyleOptionComboBox *option) const;
-
 private slots:
-
     void menuActionTriggered(QAction * action);
-
 private: /* members */
-
-    QMenu * menu;
-
+    QMenu *menu;
 };
 
 }} // namespaces

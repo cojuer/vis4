@@ -1,5 +1,5 @@
-#ifndef TRACE_PAINTER_HPP_VP_2006_10_08
-#define TRACE_PAINTER_HPP_VP_2006_10_08
+#ifndef TRACE_PAINTER_H
+#define TRACE_PAINTER_H
 
 #include "time_vis3.h"
 

@@ -40,7 +40,7 @@ public: /* methods */
 
     virtual bool findNext() = 0;
 
-    virtual void setModel(Trace_model::Ptr &) = 0;
+    virtual void setModel(TraceModelPtr &) = 0;
 
     virtual bool isSearchAllowed() = 0;
 
@@ -74,7 +74,7 @@ public: /* methods */
 
     bool findNext();
 
-    void setModel(Trace_model::Ptr & model);
+    void setModel(TraceModelPtr & model);
 
     bool isSearchAllowed();
 
@@ -93,8 +93,8 @@ private slots:
 private: /* widgets */
 
     common::SelectionWidget * selector_;
-    Trace_model::Ptr model_;
-    Trace_model::Ptr filtered_model_;
+    TraceModelPtr model_;
+    TraceModelPtr filtered_model_;
 
 };
 
@@ -114,7 +114,7 @@ public: /* methods */
 
     bool findNext();
 
-    void setModel(Trace_model::Ptr & model);
+    void setModel(TraceModelPtr & model);
 
     bool isSearchAllowed();
 
@@ -133,8 +133,8 @@ private slots:
 private: /* widgets */
 
     common::SelectionWidget * selector_;
-    Trace_model::Ptr model_;
-    Trace_model::Ptr filtered_model_;
+    TraceModelPtr model_;
+    TraceModelPtr filtered_model_;
 
 };
 
@@ -154,7 +154,7 @@ public: /* methods */
 
     bool findNext();
 
-    void setModel(Trace_model::Ptr & model);
+    void setModel(TraceModelPtr & model);
 
     bool isSearchAllowed();
 
@@ -181,8 +181,8 @@ private slots:
 
 private: /* widgets */
 
-    Trace_model::Ptr model_;
-    Trace_model::Ptr model_with_checker;
+    TraceModelPtr model_;
+    TraceModelPtr model_with_checker;
 
     QList<pChecker> checkers;
     Checker * active_checker;

@@ -1,5 +1,5 @@
-#ifndef SELECTION_HPP
-#define SELECTION_HPP
+#ifndef SELECTION_H
+#define SELECTION_H
 
 #include <QVector>
 #include <QList>
@@ -9,8 +9,10 @@
 namespace vis4 {
     namespace common {
 
-/** Class implements support for containing and filtering
-   a set of items. Items may be placed in hierarchy. */
+/**
+ * Class implements support for containing and filtering
+ * a set of items. Items may be placed in hierarchy.
+ */
 class Selection {
 
 public: /* static constants */

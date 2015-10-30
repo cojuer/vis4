@@ -65,7 +65,7 @@ bool FindEventsTab::findNext()
     return false;
 }
 
-void FindEventsTab::setModel(Trace_model::Ptr & model)
+void FindEventsTab::setModel(TraceModelPtr & model)
 {
     if (model_.get())
     {
@@ -159,7 +159,7 @@ bool FindStatesTab::findNext()
     }
 }
 
-void FindStatesTab::setModel(Trace_model::Ptr & model)
+void FindStatesTab::setModel(TraceModelPtr & model)
 {
     if (model_.get())
     {
@@ -308,7 +308,7 @@ bool FindQueryTab::findNext()
     return false;
 }
 
-void FindQueryTab::setModel(Trace_model::Ptr & model)
+void FindQueryTab::setModel(TraceModelPtr & model)
 {
     if (checkers.isEmpty()) return;
 

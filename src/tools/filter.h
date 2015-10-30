@@ -80,8 +80,8 @@ public:
         connect(states, SIGNAL( selectionChanged(const vis4::common::Selection &) ),
                 this, SLOT(filtersChanged()));
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::Ptr &)),
-                this, SLOT(modelChanged(Trace_model::Ptr &)));
+        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
+                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
 
         modelChanged(model());
         restoreState();
@@ -158,7 +158,7 @@ private: /* methods */
 
 private slots:
 
-    void modelChanged(Trace_model::Ptr & model)
+    void modelChanged(TraceModelPtr & model)
     {
         components->initialize(model->components());
         events->initialize(model->events());
@@ -169,7 +169,7 @@ private slots:
 
     void filtersChanged()
     {
-        Trace_model::Ptr filtered = model();
+        TraceModelPtr filtered = model();
 
         if (sender() == components || !sender())
             filtered = filtered->filter_components(components->selection());
@@ -191,7 +191,7 @@ private slots:
         if (!model()->components().hasChildren(component))
             component = model()->components().itemParent(component);
 
-        Trace_model::Ptr m =
+        TraceModelPtr m =
             model()->set_parent_component(component);
         canvas()->setModel(m);
     }

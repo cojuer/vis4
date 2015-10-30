@@ -1,12 +1,12 @@
-#include "tool.h"
-#include "canvas.h"
-#include "trace_model.h"
-#include "main_window.h"
-
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
 #include <QKeyEvent>
+
+#include "tool.h"
+#include "canvas.h"
+#include "trace_model.h"
+#include "main_window.h"
 
 namespace vis4 {
 

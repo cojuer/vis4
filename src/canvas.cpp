@@ -48,7 +48,7 @@ Canvas::Canvas(QWidget* parent)
         this, SLOT( timeSettingsChanged() ) );
 }
 
-void Canvas::setModel(Trace_model::Ptr model)
+void Canvas::setModel(TraceModelPtr model)
 {
     /* Optimization: don't do anything if the model
        is the same. Can happen, for example, when trying
@@ -64,7 +64,7 @@ void Canvas::setModel(Trace_model::Ptr model)
     }
 }
 
-Trace_model::Ptr & Canvas::model() const
+TraceModelPtr & Canvas::model() const
 {
     return contents_->model_;
 }
@@ -76,7 +76,7 @@ void Canvas::timeSettingsChanged()
     emit modelChanged(model());
 
     QSettings settings;
-    settings.setValue("time_unit", Time::unit_name(Time::unit()));
+    settings.setValue("time_unit", Time::unit_name(Time::getUnit()));
     if (Time::format() == Time::Advanced)
         settings.setValue("time_format", "separated");
     else
@@ -121,8 +121,8 @@ QPair<Time, Time> Canvas::nearby_range(const Time& time)
     Trace_painter *tp = contents_->trace_painter.get();
     int pixel = tp->pixelPositionForTime(time);
 
-    return qMakePair(tp->timeForPixel(pixel-20),
-                     tp->timeForPixel(pixel+20));
+    return qMakePair(tp->timeForPixel(pixel - 20),
+                     tp->timeForPixel(pixel + 20));
 }
 
 void Canvas::scrollContentsBy(int dx, int dy)
@@ -188,9 +188,12 @@ void Canvas::setPortableDrawing(bool p)
     contents_->portable_drawing = p;
 }
 
-Contents_widget::Contents_widget(Canvas* parent)
-: QWidget(parent), parent_(parent), paintBuffer(0),
-  portable_drawing(false), visir_position((unsigned)-1)
+Contents_widget::Contents_widget(Canvas* parent) : 
+    QWidget(parent), 
+    parent_(parent), 
+    paintBuffer(0),
+    portable_drawing(false), 
+    visir_position((unsigned)-1)//? what?
 {
     setAttribute(Qt::WA_OpaquePaintEvent, true);
     setAttribute(Qt::WA_NoSystemBackground, true);
@@ -214,7 +217,7 @@ Contents_widget::Contents_widget(Canvas* parent)
     setMouseTracking(true);
 }
 
-void Contents_widget::setModel(Trace_model::Ptr model, bool force)
+void Contents_widget::setModel(TraceModelPtr model, bool force)
 {
     Q_ASSERT(model.get() != 0);
 
@@ -257,7 +260,7 @@ void Contents_widget::setModel(Trace_model::Ptr model, bool force)
     QApplication::restoreOverrideCursor();
 }
 
-Trace_model::Ptr Contents_widget::model() const
+TraceModelPtr Contents_widget::model() const
 {
     return model_;
 }

@@ -41,7 +41,7 @@ public:
         {
             r.adjust(-2, -2, 2, 2);
         }
-        new_geomerty(r);
+        new_geometry(r);
     }
 
     QRect rect() const
@@ -230,8 +230,8 @@ public:
         highlight = new Found_item_highlight;
         canvas()->addItem(highlight);
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::Ptr &)),
-                this, SLOT(modelChanged(Trace_model::Ptr &)));
+        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
+                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
 
         connect(this, SIGNAL( messageBox(const QString &) ),
             this, SLOT(showMessageBox(const QString &)), Qt::QueuedConnection);
@@ -347,7 +347,7 @@ private: /* methods */
        If some model was previously used to populate the
        combo, try to select the same component that was selected
        previously.  */
-    void updateComponentList(Trace_model::Ptr & model)
+    void updateComponentList(TraceModelPtr & model)
     {
         componentList->blockSignals(true);
         int currentlySelected = componentList->currentIndex();
@@ -564,7 +564,7 @@ private slots:
         resetSearch(true);
     }
 
-    void modelChanged(Trace_model::Ptr & model)
+    void modelChanged(TraceModelPtr & model)
     {
         bool need_reset = false;
 
@@ -671,8 +671,8 @@ private: /* memebers */
 
     QAction* findAction;
 
-    Trace_model::Ptr base_model;
-    Trace_model::Ptr model_;
+    TraceModelPtr base_model;
+    TraceModelPtr model_;
 
     bool nothing_yet;
 

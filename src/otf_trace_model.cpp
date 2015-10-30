@@ -1,27 +1,27 @@
-#include "otf_trace_model.h"
 #include <QDebug>
-
 #include <OTF_RBuffer.h>
+
+#include "otf_trace_model.h"
 
 namespace vis4 {
 
     using namespace common;
 
-    OTF_trace_model:: OTF_trace_model(const QString& filename)
-        : min_time_(getTime(0))
+    OTF_trace_model::OTF_trace_model(const QString& filename) :
+        min_time_(getTime(0))
     {
         states_.clear();
 
         ha = (HandlerArgument){ 0 /* count */, parent_component_ /*parent */, &components_ /*components*/, 0, 0};
 
-        manager= OTF_FileManager_open( 100 );
+        manager = OTF_FileManager_open(100);//? what if > 100?
         assert( manager );
 
         initialize();
         max_time_ = getTime(100);
 
         handlers = OTF_HandlerArray_open();
-        assert( handlers );
+        assert(handlers);
 
         /* processes */
         OTF_HandlerArray_setHandler( handlers, (OTF_FunctionPointer*) handleDefProcessGroup, OTF_DEFPROCESSGROUP_RECORD );
@@ -61,13 +61,13 @@ namespace vis4 {
 
         initialize_component_list();
 
-        reader = OTF_Reader_open( filename.toLatin1().data(), manager );  // hello_world
-        assert( reader );
+        reader = OTF_Reader_open( filename.toLatin1().data(), manager );
+        assert(reader);
 
-        // чтение определений и обработка их обработчикоми handlers
+        // я┤я┌п╣п╫п╦п╣ п╬п©я─п╣п╢п╣п╩п╣п╫п╦п╧ п╦ п╬п╠я─п╟п╠п╬я┌п╨п╟ п╦я┘ п╬п╠я─п╟п╠п╬я┌я┤п╦п╨п╬п╪п╦ handlers
         ret = OTF_Reader_readDefinitions( reader, handlers );
 
-        // чтение событий Events
+        // я┤я┌п╣п╫п╦п╣ я│п╬п╠я▀я┌п╦п╧ Events
         OTF_Reader_setRecordLimit(reader, 1);
         OTF_Reader_readEvents( reader, handlers);
         OTF_Reader_setRecordLimit(reader, 3);
@@ -77,15 +77,7 @@ namespace vis4 {
         qDebug() << "countSend=" << ha.countSend << " countRecv=" << ha.countRecv;
     }
 
-    OTF_trace_model::~OTF_trace_model()
-    {
-        /*
-        OTF_Reader_close( reader );
-        OTF_HandlerArray_close( handlers );
-        OTF_FileManager_close( manager );
-        */
-    }
-
+    OTF_trace_model::~OTF_trace_model() {}
 
     void OTF_trace_model:: initialize_component_list()
     {
@@ -193,7 +185,7 @@ namespace vis4 {
 
     std::auto_ptr<State_model> OTF_trace_model::next_state()
     {
-        for(;;)
+        for(;;)//? wow, so predictable
         {
             findNextItem("states");
 
@@ -359,9 +351,9 @@ namespace vis4 {
         }
     }
 
-    Trace_model::Ptr OTF_trace_model::root()
+    TraceModelPtr OTF_trace_model::root()
     {
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->currentElement = root_;
         n->parent_component_ = Selection::ROOT;
 
@@ -382,7 +374,7 @@ namespace vis4 {
         return n;
     }
 
-    Trace_model::Ptr OTF_trace_model::set_parent_component(int component)
+    TraceModelPtr OTF_trace_model::set_parent_component(int component)
     {
         
         if (parent_component_ == component)
@@ -390,7 +382,7 @@ namespace vis4 {
 
         if (component == Selection::ROOT)
         {
-            OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+            OTFTraceModelPtr n(new OTF_trace_model(*this));
             n->currentElement = root_;
             n->parent_component_ = Selection::ROOT;
             n->adjust_components();
@@ -399,7 +391,7 @@ namespace vis4 {
 
         if (component == components_.itemParent(parent_component_))
         {
-            OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+            OTFTraceModelPtr n(new OTF_trace_model(*this));
             n->currentElement = currentElement.parentNode().toElement();
             n->parent_component_ = component;
             n->adjust_components();
@@ -408,7 +400,7 @@ namespace vis4 {
 
         if (components_.itemParent(component) == parent_component_)
         {
-            OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+            OTFTraceModelPtr n(new OTF_trace_model(*this));
 
             QDomNodeList subcomponents = currentElement.childNodes();
             n->currentElement = subcomponents.at(components_.itemIndex(component)).toElement();
@@ -418,7 +410,7 @@ namespace vis4 {
             return n;
         }
 
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
 
         QList<int> parents; parents << component;
         while (parents.front() != component)
@@ -439,9 +431,9 @@ namespace vis4 {
         return n;
     }
 
-    Trace_model::Ptr OTF_trace_model::set_range(const Time& min, const Time& max)
+    TraceModelPtr OTF_trace_model::set_range(const Time& min, const Time& max)
     {
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->min_time_ = min;
         n->max_time_ = max;
         return n;
@@ -452,9 +444,9 @@ namespace vis4 {
         return components_;
     }
 
-    Trace_model::Ptr OTF_trace_model::filter_components(const Selection & filter)
+    TraceModelPtr OTF_trace_model::filter_components(const Selection & filter)
     {
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->components_ = filter;
         n->adjust_components();
         return n;
@@ -475,22 +467,22 @@ namespace vis4 {
         return available_states_;
     }
 
-    Trace_model::Ptr OTF_trace_model::filter_states(const Selection & filter)
+    TraceModelPtr OTF_trace_model::filter_states(const Selection & filter)
     {
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->states_ = filter;
         //n->adjust_components();
         return n;
     }
 
-    Trace_model::Ptr OTF_trace_model::install_checker(Checker * checker)
+    TraceModelPtr OTF_trace_model::install_checker(Checker * checker)
     {
         return shared_from_this();
     }
 
-    Trace_model::Ptr OTF_trace_model::filter_events(const Selection & filter)
+    TraceModelPtr OTF_trace_model::filter_events(const Selection & filter)
     {
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->events_ = filter;
         return n;
     }
@@ -515,11 +507,11 @@ namespace vis4 {
         return groups_enabled_;
     }
 
-    Trace_model::Ptr OTF_trace_model::setGroupsEnabled(bool enabled)
+    TraceModelPtr OTF_trace_model::setGroupsEnabled(bool enabled)
     {
         if (groups_enabled_ == enabled) return shared_from_this();
 
-        OTF_trace_model::Ptr n(new OTF_trace_model(*this));
+        OTFTraceModelPtr n(new OTF_trace_model(*this));
         n->groups_enabled_ = enabled;
         return n;
     }
@@ -556,7 +548,7 @@ namespace vis4 {
 
     Time OTF_trace_model::getTime(int t) const
     {
-        return scalar_time<int>(t);
+        return scalarTime<int>(t);
     }
 
 

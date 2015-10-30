@@ -38,7 +38,7 @@ public:
     void setShown(bool shown)
     {
         shown_ = shown;
-        new_geomerty(pdraw(0));
+        new_geometry(pdraw(0));
     }
 
 private: // CanvasItem override
@@ -119,7 +119,7 @@ private: // CanvasItem override
 
     void refresh()
     {
-        new_geomerty(pdraw(0));
+        new_geometry(pdraw(0));
     }
 
 
@@ -129,7 +129,7 @@ private:
     friend class Measure;
 
 public:
-    using CanvasItem::new_geomerty;
+    using CanvasItem::new_geometry;
 };
 
 class Measure_point_display : public QGroupBox
@@ -176,7 +176,7 @@ public:
     }
 
     void setPoint(int component, const Time &time,
-                  Trace_model::Ptr model,
+                  TraceModelPtr model,
                   Canvas* canvas)
     {
         this->time = time;
@@ -195,7 +195,7 @@ public:
 
         QPair<Time, Time> nearby = canvas->nearby_range(time);
 
-        Trace_model::Ptr filtered_ =
+        TraceModelPtr filtered_ =
             model->set_range(nearby.first, nearby.second);
         filtered_ = filtered_->filter_components(component_filter);
 
@@ -295,8 +295,8 @@ public:
         distanceLabel = new QLabel("", distanceGroup);
         distanceLayout->addWidget(distanceLabel);
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::Ptr &)),
-                this, SLOT(modelChanged(Trace_model::Ptr &)));
+        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
+                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
 
         connect(pointA, SIGNAL(eventSelected(const Time&)),
                 this, SLOT(eventSelected(const Time&)));
@@ -459,7 +459,7 @@ private slots:
         updateView(true /* snapped */);
     }
 
-    void modelChanged(Trace_model::Ptr & model)
+    void modelChanged(TraceModelPtr & model)
     {
         int d = delta(*model.get(), *model_.get());
         if (d & Trace_model_delta::component_position ||
@@ -500,7 +500,7 @@ private:
     Time time_a;
     Time time_b;
 
-    Trace_model::Ptr model_;
+    TraceModelPtr model_;
 };
 
 
