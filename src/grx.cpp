@@ -1,16 +1,13 @@
-#include "grx.h"
-
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-//#include <tree.h>
-//#include "/vasya/libxml2/include/libxml/tree.h"
-//#include "/vasya/libxml2/include/libxml/parse.h"
-
-
 #include <algorithm>
 #include <list>
 #include <sstream>
 #include <fstream>
+
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+
+#include "grx.h"
+
 using namespace std;
 
 const ComponentTree::Link ComponentTree::ROOT;

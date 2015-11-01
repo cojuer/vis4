@@ -7,7 +7,6 @@
 #include <QHash>
 
 namespace vis4 {
-    namespace common {
 
 /**
  * Class implements support for containing and filtering
@@ -83,6 +82,6 @@ private: /* members */
 
 };
 
-}} // namespaces
+} // namespaces
 
 #endif

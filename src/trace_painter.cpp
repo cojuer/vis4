@@ -17,12 +17,10 @@ unsigned int qHash(const std::pair< std::pair<int, int>, std::pair<int, int> >& 
 
 namespace {
 
-unsigned joaat_hash (const unsigned char *key, size_t len)
+unsigned joaat_hash (const unsigned char* key, size_t len)
 {
      unsigned hash = 0;
-     size_t i;
-
-     for (i = 0; i < len; i++)
+     for (size_t i = 0; i < len; ++i)
      {
          hash += key[i];
          hash += (hash << 10);
@@ -62,9 +60,6 @@ namespace vis4 {
 
 using std::vector;
 using std::pair;
-
-using common::Time;
-using common::Selection;
 
 Trace_painter::Trace_painter()
     : right_margin(5), painter(0), tg(0), state_(Ready)
@@ -107,15 +102,15 @@ Trace_painter::Trace_painter()
 	if (!settings.contains("component_externals"))
 		settings.setValue("component_externals", "#F87C7C");
 
-    componentLabelColors.insert(Trace_model::RCHM,
+    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::RCHM),
         settings.value("component_rchm").toString());
-    componentLabelColors.insert(Trace_model::CHM,
+    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::CHM),
         settings.value("component_chm").toString());
-    componentLabelColors.insert(Trace_model::CHANNEL,
+    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::CHANNEL),
         settings.value("component_channel").toString());
-    componentLabelColors.insert(Trace_model::INTERFACE,
+    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::INTERFACE),
         settings.value("component_interface").toString());
-    componentLabelColors.insert(Trace_model::EXTERNAL_OBJECTS,
+    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::EXTERNAL_OBJECTS),
         settings.value("component_externals").toString());
 
 }
@@ -470,7 +465,7 @@ NP  {
 
 DL      {
             // Set background color for current component type
-            painter->setBrush(componentLabelColors[model->component_type(parent)]);
+            painter->setBrush(componentLabelColors[static_cast<int>(model->component_type(parent))]);
 
             QString parent_name = model->component_name(model->parent_component());
             QRect r = drawTextBox(parent_name, painter,
@@ -502,7 +497,7 @@ NP          tg->componentlabel_rects.push_back(qMakePair(r, parent));
             QString name = model->component_name(component);
 
             // Set background color for current component type
-            painter->setBrush(componentLabelColors[model->component_type(component)]);
+            painter->setBrush(componentLabelColors[static_cast<int>(model->component_type(component))]);
 
 DL          if (composite)
             {

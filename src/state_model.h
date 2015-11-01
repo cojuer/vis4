@@ -1,22 +1,21 @@
-#ifndef STATE_MODEL_HPP_VP_2006_03_21
-#define STATE_MODEL_HPP_VP_2006_03_21
-
-#include "time_vis3.h"
+#ifndef STATE_MODEL_H
+#define STATE_MODEL_H
 
 #include <QString>
 #include <QColor>
 
+#include "time_vis3.h"
+
 namespace vis4 {
 
-/** Описание состояния для целей визуализации. */
+/**
+ * State description for visualization purposes.
+ */
 class State_model
 {
 public:
-    /** Начальное время состояния. */
-    common::Time begin;
-
-    /** Конечное время состояния. */
-    common::Time end;
+    Time begin;
+    Time end;
 
     /** State id. Link to state in Trace_model::states(). */
     int type;

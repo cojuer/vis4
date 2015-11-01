@@ -10,45 +10,51 @@
 
 namespace vis4 {
 
-Tool::Tool(QWidget* parent, Canvas* canvas)
-    : QWidget(parent), canvas_(canvas), action_(0)
+Tool::Tool(QWidget* parentPtr, Canvas* canvasPtr) :
+    QWidget(parentPtr),
+    canvasPtr(canvasPtr),
+    actionPtr(nullptr)
 {
-    mainWnd_ = dynamic_cast<MainWindow*>(canvas_->parent());
+    //? this can fail if canVasPtr->parent() will not be main window
+    mainWindowPtr = dynamic_cast<MainWindow*>(canvasPtr->parent());
 }
 
 boost::shared_ptr<Trace_model>& Tool::model() const
 {
-    return canvas_->model();
+    return canvasPtr->model();
 }
 
-QAction* Tool::action()
+QAction* Tool::getAction()
 {
-    if (!action_)
-        action_ = createAction();
-    return action_;
-}
-
-void Tool::prepare_settings(QSettings & settings) const
-{
-    assert(mainWnd_ != 0);
-    mainWnd_->prepare_settings(settings, model());
-}
-
-bool Tool::event(QEvent * event)
-{
-    if (event->type() == QEvent::ShortcutOverride)
+    if (actionPtr == nullptr)
     {
-        QKeyEvent * keyEvent = static_cast<QKeyEvent*>(event);
-        switch(keyEvent->key()) {
+        actionPtr = createAction();
+    }
+    return actionPtr;
+}
+
+void Tool::prepareSettings(QSettings& settings) const
+{
+    assert(mainWindowPtr != 0);
+    mainWindowPtr->prepare_settings(settings, model());
+}
+
+bool Tool::event(QEvent* eventPtr)
+{
+    if (eventPtr->type() == QEvent::ShortcutOverride)
+    {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(eventPtr);
+        switch(keyEvent->key())
+        {
             case Qt::Key_Left:
             case Qt::Key_Right:
             case Qt::Key_Up:
             case Qt::Key_Down:
-                event->accept();
+                eventPtr->accept();
         }
     }
 
-    return QWidget::event(event);
+    return QWidget::event(eventPtr);
 }
 
 }

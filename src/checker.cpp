@@ -1,4 +1,3 @@
-
 #include "checker.h"
 
 namespace vis4 {

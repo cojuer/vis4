@@ -1,11 +1,3 @@
-#include "tool.h"
-
-#include "trace_model.h"
-#include "event_model.h"
-#include "state_model.h"
-#include "canvas.h"
-#include "event_list.h"
-
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QSplitter>
@@ -21,23 +13,35 @@
 #include <QCoreApplication>
 #include <QSettings>
 
+#include "tool.h"
+#include "trace_model.h"
+#include "event_model.h"
+#include "state_model.h"
+#include "canvas.h"
+#include "event_list.h"
+
 namespace vis4 {
 
-using common::Time;
-using common::Selection;
-
+/**
+ * Tool that shows trace information, for example, start time, end time,
+ * number of components and number of event types.
+ */
 class Browser_trace_info : public QGroupBox
 {
     Q_OBJECT
 public:
-    Browser_trace_info(QWidget* parent)
-    : QGroupBox(tr("Trace information"), parent)
+    /**
+     * Initialization of widgets.
+     */
+    Browser_trace_info(QWidget* parent) :
+        QGroupBox(tr("Trace information"), parent)
     {
         QVBoxLayout* infoLayout = new QVBoxLayout(this);
         QPalette grayLinePalette = QLineEdit().palette();
         grayLinePalette.setColor(QPalette::Active, QPalette::Base,  Qt::transparent);
         grayLinePalette.setColor(QPalette::Disabled, QPalette::Base,  Qt::transparent);
         grayLinePalette.setColor(QPalette::Inactive, QPalette::Base,  Qt::transparent);
+
         infoLayout->addWidget(new QLabel(tr("Start:"), this));
         startTimeLabel = new QLineEdit(this);
         startTimeLabel->setPalette(grayLinePalette);
@@ -67,25 +71,19 @@ public:
         infoLayout->addWidget(eventsLabel);
 
         infoLayout->addStretch();
-
-#if 0
-        QToolButton* copy = new QToolButton(this);
-        copy->setIconSize(QSize(32, 32));
-        copy->setToolTip("Copy trace info to clipboard");
-        copy->setIcon(QIcon(":/editcopy.png"));
-        infoLayout->addWidget(copy, 4, 0);
-#endif
-
     }
 
-    void update(Canvas* canvas)
+    /**
+     * Updates information widgets, using model from the canvas.
+     */
+    void update(Canvas* canvasPtr)
     {
-        TraceModelPtr model = canvas->model();
+        TraceModelPtr model = canvasPtr->model();
 
         startTimeLabel->setText(model->min_time().toString(true));
         endTimeLabel->setText(model->max_time().toString(true));
 
-        const Selection & comp_selection = model->components();
+        const Selection& comp_selection = model->components();
         int parent_component = model->parent_component();
 
         int visible_components = comp_selection.enabledCount(parent_component);
@@ -109,25 +107,21 @@ public:
         }
         eventsLabel->setText(events);
     }
-
-
-
 private:
-    QLineEdit * startTimeLabel;
-    QLineEdit * endTimeLabel;
-    QLineEdit * componentsLabel;
-    QLineEdit * eventsLabel;
-
+    QLineEdit* startTimeLabel;
+    QLineEdit* endTimeLabel;
+    QLineEdit* componentsLabel;
+    QLineEdit* eventsLabel;
 };
-
 
 class Browser_event_info : public QGroupBox
 {
     Q_OBJECT
 public:
-    Browser_event_info(QWidget* parent)
-    : QGroupBox(tr("Event information"), parent),
-      nameLabel(0), using_default_details(false)
+    Browser_event_info(QWidget* parent) : 
+        QGroupBox(tr("Event information"), parent),
+        nameLabel(0), 
+        using_default_details(false)
     {
         mainLayout = new QVBoxLayout(this);
         splitter = new QSplitter(Qt::Vertical ,this);
@@ -138,22 +132,24 @@ public:
            size policies on event list and details widget don't work
            -- both widgets get equal size.  */
         splitter->addWidget(eventList);
-        connect(eventList, SIGNAL(currentEventChanged(Event_model*)),
-                this, SLOT(currentEventChanged(Event_model*)));
+        connect(eventList, SIGNAL(currentEventChanged(Event_model*)), this, 
+                           SLOT(currentEventChanged(Event_model*)));
 
         details = new QWidget(this);
         splitter->addWidget(details);
 
         mainLayout->addWidget(splitter);
-        connect(splitter, SIGNAL( splitterMoved(int, int) ),
-            this, SLOT( slotSplitterMoved() ));
+        connect(splitter, SIGNAL( splitterMoved(int, int) ), this, 
+                          SLOT( slotSplitterMoved() ));
 
         QList<int> s = restore_splitter_state();
         if (!s.isEmpty())
+        {
             splitter->setSizes(s);
+        }
     }
 
-    void showEvent(Canvas * canvas, Event_model* event)
+    void showEvent(Canvas *canvas, Event_model *event)
     {
         // We block signals to permit flicker effect
         eventList->blockSignals(true);
@@ -165,7 +161,7 @@ public:
         currentEventChanged(event);
     }
 
-    void update(Canvas * canvas, int component, const Time & time)
+    void update(Canvas *canvas, int component, const Time &time)
     {
         trace_ = canvas->model();
         int parent_component = trace_->parent_component();
@@ -184,8 +180,11 @@ public:
         eventList->showEvents(filtered_, time);
 
         if (eventList->model()->rowCount() == 1)
+        {
             eventList->hide();
-        else {
+        }
+        else 
+        {
             eventList->show();
             eventList->setFocus(Qt::OtherFocusReason);
         }
@@ -199,11 +198,13 @@ public:
     }
 
 private slots:
-
-    void currentEventChanged(Event_model* event)
+    void currentEventChanged(Event_model *event)
     {
         if (!event)
-            { details->hide(); return; }
+        {
+            details->hide(); 
+            return;
+        }
 
         if (event->customDetailsWidget())
         {
@@ -263,19 +264,23 @@ private slots:
 
 private:
 
-    void deleteAllChildren(QWidget* w)
+    void deleteAllChildren(QWidget *widget)
     {
-        const QObjectList& obj = w->children();
+        const QObjectList& obj = widget->children();
         for (int i = 0; i < obj.size(); ++i)
+        {
             delete obj[i];
+        }
     }
 
-    void save_splitter_state(const QList<int> & sizes) const
+    void save_splitter_state(const QList<int> &sizes) const
     {
         QList<QVariant> s;
         QListIterator<int> it(sizes);
         while (it.hasNext())
+        {
             s << it.next();
+        }
 
         QSettings settings;
         settings.beginGroup("browser_tool");
@@ -290,7 +295,9 @@ private:
         QList<int> sizes;
         QListIterator<QVariant> it(settings.value("event_info_geometry").toList());
         while (it.hasNext())
+        {
             sizes << it.next().toInt();
+        }
 
         return sizes;
     }
@@ -308,14 +315,12 @@ private:
     TraceModelPtr filtered_;
 };
 
-
-
 class Browser_state_info : public QGroupBox
 {
     Q_OBJECT
 public:
-    Browser_state_info(QWidget* parent)
-    : QGroupBox(tr("State information"), parent)
+    Browser_state_info(QWidget* parent) :
+        QGroupBox(tr("State information"), parent)
     {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
@@ -378,27 +383,22 @@ public:
     }
 
 private:
-    QLineEdit * nameLabel;
-    QLineEdit * startTimeLabel;
-    QLineEdit * endTimeLabel;
-    QLineEdit * durationLabel;
+    QLineEdit* nameLabel;
+    QLineEdit* startTimeLabel;
+    QLineEdit* endTimeLabel;
+    QLineEdit* durationLabel;
 
     Time state_begin;
     Time state_end;
 };
 
-
-Browser::Browser(QWidget* parent, Canvas* c)
-: Tool(parent, c)
-{}
-
-
 class BrowserReal : public Browser
 {
     Q_OBJECT
 public:
-    BrowserReal(QWidget* parent, Canvas* c)
-    : Browser(parent, c), active_(false)
+    BrowserReal(QWidget* parent, Canvas* c) :
+        Browser(parent, c),
+        active_(false)
     {
         setObjectName("browser");
         setWindowTitle(tr("Browse trace"));
@@ -446,7 +446,7 @@ public:
 
         createToolbarActions();
 
-        connect(canvas(), SIGNAL(modelChanged(TraceModelPtr &)),
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModelPtr &)),
                 this, SLOT(modelChanged(TraceModelPtr &)));
     }
 
@@ -515,7 +515,7 @@ public:
 
     void activate()
     {
-        trace_info_->update(canvas());
+        trace_info_->update(getCanvas());
         active_ = true;
     }
 
@@ -528,7 +528,7 @@ public:
     void doShowEvent(Event_model* event)
     {
         infoStack->setCurrentWidget(event_info_);
-        event_info_->showEvent(canvas(), event);
+        event_info_->showEvent(getCanvas(), event);
     }
 
     void doShowState(State_model* state)
@@ -540,7 +540,7 @@ public:
 
 private:
 
-    bool event(QEvent * event)
+    bool event(QEvent* event)
     {
         if (event->type() == QEvent::ShortcutOverride)
             return false;
@@ -568,7 +568,7 @@ private:
             {
                 TraceModelPtr new_model
                     = model()->set_parent_component(component);
-                canvas()->setModel(new_model);
+                getCanvas()->setModel(new_model);
 
                 result = true;
             }
@@ -591,7 +591,7 @@ private:
             {
                 if(events_near)
                 {
-                    event_info_->update(canvas(), component, time);
+                    event_info_->update(getCanvas(), component, time);
                     infoStack->setCurrentWidget(event_info_);
                     emit activateMe();
                 }
@@ -616,15 +616,15 @@ private:
     {
         if (target == Canvas::componentClicked)
         {
-            canvas()->setCursor(Qt::PointingHandCursor);
+            getCanvas()->setCursor(Qt::PointingHandCursor);
         }
         else if (target == Canvas::stateClicked && active_)
         {
-            canvas()->setCursor(Qt::PointingHandCursor);
+            getCanvas()->setCursor(Qt::PointingHandCursor);
         }
         else
         {
-            canvas()->setCursor(Qt::ArrowCursor);
+            getCanvas()->setCursor(Qt::ArrowCursor);
         }
         return true;
     }
@@ -643,7 +643,7 @@ private slots:
 
         Time new_min = m->root()->min_time();
 
-        canvas()->setModel(model()->set_range(new_min, new_min + delta));
+        getCanvas()->setModel(model()->set_range(new_min, new_min + delta));
     }
 
     void goEnd()
@@ -653,15 +653,14 @@ private slots:
 
         Time new_max = m->root()->max_time();
 
-        canvas()->setModel(m->set_range(new_max - delta, new_max));
+        getCanvas()->setModel(m->set_range(new_max - delta, new_max));
     }
 
     void fit()
     {
         TraceModelPtr root = model()->root();
 
-        canvas()->setModel(
-            model()->set_range(root->min_time(), root->max_time()));
+        getCanvas()->setModel(model()->set_range(root->min_time(), root->max_time()));
     }
 
     void goLeft()
@@ -676,7 +675,7 @@ private slots:
 
         Time new_max = new_min + delta;
 
-        canvas()->setModel(
+        getCanvas()->setModel(
             model()->set_range(new_min, new_max));
     }
 
@@ -693,7 +692,7 @@ private slots:
 
         Time new_min = new_max - delta;
 
-        canvas()->setModel(
+        getCanvas()->setModel(
             model()->set_range(new_min, new_max));
     }
 
@@ -713,7 +712,7 @@ private slots:
 
     void modelChanged(TraceModelPtr &)
     {
-        trace_info_->update(canvas());
+        trace_info_->update(getCanvas());
         if (infoStack->currentWidget() == event_info_)
             event_info_->updateTime();
         if (infoStack->currentWidget() == state_info_)
@@ -745,7 +744,7 @@ private:
         if (new_max - new_min < model()->min_resolution())
             return;
 
-        canvas()->setModel(
+        getCanvas()->setModel(
             model()->set_range(new_min, new_max));
     }
 
@@ -775,7 +774,7 @@ private:
             new_min = new_max - delta;
         }
 
-        canvas()->setModel(
+        getCanvas()->setModel(
             model()->set_range(new_min, new_max));
     }
 

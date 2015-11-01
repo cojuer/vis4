@@ -8,9 +8,9 @@
 
 namespace vis4 {
 
-using common::Time;
-
-Event_list::Event_list(QWidget* parent) : QTreeView(parent), model_(0)
+Event_list::Event_list(QWidget* parent) :
+    QTreeView(parent),
+    model_(0)
 {
     //setSelectionBehaviour(SelectRows);
     QTreeView::setRootIsDecorated(false);

@@ -29,7 +29,7 @@ typedef boost::shared_ptr<Trace_model> TraceModelPtr;
  * Метод определения показываемых данных определяется унаследованными классами, данный
  * класс не предполагает ничего конкретного.
  *
- * Абсолютно весь доступ к трассе внутри Vis4 делается через этот интерфейс, включая все пользовальские
+ * Абсолютно весь доступ к трассе внутри Vis4 делается через этот интерфейс, включая все пользовательские
  * инструменты.
  *
  * Все классы-потомки должны быть "легкими", объем используемой памяти на каждый экземпляров
@@ -44,7 +44,7 @@ typedef boost::shared_ptr<Trace_model> TraceModelPtr;
  * Навигация выполняется по трем осям.
  *
  * Первая ось -- положение в структуре компонент. Предполагается, что есть конечное число позиций
- * в структуре компонетнов. Для каждой позиции есть набор потенциально видимых линий жизни, событий
+ * в структуре компонентов. Для каждой позиции есть набор потенциально видимых линий жизни, событий
  * и состояний. Набор таких позиций определяется конкретным экземпляром конкретной реализации
  * интерфейса Trace_model.
  *
@@ -70,7 +70,14 @@ typedef boost::shared_ptr<Trace_model> TraceModelPtr;
 class Trace_model
 {
 public:
-    enum ComponentType { RCHM = 1, CHM, CHANNEL, INTERFACE, EXTERNAL_OBJECTS };
+    enum class ComponentType
+    {
+        RCHM = 1,
+        CHM,
+        CHANNEL,
+        INTERFACE,
+        EXTERNAL_OBJECTS
+    };
 
     /**
      * Возвращает объект Trace_model соответствующий "начальному" положению
@@ -99,20 +106,20 @@ public:
 /// @{
 
     /** Returns minimum time that must be shown in the timing diagram. */
-    virtual common::Time min_time() const = 0;
+    virtual Time min_time() const = 0;
 
     /** Returns maximum time that must be shown in the timing diagram. */
-    virtual common::Time max_time() const = 0;
+    virtual Time max_time() const = 0;
 
     /** Возвращает минимальный интервал времени, который может отобразить ВД. */
-    virtual common::Time min_resolution() const = 0;
+    virtual Time min_resolution() const = 0;
 
     /** Переводит внутренние указатели событий, состояний и групповых событий
        на минимальное время. */
     virtual void rewind() = 0;
 
     /** Возврашает новый объект Trace_model с указанным диапазоном времен. */
-    virtual TraceModelPtr set_range(const common::Time& min, const common::Time& max) = 0;
+    virtual TraceModelPtr set_range(const Time& min, const Time& max) = 0;
 
 /// @}
 
@@ -137,48 +144,53 @@ public:
 /// @{
 
     /** Returns new object with given selection of components. */
-    virtual TraceModelPtr filter_components(
-        const common::Selection & filter) = 0;
+    virtual TraceModelPtr filter_components(const Selection & filter) = 0;
 
     /** Returns current component selection. */
-    virtual const common::Selection & components() const = 0;
+    virtual const Selection& components() const = 0;
 
-    /** Returns the list with links of visible components.
-        Visibility means that component is not filtered and
-        it's a child of current parent. */
-    virtual const QList<int> & visible_components() const = 0;
+    /**
+     * Returns the list with links of visible components.
+     * Visibility means that component is not filtered and
+     * it's a child of current parent.
+     */
+    virtual const QList<int>& visible_components() const = 0;
 
-    /** Returns a lifeline number for given component.
-        Returns -1 if there is no corresponding lifeline. */
+    /**
+     * Returns a lifeline number for given component.
+     * Returns -1 if there is no corresponding lifeline.
+     */
     virtual int lifeline(int component) const = 0;
 
-    /** Returns a name for given component.
-        If "fullname" is true returns full component name,
-        which includes all its parents. */
+    /**
+     * Returns a name for given component.
+     * If "fullname" is true returns full component name,
+     * which includes all its parents.
+     */
     virtual QString component_name(int component, bool fullname = false) const = 0;
-    virtual int component_type(int component) const = 0;
+    virtual ComponentType component_type(int component) const = 0;
 
     /** Returns new object with given selection of event. */
-    virtual TraceModelPtr filter_events(
-        const common::Selection & filter) = 0;
+    virtual TraceModelPtr filter_events(const Selection & filter) = 0;
 
     virtual bool groupsEnabled() const = 0;
     virtual TraceModelPtr setGroupsEnabled(bool enabled) = 0;
 
     /** Returns current event selection. */
-    virtual const common::Selection & events() const = 0;
+    virtual const Selection& events() const = 0;
 
     /** Returns new object with given selection of states. */
-    virtual TraceModelPtr filter_states(
-        const common::Selection & filter) = 0;
+    virtual TraceModelPtr filter_states(const Selection& filter) = 0;
 
     /** Returns current state selection. */
-    virtual const common::Selection & states() const = 0;
+    virtual const Selection& states() const = 0;
 
-    /** Returns selection with only available states enabled.
-        State is available when though one of corresponding
-        components are enabled. */
-    virtual const common::Selection & available_states() const = 0;
+    /**
+     * Returns selection with only available states enabled.
+     * State is available when though one of corresponding
+     * components are enabled.
+     */
+    virtual const Selection& available_states() const = 0;
 
     /** Return new model with given checker installed into. */
     virtual TraceModelPtr install_checker(Checker * checker) = 0;
@@ -189,23 +201,25 @@ public:
        определена. */
     virtual QString save() const = 0;
 
-    /** По строке, ранее возвращенной функцией save, пытается восстановить
-       состояние. Функция не обязательно что-то делает, если реальная данные трассы
-       слишком отличаются от данных трассы в момент вызова save, функция может ничего
-       не делать.
-
-       Основное предназначение -- для восстановления состояния графического интерфейса
-       при последующих запусках. */
+    /**
+     * По строке, ранее возвращенной функцией save, пытается восстановить
+     * состояние. Функция не обязательно что-то делает, если реальная данные трассы
+     * слишком отличаются от данных трассы в момент вызова save, функция может ничего
+     * не делать.
+     *
+     * Основное предназначение -- для восстановления состояния графического интерфейса
+     * при последующих запусках.
+     */
     virtual void restore(const QString& s) = 0;
 
     virtual ~Trace_model() {}
-
 };
 
 
 struct Trace_model_delta
 {
-    enum {
+    enum
+    {
         component_position = 1,
         components = component_position << 1,
         event_types = components << 1,
@@ -214,11 +228,13 @@ struct Trace_model_delta
     };
 };
 
-/* This is experimental trace comparison interface.
-   It is not yet clear if we want to be able to compare
-   "inner" state of trace models. We also don't
-   compare time unit. This interface may change any
-   second. */
+/**
+ * This is experimental trace comparison interface.
+ * It is not yet clear if we want to be able to compare
+ * "inner" state of trace models. We also don't
+ * compare time unit. This interface may change any
+ * second.
+ */
 int delta(const Trace_model& a, const Trace_model& b);
 
 }

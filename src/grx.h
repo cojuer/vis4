@@ -1,5 +1,5 @@
-#ifndef GRX_HPP
-#define GRX_HPP
+#ifndef GRX_H
+#define GRX_H
 
 #include <string>
 #include <vector>

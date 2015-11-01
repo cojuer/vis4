@@ -26,7 +26,7 @@ class Canvas : public QScrollArea
 {
 Q_OBJECT
 public:
-    Canvas(QWidget *parent);
+    Canvas(QWidget* parent);
 
     /**
      * Устанавливает модель, показываемую в данный момент, и обновляет
@@ -34,7 +34,7 @@ public:
      * Генерирует сигнал modelChanged.
      */
     void setModel(TraceModelPtr model);
-    TraceModelPtr & model() const;
+    TraceModelPtr& model() const;
 
     void setCursor(const QCursor& c);
 
@@ -42,12 +42,11 @@ public:
     int nearest_lifeline(int y);
 
     /** По номеру компонента в времени, возвращает координаты точки. */
-    QPoint lifeline_point(int component, const common::Time& time);
+    QPoint lifeline_point(int component, const Time& time);
 
-    QPair<common::Time, common::Time> nearby_range(const common::Time& time);
+    QPair<Time, Time> nearby_range(const Time& time);
 
-    QRect boundingRect(int component,
-                       const common::Time& min_time, const common::Time& max_time);
+    QRect boundingRect(int component, const Time& min_time, const Time& max_time);
 
     /**
      * Тип объекта, находящегося под курсором
@@ -64,14 +63,12 @@ public:
     /** Добавляет новый графический элемент. Все элементы рисуются поверх собственно
         трасы. Все управление элементами должно делаться интструментами, которые их
         добавили. */
-    void addItem(class CanvasItem *item);
-
+    void addItem(class CanvasItem* item);
 public slots:
 
     /** If true, uses maximally portable drawing mechanims, that
         don't rely on OS being decent, and not broken.  */
     void setPortableDrawing(bool);
-
 signals:
     /** Сигнал, генерируемый при изменении модели методом setModel. */
     void modelChanged(TraceModelPtr & new_model);
@@ -91,7 +88,7 @@ signals:
                     Canvas::clickTarget target,
                     int component,
                     State_model* state,
-                    const common::Time& time,
+                    const Time& time,
                     bool events_near);
 
     /**
@@ -104,20 +101,20 @@ signals:
      * @param time Время, которому соответсвует положение курсора
      */
     void mouseMoveEvent(QMouseEvent* event, Canvas::clickTarget target,
-                        int component, const common::Time& time);
+                        int component, const Time& time);
 
 private slots:
 
     void timeSettingsChanged();
 
-private: /* overloaded methods */
+private: /** overloaded methods */
 
     void resizeEvent(QResizeEvent* event);
-    void timerEvent(QTimerEvent * event);
-    void closeEvent(QCloseEvent *event);
+    void timerEvent(QTimerEvent* event);
+    void closeEvent(QCloseEvent* event);
     void scrollContentsBy(int dx, int dy);
 
-private: /* members */
+private: /** members */
 
     class Contents_widget* contents_;
     class Timeline* timeline_;
@@ -131,15 +128,16 @@ private: /* members */
 
 };
 
-class Contents_widget : public QWidget {
-
+class Contents_widget : public QWidget
+{
     Q_OBJECT
 public:
 
     Contents_widget(Canvas* parent);
 
-    /** If false is true, always redraw, don't suppress redraw
-        if the model seem unchanged.
+    /**
+     * If force is true, always redraw, don't suppress redraw
+     * if the model seem unchanged.
      */
     void setModel(TraceModelPtr model, bool force = false);
 
@@ -148,9 +146,9 @@ public:
     void scrolledBy(int dx, int dy);
 
     QRect boundingRect(int component,
-                       const common::Time& min_time, const common::Time& max_time);
+                       const Time& min_time, const Time& max_time);
 
-private: /* methods */
+private: /** methods */
 
     QRect drawBaloon(QPainter* painter);
 
@@ -158,7 +156,7 @@ private: /* methods */
         const QPoint& pos, Canvas::clickTarget* target,
         int* component, State_model** state, bool* events_near);
 
-private: /* QWidget overrides */
+private: /** QWidget overrides */
 
     /** Widget's events hook.
      * This is overloaded virtual function, that cathes QEvet::ToolTip event
@@ -178,7 +176,7 @@ private: /* QWidget overrides */
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
-private: /* members */
+private: /** members */
 
     Canvas* parent_;
     TraceModelPtr model_;
@@ -194,7 +192,7 @@ private: /* members */
     // FIXME: delete all items in destructor.
     std::vector<CanvasItem*> items;
 
-private slots: /* support for background drawing */
+private slots: /** support for background drawing */
 
     /** Periodically updates canvas and show current state of drawing. */
     void timerTick();
@@ -211,5 +209,6 @@ private:
     friend class Canvas;
 };
 
-}
+} /** namespaces */
+
 #endif

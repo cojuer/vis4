@@ -41,10 +41,10 @@ public: /* methods */
     void setModel(boost::shared_ptr<Trace_model> & model);
 
     /** Set paint device. */
-    void setPaintDevice(QPaintDevice * paintDevice);
+    void setPaintDevice(QPaintDevice* paintDevice);
 
     /** Draw the trace on the given paint device. */
-    void drawTrace(const common::Time & timePerPage, bool start_in_background);
+    void drawTrace(const Time& timePerPage, bool start_in_background);
 
     int state() { return state_; }
     void setState(StateEnum state) { state_ = state; }
@@ -79,10 +79,10 @@ public: /* methods */
     void drawTimeline(QPainter * painter, int x, int y);
 
     /** Calculates x coordinate corresponding to given time on timeline. */
-    int pixelPositionForTime(const common::Time& time) const;
+    int pixelPositionForTime(const Time& time) const;
 
     /** Calculates Time corresponding to given pixel coordinate. */
-    common::Time timeForPixel(int pixel_x) const;
+    Time timeForPixel(int pixel_x) const;
 
     std::auto_ptr<Trace_geometry> traceGeometry() const;
 
@@ -171,9 +171,9 @@ private: /* members */
     int left_margin1;           ///< Width of margin at first page.
     int left_margin2;           ///< Width of margin at other pages.
 
-    common::Time timePerFirstPage;
-    common::Time timePerFullPage;
-    common::Time timePerPage;                       ///< Trace scalling.
+    Time timePerFirstPage;
+    Time timePerFullPage;
+    Time timePerPage;                       ///< Trace scalling.
 
     uint components_per_page;
 

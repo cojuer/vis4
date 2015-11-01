@@ -19,8 +19,6 @@
 
 namespace vis4 {
 
-using common::Time;
-
 MainWindow::MainWindow() : 
     QMainWindow(0), 
     currentTool(0),
@@ -154,7 +152,7 @@ void MainWindow::initialize(TraceModelPtr & model)
         }
         else if (Tool* tool = findChild<Tool*>(current_tool))
         {
-            tool->action()->setChecked(true);
+            tool->getAction()->setChecked(true);
             activateTool(tool);
             tool_set = true;
         }
@@ -165,11 +163,11 @@ void MainWindow::initialize(TraceModelPtr & model)
         activateTool(browser);
     }
 
-    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const common::Time&, bool)), this,
-                    SLOT(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const common::Time&, bool)));
+    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const Time&, bool)), this,
+                    SLOT(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const Time&, bool)));
 
-    connect(canvas, SIGNAL(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const common::Time&)), this,
-                    SLOT(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const common::Time&)));
+    connect(canvas, SIGNAL(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const Time&)), this,
+                    SLOT(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const Time&)));
 
     connect(canvas, SIGNAL(modelChanged(TraceModelPtr &)), this,
                     SLOT(modelChanged(TraceModelPtr &)));
@@ -200,7 +198,7 @@ void MainWindow::initCanvas(TraceModelPtr & model)
 
 void MainWindow::installTool(Tool* controllingWidget)
 {
-    QAction* action = controllingWidget->action();
+    QAction* action = controllingWidget->getAction();
 
     action->setCheckable(true);
 
@@ -231,7 +229,7 @@ void MainWindow::installBrowser(Browser *browser)
 {
     installTool(browser);
     this->browser = browser;
-    browse_action = browser->action();
+    browse_action = browser->getAction();
     browse_action->setToolTip(browse_action->toolTip() + " " +
         tr("(Shortcut: <b>%1</b>)").arg("Esc"));
 }
@@ -263,7 +261,7 @@ void MainWindow::activateTool(Tool *tool)
 
     if (sidebar->isVisible())
     {
-        tool->action()->setChecked(true);
+        tool->getAction()->setChecked(true);
     }
 
     // Save current tool in settings
@@ -331,12 +329,12 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 
     if (event->type() == QEvent::Close || event->type() == QEvent::Hide)
     {
-        currentTool->action()->setChecked(false);
+        currentTool->getAction()->setChecked(false);
     }
 
     if (event->type() == QEvent::Show)
     {
-        currentTool->action()->setChecked(true);
+        currentTool->getAction()->setChecked(true);
     }
 
     return false;
@@ -407,7 +405,7 @@ void MainWindow::actionPrint()
 
     // Convert max_time from Time to int
     TraceModelPtr model = canvas->model();
-    boost::any max_time_raw = model->root()->max_time().raw();
+    boost::any max_time_raw = model->root()->max_time().data();
     long long *max_time_ll = boost::any_cast<long long>(&max_time_raw);
     if (max_time_ll)
     {
@@ -441,13 +439,13 @@ void MainWindow::actionPrint()
             min_time = max_time = model->min_time();
             if (max_time_ll)
             {
-                min_time = Time(min_time.setRaw(boost::any((long long)printDialog.fromPage())));
-                max_time = Time(max_time.setRaw(boost::any((long long)printDialog.toPage())));
+                min_time = Time(min_time.setData(boost::any((long long)printDialog.fromPage())));
+                max_time = Time(max_time.setData(boost::any((long long)printDialog.toPage())));
             }
             else
             {
-                min_time = Time(min_time.setRaw(boost::any((int)printDialog.fromPage())));
-                max_time = Time(max_time.setRaw(boost::any((int)printDialog.toPage())));
+                min_time = Time(min_time.setData(boost::any((int)printDialog.fromPage())));
+                max_time = Time(max_time.setData(boost::any((int)printDialog.toPage())));
             }
         }
 

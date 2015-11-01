@@ -1,21 +1,28 @@
-#ifndef GROUP_MODEL_HPP_VP_2006_03_30
-#define GROUP_MODEL_HPP_VP_2006_03_30
+#ifndef GROUP_MODEL_H
+#define GROUP_MODEL_H
+
+#include <vector>
 
 #include "time_vis3.h"
-#include <vector>
 
 namespace vis4 {
 
-/* Group is a collection of timeline points that must be
-   specially decorated as a group.  */
+/**
+ * GroupModel is a collection of timeline points that must be
+ * specially decorated as a group.
+ */
 class Group_model
 {
 public:
     static const int arrow = 1;
 
-    struct point { int component; common::Time time; };
+    struct point
+    {
+        int component;
+        Time time;
+    };
 
-    int type;
+    int type;//? what is this time?
     std::vector<point> points;
 };
 

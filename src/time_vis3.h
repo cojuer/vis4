@@ -12,8 +12,10 @@
 #include <boost/any.hpp>
 
 namespace vis4 {
-namespace common {
 
+/**
+ * Interface for different time representations.
+ */
 class TimeInterface
 {
 public:
@@ -24,8 +26,8 @@ public:
     virtual TimeInterface* mul(double a) = 0;
     virtual double div(const TimeInterface* another) = 0;
     virtual bool less_than(const TimeInterface* another) = 0;
-    virtual boost::any raw() const = 0;
-    virtual TimeInterface* set_raw(const boost::any& any) const = 0;
+    virtual boost::any data() const = 0;
+    virtual TimeInterface* setData(const boost::any& any) const = 0;
     virtual ~TimeInterface() {}
 };
 
@@ -169,14 +171,14 @@ public:
         return time_str;
     }
 
-    boost::any raw() const
+    boost::any data() const
     {
-        return object->raw();
+        return object->data();
     }
 
-    Time setRaw(const boost::any& any) const
+    Time setData(const boost::any& any) const
     {
-        boost::shared_ptr<TimeInterface> p(object->set_raw(any));
+        boost::shared_ptr<TimeInterface> p(object->setData(any));
         return Time(p);
     }
 
@@ -189,6 +191,9 @@ private:
     boost::shared_ptr<TimeInterface> object;
 };
 
+/**
+ * Time representation with one template typed member.
+ */
 template<class T>
 class ScalarTime : public TimeInterface
 {
@@ -226,12 +231,12 @@ public:
         return time < another->time;
     }
 
-    boost::any raw() const//? why not T? Time_implementation doesn't depends on T, that's why.
+    boost::any data() const//? why not T? Time_implementation doesn't depends on T, that's why.
     {
         return time;
     }
 
-    ScalarTime* set_raw(const boost::any& any) const
+    ScalarTime* setData(const boost::any& any) const
     {
         return construct(boost::any_cast<T>(any));
     }
@@ -269,6 +274,6 @@ inline Time distance(const Time& t1, const Time& t2)
 // возвращает время в микросекундах или -1, если не ясно на основе какого типа построено время
 unsigned long long getUs(const Time & t);
 
-}} // namespaces
+} // namespaces
 
 #endif

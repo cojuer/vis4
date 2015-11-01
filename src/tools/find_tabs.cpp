@@ -17,24 +17,22 @@
 namespace vis4 {
 
 using std::set;
-using common::Selection;
-using common::SelectionWidget;
 
 //---------------------------------------------------------------------------------------
 // FindEventsTab class implementation
 //---------------------------------------------------------------------------------------
 
-FindEventsTab::FindEventsTab(Tool * find_tool)
-    : FindTab(find_tool)
+FindEventsTab::FindEventsTab(Tool* find_tool) :
+    FindTab(find_tool)
 {
     setObjectName("events");
 
     selector_ = new SelectionWidget(this);
     selector_->minimizeSize(true);
-    connect(selector_, SIGNAL(selectionChanged(const vis4::common::Selection &)),
-        this, SLOT(selectionChanged(const vis4::common::Selection &)));
+    connect(selector_, SIGNAL(selectionChanged(const vis4::Selection &)), this,
+                       SLOT(selectionChanged(const vis4::Selection &)));
 
-    QVBoxLayout * layout = new QVBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setMargin(0);
     layout->addWidget(selector_);
 }
@@ -115,15 +113,15 @@ void FindEventsTab::selectionChanged(const Selection & selection)
 // FindStatesTab class implementation
 //---------------------------------------------------------------------------------------
 
-FindStatesTab::FindStatesTab(Tool * find_tool)
+FindStatesTab::FindStatesTab(Tool* find_tool)
     : FindTab(find_tool)
 {
     setObjectName("states");
 
     selector_ = new SelectionWidget(this);
     selector_->minimizeSize(true);
-    connect(selector_, SIGNAL(selectionChanged(const vis4::common::Selection &)),
-            this, SLOT(selectionChanged(const vis4::common::Selection &)));
+    connect(selector_, SIGNAL(selectionChanged(const vis4::Selection &)), this,
+                       SLOT(selectionChanged(const vis4::Selection &)));
 
     QVBoxLayout * layout = new QVBoxLayout(this);
     layout->setMargin(0);
@@ -438,7 +436,7 @@ void FindQueryTab::activateCheckerEvents()
         }
     }
 
-    Canvas * canvas = find_tool_->canvas();
+    Canvas * canvas = find_tool_->getCanvas();
     canvas->setModel(canvas->model()->filter_events(events));
 }
 

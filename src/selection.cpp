@@ -1,6 +1,6 @@
 #include "selection.h"
 
-namespace vis4 { namespace common {
+namespace vis4 {
 
 const int Selection::ROOT;
 
@@ -249,4 +249,4 @@ Selection Selection::operator&(const Selection & other) const
     return result;
 }
 
-}} // namespaces
+} // namespaces

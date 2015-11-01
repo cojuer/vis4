@@ -2,7 +2,6 @@
 #include <QtWidgets/QApplication>
 
 namespace vis4 {
-    namespace common {
 
 QStringList Time::units_;
 Time::Format Time::format_;
@@ -12,6 +11,7 @@ int Time::unit = -1;
 
 namespace
 {
+    //? что тут вообще происходит?
     QString tr(const char *s)
     {
     //В файле перевода vis'а контекст перевода единиц времени связан с vis4::Time.
@@ -49,42 +49,42 @@ unsigned long long getUs(const Time & t)
 {
     try
     {
-        unsigned long long us = boost::any_cast<unsigned long long>(t.raw());
+        unsigned long long us = boost::any_cast<unsigned long long>(t.data());
         return us;
     }
     catch (boost::bad_any_cast &)
     {
         try
         {
-            long long us = boost::any_cast<long long>(t.raw());
+            long long us = boost::any_cast<long long>(t.data());
             return (unsigned long long)us;
         }
         catch (boost::bad_any_cast &)
         {
             try
             {
-               unsigned long us = boost::any_cast<unsigned long>(t.raw());
+               unsigned long us = boost::any_cast<unsigned long>(t.data());
                return (unsigned long long)us;
             }
             catch (boost::bad_any_cast &)
             {
                 try
                 {
-                    long us = boost::any_cast<long>(t.raw());
+                    long us = boost::any_cast<long>(t.data());
                     return (unsigned long long)us;
                 }
                 catch (boost::bad_any_cast &)
                 {
                     try
                     {
-                        unsigned int us = boost::any_cast<unsigned int>(t.raw());
+                        unsigned int us = boost::any_cast<unsigned int>(t.data());
                         return (unsigned long long)us;
                     }
                     catch (boost::bad_any_cast &)
                     {
                         try
                         {
-                            int us = boost::any_cast<int>(t.raw());
+                            int us = boost::any_cast<int>(t.data());
                             return (unsigned long long)us;
                         }
                         catch (boost::bad_any_cast &)
@@ -99,4 +99,4 @@ unsigned long long getUs(const Time & t)
     }
 }
 
-}} // namespaces
+} // namespaces

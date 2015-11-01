@@ -7,7 +7,6 @@ class QStyleOptionComboBox;
 class QMenu;
 
 namespace vis4 {
-namespace common {
 
 /**
  * Widget that displays and controls unit and format settings.
@@ -27,9 +26,9 @@ protected: /* methods */
 private slots:
     void menuActionTriggered(QAction * action);
 private: /* members */
-    QMenu *menu;
+    QMenu* menu;
 };
 
-}} // namespaces
+} // namespaces
 
 #endif

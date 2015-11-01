@@ -1,7 +1,7 @@
 #include "timeedit.h"
 #include <boost/any.hpp>
 
-namespace vis4 { namespace common {
+namespace vis4 {
 
 TimeEdit::TimeEdit(QWidget * parent) : QAbstractSpinBox(parent),
 	long_long_time(false), unsigned_long_long_time(false), mNoError(true), mEdited(false)
@@ -42,15 +42,15 @@ void TimeEdit::stepBy(int steps)
 
     if (long_long_time)
     {
-	t = t.setRaw(newUs);
+        t = t.setData(newUs);
     }
     else if (unsigned_long_long_time)
     {
-	t = t.setRaw((unsigned long long)newUs);
+        t = t.setData((unsigned long long)newUs);
     }
     else
     {
-        t = t.setRaw((int)newUs);
+        t = t.setData((int)newUs);
     }
 
     if (!validate(t))
@@ -66,12 +66,15 @@ void TimeEdit::stepBy(int steps)
 
 Time TimeEdit::time() const
 {
-    if (cur_time_.isNull()) return Time();
+    if (cur_time_.isNull())
+    {
+        return Time();
+    }
 
     return cur_time_;
 }
 
-void TimeEdit::setTime(const Time & time)
+void TimeEdit::setTime(const Time& time)
 {
     setEnabled(false);
 
@@ -79,24 +82,30 @@ void TimeEdit::setTime(const Time & time)
 
     if (cur_time_.isNull())
     {
-	cur_time_ = time;
-	boost::any raw = time.raw();
-	if (boost::any_cast<long long>(&raw))
-	    long_long_time = true;
-	else if (boost::any_cast<unsigned long long>(&raw))
-	    unsigned_long_long_time = true;
-	else if (!boost::any_cast<int>(&raw))
-	    qFatal("Error: Invalid underlying kind of time");
+        cur_time_ = time;
+        boost::any raw = time.data();
+        if (boost::any_cast<long long>(&raw))
+        {
+            long_long_time = true;
+        }
+        else if (boost::any_cast<unsigned long long>(&raw))
+        {
+            unsigned_long_long_time = true;
+        }
+        else if (!boost::any_cast<int>(&raw))
+        {
+            qFatal("Error: Invalid underlying kind of time");
+        }
     }
     else
     {
-	cur_time_ = time;
+        cur_time_ = time;
     }
     lineEdit()->setText(time.toString());
     if (!mNoError)
     {
-	setPalette(mNormalPalette);
-	mNoError = true;
+        setPalette(mNormalPalette);
+        mNoError = true;
     }
     mEdited = false;
 
@@ -108,14 +117,14 @@ void TimeEdit::valueChanged(const QString & value)
     if (!(Time::format() != Time::Advanced || mValidatorRegExp.exactMatch(value)) ||
 	!validate(cur_time_.fromString(value)))
     {
-	setPalette(mErrorPalette);
-	mNoError = false;
+        setPalette(mErrorPalette);
+        mNoError = false;
     }
     else
     {
-	setPalette(mNormalPalette);
-	mNoError = true;
-	cur_time_ = cur_time_.fromString(value);
+        setPalette(mNormalPalette);
+        mNoError = true;
+        cur_time_ = cur_time_.fromString(value);
     }
     mEdited = true;
 
@@ -135,7 +144,7 @@ void TimeEdit::onEditingFinished()
 {
     if (cur_time_.isNull() || !mEdited)
     {
-	return;
+        return;
     }
     mEdited = false;
 
@@ -146,8 +155,8 @@ void TimeEdit::onEditingFinished()
     if (!validate(t) || !mNoError)
     {
 	// возвращаемся в корректное состояние
-	setTime(cur_time_);
-	return;
+        setTime(cur_time_);
+        return;
     }
     cur_time_ = t;
 
@@ -179,9 +188,9 @@ QAbstractSpinBox::StepEnabled TimeEdit::stepEnabled () const
 {
     if (!cur_time_.isNull() && getUs(cur_time_) < (unsigned long long)Time::unit_scale())
     {
-	return StepUpEnabled;
+        return StepUpEnabled;
     }
     return StepUpEnabled | StepDownEnabled;
 }
 
-}} // namespaces
+} // namespaces

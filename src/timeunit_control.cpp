@@ -7,7 +7,6 @@
 #include "time_vis3.h"
 
 namespace vis4 {
-namespace common {
 
 TimeUnitControl::TimeUnitControl(QWidget *parent) :
     QWidget(parent)
@@ -166,4 +165,4 @@ void TimeUnitControl::menuActionTriggered(QAction *action)
     emit timeSettingsChanged();
 }
 
-}} // namespaces
+} // namespaces

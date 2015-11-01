@@ -5,8 +5,6 @@
 
 namespace vis4 {
 
-    using namespace common;
-
     OTF_trace_model::OTF_trace_model(const QString& filename) :
         min_time_(getTime(0))
     {
@@ -110,13 +108,12 @@ namespace vis4 {
 
     int OTF_trace_model:: lifeline(int component) const
     {
-        if (!lifeline_map_.contains(component)) return -1;
-        return lifeline_map_[component];
+        return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
     }
 
-    int OTF_trace_model:: component_type(int component) const
+    Trace_model::ComponentType OTF_trace_model::component_type(int component) const
     {
-        return has_children(component) ? RCHM : CHM;
+        return has_children(component) ? ComponentType::RCHM : ComponentType::CHM;
     }
 
 
@@ -130,7 +127,7 @@ namespace vis4 {
         for(;;)
         {
             QString splitter = "::";
-            if (component_type(component) == INTERFACE) splitter = ":";
+            if (component_type(component) == ComponentType::INTERFACE) splitter = ":";
 
             component = components_.itemParent(component);
             if (component == Selection::ROOT) break;
@@ -147,10 +144,19 @@ namespace vis4 {
         return components_.hasChildren(component);
     }
 
-    Time OTF_trace_model::min_time() const { return min_time_; }
-    Time OTF_trace_model::max_time() const { return max_time_; }
-    Time OTF_trace_model::min_resolution() const { return getTime(3); }
+    Time OTF_trace_model::min_time() const
+    {
+        return min_time_;
+    }
 
+    Time OTF_trace_model::max_time() const
+    {
+        return max_time_;
+    }
+    Time OTF_trace_model::min_resolution() const
+    {
+        return getTime(3);
+    }
 
     void OTF_trace_model::rewind()
     {
@@ -167,7 +173,9 @@ namespace vis4 {
             Event_model* ep = e.release();
 
             if (!ep)
+            {
                 break;
+            }
 
             events.insert(ep->time, ep);
         }
@@ -316,13 +324,21 @@ namespace vis4 {
             {
                 QString p = currentItem.attribute("position");
                 if (p == "left_top")
+                {
                     r->letter_position = Event_model::left_top;
+                }
                 else if (p == "right_top")
+                {
                     r->letter_position = Event_model::right_top;
+                }
                 else if (p == "left_bottom")
+                {
                     r->letter_position = Event_model::left_bottom;
+                }
                 else if (p == "right_bottom")
+                {
                     r->letter_position = Event_model::right_bottom;
+                }
             }
             else
                 r->letter_position = Event_model::right_top;

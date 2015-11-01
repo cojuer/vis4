@@ -19,23 +19,24 @@
 #include <QSettings>
 #include <QTimer>
 
-#include <math.h>
+#include <cmath>
 
 namespace vis4 {
 
 using namespace std;
-using common::Time;
 
 const int arrowhead_length = 16;
 
-Canvas::Canvas(QWidget* parent)
-    : QScrollArea(parent), timeline_(0), updateTimer(0)
+Canvas::Canvas(QWidget* parent) :
+    QScrollArea(parent),
+    timeline_(nullptr),
+    updateTimer(0)
 {
     setWhatsThis(tr("<b>Time diagram</b>"
-                 "<p>Time diagram shows the components of the distributed system"
-                 ", events in those compoments, and states those components are in."
-                 "<p>Compoments are green boxes on the left. Composite compoments "
-                 "are shown as stack."));
+                    "<p>Time diagram shows the components of the distributed system"
+                    ", events in those compoments, and states those components are in."
+                    "<p>Compoments are green boxes on the left. Composite compoments "
+                    "are shown as stack."));
 
     contents_ = new Contents_widget(this);
     setWidget(contents_);
@@ -44,8 +45,8 @@ Canvas::Canvas(QWidget* parent)
 
     timeline_ = new Timeline(this, contents_->trace_painter.get());
     setViewportMargins(0, 0, 0, timeline_->sizeHint().height());
-    connect(timeline_, SIGNAL( timeSettingsChanged() ),
-        this, SLOT( timeSettingsChanged() ) );
+    connect(timeline_, SIGNAL(timeSettingsChanged()), this,
+                       SLOT(timeSettingsChanged()));
 }
 
 void Canvas::setModel(TraceModelPtr model)
@@ -78,9 +79,13 @@ void Canvas::timeSettingsChanged()
     QSettings settings;
     settings.setValue("time_unit", Time::unit_name(Time::getUnit()));
     if (Time::format() == Time::Advanced)
+    {
         settings.setValue("time_format", "separated");
+    }
     else
+    {
         settings.setValue("time_format", "plain");
+    }
 }
 
 void Canvas::setCursor(const QCursor& c)
@@ -290,7 +295,9 @@ bool Contents_widget::event(QEvent *event)
             QToolTip::hideText();
         }
 
-    } else {
+    }
+    else
+    {
 
         // If mouse cursor on state, display state info tip.
         Canvas::clickTarget target = Canvas::nothingClicked;

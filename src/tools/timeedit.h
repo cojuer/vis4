@@ -1,18 +1,18 @@
-#ifndef TIMEEDIT_HPP
-#define TIMEEDIT_HPP
+#ifndef TIMEEDIT_H
+#define TIMEEDIT_H
 
 #include "time_vis3.h"
 
 #include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QLineEdit>
 
-namespace vis4 { namespace common {
+namespace vis4 {
 
 class TimeEdit : public QAbstractSpinBox {
 
     Q_OBJECT
 
-public: /* methods */
+public: /** methods */
 
     TimeEdit(QWidget * parent = 0);
 
@@ -48,7 +48,7 @@ private slots:
     void valueChanged(const QString & value);
     void onEditingFinished();
 
-private: /* variables */
+private: /** variables */
 
     bool long_long_time;
     bool unsigned_long_long_time;
@@ -88,6 +88,6 @@ inline void TimeEdit::showEvent(QShowEvent* event)
     QWidget::showEvent(event);
 }
 
-}} // namespaces
+} // namespaces
 
 #endif

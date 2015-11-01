@@ -15,9 +15,6 @@
 
 namespace vis4 {
 
-using common::Time;
-using common::Selection;
-
 class MeasureRibbon : public CanvasItem
 {
 public:
@@ -295,17 +292,17 @@ public:
         distanceLabel = new QLabel("", distanceGroup);
         distanceLayout->addWidget(distanceLabel);
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
-                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
+        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr&)), this,
+                             SLOT(modelChanged(Trace_model::TraceModelPtr&)));
 
-        connect(pointA, SIGNAL(eventSelected(const Time&)),
-                this, SLOT(eventSelected(const Time&)));
+        connect(pointA, SIGNAL(eventSelected(const Time&)), this,
+                        SLOT(eventSelected(const Time&)));
 
-        connect(pointB, SIGNAL(eventSelected(const Time&)),
-                this, SLOT(eventSelected(const Time&)));
+        connect(pointB, SIGNAL(eventSelected(const Time&)), this,
+                        SLOT(eventSelected(const Time&)));
 
         ribbon = new MeasureRibbon;
-        canvas()->addItem(ribbon);
+        getCanvas()->addItem(ribbon);
 
         pointA->setCurrentlySelecting(true);
         model_ = model();
@@ -323,14 +320,14 @@ public:
     void activate()
     {
         active_ = true;
-        canvas()->setCursor(Qt::CrossCursor);
+        getCanvas()->setCursor(Qt::CrossCursor);
         ribbon->setShown(true);
     }
 
     void deactivate()
     {
         active_ = false;
-        canvas()->setCursor(Qt::ArrowCursor);
+        getCanvas()->setCursor(Qt::ArrowCursor);
         ribbon->setShown(false);
     }
 
@@ -347,8 +344,8 @@ private:
         }
         else
         {
-            pointA->setPoint(component_a, time_a, model(), canvas());
-            pointB->setPoint(component_b, time_b, model(), canvas());
+            pointA->setPoint(component_a, time_a, model(), getCanvas());
+            pointB->setPoint(component_b, time_b, model(), getCanvas());
         }
 
         if (!time_a.isNull() && !time_b.isNull())
@@ -381,22 +378,22 @@ private slots:
         {
             if (!point_a_fixed && component_a != -1)
             {
-                ribbon->setA(canvas()->lifeline_point(component_a, time));
+                ribbon->setA(getCanvas()->lifeline_point(component_a, time));
                 time_a = time;
                 point_a_fixed = true;;
             }
             else if (!point_b_fixed && component_b != -1)
             {
                 ribbon->setB(
-                    canvas()->lifeline_point(component_b, time));
+                    getCanvas()->lifeline_point(component_b, time));
                 time_b = time;
                 point_b_fixed = true;
             }
             else if (point_a_fixed && point_b_fixed)
             {
                 // Both points set. Reset point A and B;
-                component_a = canvas()->nearest_lifeline(mEvent->y());
-                ribbon->setA(canvas()->lifeline_point(component_a, time));
+                component_a = getCanvas()->nearest_lifeline(mEvent->y());
+                ribbon->setA(getCanvas()->lifeline_point(component_a, time));
                 time_a = Time();
                 ribbon->setB(QPoint());
                 time_b = Time();
@@ -426,8 +423,8 @@ private slots:
         if (point_a_fixed && point_b_fixed)
             return false;
 
-        int nearest_lifeline = canvas()->nearest_lifeline(ev->y());
-        QPoint p = canvas()->lifeline_point(nearest_lifeline, time);
+        int nearest_lifeline = getCanvas()->nearest_lifeline(ev->y());
+        QPoint p = getCanvas()->lifeline_point(nearest_lifeline, time);
 
         if (!point_a_fixed)
         {
@@ -448,12 +445,12 @@ private slots:
         if (sender() == pointA)
         {
             time_a = time;
-            ribbon->setA(canvas()->lifeline_point(component_a, time));
+            ribbon->setA(getCanvas()->lifeline_point(component_a, time));
         }
         else
         {
             time_b = time;
-            ribbon->setB(canvas()->lifeline_point(component_b, time));
+            ribbon->setB(getCanvas()->lifeline_point(component_b, time));
         }
 
         updateView(true /* snapped */);
@@ -476,9 +473,9 @@ private slots:
         if (d & Trace_model_delta::time_range)
         {
             if (point_a_fixed)
-                ribbon->setA(canvas()->lifeline_point(component_a, time_a));
+                ribbon->setA(getCanvas()->lifeline_point(component_a, time_a));
             if (point_b_fixed)
-                ribbon->setB(canvas()->lifeline_point(component_b, time_b));
+                ribbon->setB(getCanvas()->lifeline_point(component_b, time_b));
         }
 
         model_ = model;

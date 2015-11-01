@@ -13,7 +13,7 @@ uint qHash(const QPair<int, int> & pair)
     return pair.first + (pair.second << 16);
 }
 
-namespace vis4 { namespace common {
+namespace vis4 {
 
 class TreeViewWithoutDoubleClickExpanding : public QTreeView {
 
@@ -428,4 +428,4 @@ void SelectionWidget::slotDoubleClick(const QModelIndex & index)
     emit itemDoubleClicked((int)index.internalId());
 }
 
-}} // namespaces
+} // namespaces

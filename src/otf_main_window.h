@@ -6,8 +6,6 @@
 
 namespace vis4 {
 
-    using namespace common;
-
     class OTF_main_window : public MainWindow
     {
     public:
@@ -17,20 +15,18 @@ namespace vis4 {
         }
 
     private:
-        void xinitialize(QWidget* toolContainer, Canvas* canvas)
+        void xinitialize(QWidget* toolContainer, Canvas* canvas)//? don't like this xinitialize things
         {
-
             Browser* browser = createBrowser(toolContainer, canvas);
             installBrowser(browser);
-/*
+
             installTool(createGoto(toolContainer, canvas));
             installTool(createMeasure(toolContainer, canvas));
             installTool(createFilter(toolContainer, canvas));
             Tool* find = createFind(toolContainer, canvas);
             installTool(find);
-            connect(find, SIGNAL(extraHelp(const QString&)),
-                    browser, SLOT(extraHelp(const QString&)));
-                    */
+            connect(find, SIGNAL(extraHelp(const QString&)), browser,
+                          SLOT(extraHelp(const QString&)));
         }
     };
 

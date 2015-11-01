@@ -6,13 +6,13 @@
 #include <QFile>
 #include <QMap>
 #include <QDebug>
+
 #include <sstream>
 #include <set>
 #include <queue>
 #include <algorithm>
-
-#include <stdio.h>
-#include <assert.h>
+#include <cstdio>
+#include <cassert>
 
 #include <boost/enable_shared_from_this.hpp>
 #include <otf.h>
@@ -27,7 +27,6 @@
 
 namespace vis4 {
 
-using namespace common;
 class OTF_trace_model;
 
 typedef struct {
@@ -42,17 +41,17 @@ class OTF_trace_model :
     public Trace_model,
     public boost::enable_shared_from_this<OTF_trace_model>
 {
-public: /* members */
-    typedef boost::shared_ptr<OTF_trace_model> OTFTraceModelPtr;//? very meaningful name
+public: /** members */
+    typedef boost::shared_ptr<OTF_trace_model> OTFTraceModelPtr;
 
-public: /* methods */
+public: /** methods */
     OTF_trace_model(const QString& filename);
     ~OTF_trace_model();
 
     int parent_component() const;
     const QList<int> & visible_components() const;
     int lifeline(int component) const;
-    int component_type(int component) const;
+    ComponentType component_type(int component) const;
     QString component_name(int component, bool full = false) const;
     bool has_children(int component) const;
 
@@ -87,9 +86,9 @@ public: /* methods */
     TraceModelPtr setGroupsEnabled(bool enabled);
     void restore(const QString& s);
 
-private:    /* members */
-    OTF_FileManager *manager;
-    OTF_Reader *reader;
+private:    /** members */
+    OTF_FileManager* manager;
+    OTF_Reader* reader;
 
     int parent_component_;
     Selection components_;
@@ -110,7 +109,7 @@ private:    /* members */
     QMap<ComponentTree::Link, int> components_map_;
     boost::shared_ptr<ComponentTree> hierarchy_backend;
 
-private:    /* methods */
+private:    /** methods */
     Time getTime(int t) const;
     void initialize();
     void adjust_components();
@@ -140,9 +139,7 @@ private:    /* methods */
 
 
 
-//*******************************************************************************************************************************************************8
-
-// Обработчики определений компонентов
+/** Обработчики определений компонентов */
 static int handleDefProcessGroup (void *userData, uint32_t stream, uint32_t procGroup, const char *name, uint32_t numberOfProcs, const uint32_t *procs)
 {
     qDebug() << "stream = " << stream << " procGroup: " << procGroup << " name: " << name << " number: " << numberOfProcs;
@@ -159,9 +156,7 @@ static int handleDefProcess (void *userData, uint32_t stream, uint32_t process, 
     return OTF_RETURN_OK;
 }
 
-//=========================
-
-// Обработчики определений состояний
+/** Обработчики определений состояний */
 static int handleDefFunctionGroup (void *userData, uint32_t stream, uint32_t funcGroup, const char *name)
 {
     qDebug() << "stream = " << stream << " funcGroup: " << funcGroup << " name: " << name;
@@ -174,32 +169,22 @@ static int handleDefFunction (void *userData, uint32_t stream, uint32_t func, co
     return OTF_RETURN_OK;
 }
 
-//=========================
-
-// Обработчики определений событий
+/** Обработчики определений событий */
 static int handleDefMarker(void *userData, uint32_t stream, uint32_t token, const char *name, uint32_t type)
 {
     qDebug() << "DEFMARKER: stream = " << stream << " token: " << token << " name: " << name << " type: " << type;
     return OTF_RETURN_OK;
 }
 
-
-//===========================================================================
-//===========================================================================
-//===========================================================================
-
-// Обработчики событий и состояний
+/** Обработчики событий и состояний */
 static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-     //fprintf( stdout, "      Enter time: %u function name: '%u'\n", process, function );
-
      qDebug() << "ENTER: " << function;
      return OTF_RETURN_OK;
 }
 
- static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
+static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-     //fprintf( stdout, "      Leave time: %u function name: '%u'\n", process, function );
      qDebug() << "LEAVE: " << function;
      return OTF_RETURN_OK;
 }
@@ -211,18 +196,17 @@ static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32
 }
 
 
-// *************************** MESSAGES **************************************
-// ***************************************************************************
- static int handleSendMsg(void *userData, uint64_t time, uint32_t sender, uint32_t receiver, uint32_t group, uint32_t type, uint32_t length, uint32_t source, OTF_KeyValueList *list)
+/** Обработчики сообщений */
+static int handleSendMsg(void *userData, uint64_t time, uint32_t sender, uint32_t receiver, uint32_t group, uint32_t type, uint32_t length, uint32_t source, OTF_KeyValueList *list)
 {
-     //qDebug() << "SendMsg: ";
+     qDebug() << "SendMsg: ";
      ((HandlerArgument*)userData)->countSend++;
      return OTF_RETURN_OK;
 }
 
  static int handleRecvMsg(void *userData, uint64_t time, uint32_t recvProc, uint32_t sendProc, uint32_t group, uint32_t type, uint32_t length, uint32_t source, OTF_KeyValueList *list)
 {
-     //qDebug() << "RecvMsg: ";
+     qDebug() << "RecvMsg: ";
      ((HandlerArgument*)userData)->countRecv++;
      return OTF_RETURN_OK;
 }

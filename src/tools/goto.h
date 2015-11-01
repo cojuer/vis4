@@ -17,9 +17,6 @@
 
 namespace vis4 {
 
-using common::Time;
-using common::TimeEdit;
-
 /* Standard implementation of the 'goto' tool. Works only
    with Time instances where result of raw() is convertible
    either to int or long long, and
@@ -147,7 +144,7 @@ public:
         connect(setRangeShortcut, SIGNAL(activated()),
                 this, SLOT(setRange()));
 
-        connect(canvas(), SIGNAL(modelChanged(TraceModelPtr &)),
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModelPtr &)),
                 this, SLOT(modelChanged(TraceModelPtr &)));
 
         modelChanged(model());
@@ -172,7 +169,7 @@ public:
     void restoreState()
     {
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
 
         QString checked = settings.value("goto_tool/checkbox").toString();
         if (checked.isEmpty())
@@ -195,7 +192,7 @@ public:
     void saveState()
     {
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
 
         QString s = setStart_->objectName();
         if (setRange_->isChecked())
@@ -237,21 +234,21 @@ private slots:
             if (new_max > model()->root()->max_time())
                 new_max = model()->root()->max_time();
 
-            canvas()->setModel(model()->set_range(new_min, new_max));
+            getCanvas()->setModel(model()->set_range(new_min, new_max));
         }
         else if (setRange_->isChecked())
         {
             Time new_max = setRange_end->time();
             if(new_max.isNull())
                 new_max = model()->root()->max_time();
-            canvas()->setModel(model()->set_range(setRange_begin->time(),
+            getCanvas()->setModel(model()->set_range(setRange_begin->time(),
                                                   new_max));
         }
         else if (showAllTrace->isChecked())
         {
             TraceModelPtr root = model()->root();
 
-            canvas()->setModel(model()->set_range(
+            getCanvas()->setModel(model()->set_range(
                                    root->min_time(), root->max_time()));
         }
     }

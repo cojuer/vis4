@@ -9,7 +9,7 @@ Timeline::Timeline(QWidget* parent, Trace_painter * painter)
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    timeUnitControl = new common::TimeUnitControl(this);
+    timeUnitControl = new TimeUnitControl(this);
     connect(timeUnitControl, SIGNAL( timeSettingsChanged() ),
         this, SIGNAL( timeSettingsChanged() ));
 }

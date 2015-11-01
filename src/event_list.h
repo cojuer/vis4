@@ -1,11 +1,11 @@
-#ifndef EVENT_LIST_HPP_VP_2006_04_03
-#define EVENT_LIST_HPP_VP_2006_04_03
-
-#include "trace_model.h"
+#ifndef EVENT_LIST_H
+#define EVENT_LIST_H
 
 #include <QtWidgets/QTreeView>
 #include <QStandardItemModel>
 #include <QVector>
+
+#include "trace_model.h"
 
 namespace vis4 {
 
@@ -17,7 +17,7 @@ class Event_list : public QTreeView
 public:
     Event_list(QWidget* parent);
 
-    void showEvents(TraceModelPtr & model, const common::Time & time);
+    void showEvents(TraceModelPtr& model, const Time & time);
 
     void updateTime();
 
@@ -25,20 +25,17 @@ public:
 
     void scrollTo(const QModelIndex & index, ScrollHint hint = EnsureVisible);
 
-    Event_model * currentEvent();
-    void setCurrentEvent(Event_model * event);
+    Event_model* currentEvent();
+    void setCurrentEvent(Event_model* event);
 
 signals:
     void currentEventChanged(Event_model*);
-
 private slots:
     void eventListRowChanged(const QModelIndex& index);
-
 private:
     QStandardItemModel* model_;
     QVector<Event_model*> events;
 };
-
 
 }
 #endif

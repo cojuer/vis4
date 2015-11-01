@@ -1,18 +1,14 @@
-#include "tool.h"
-#include "canvas.h"
-#include "trace_model.h"
-
-#include "selection_widget.h"
-
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QCheckBox>
 
-namespace vis4 {
+#include "tool.h"
+#include "canvas.h"
+#include "trace_model.h"
+#include "selection_widget.h"
 
-using common::Selection;
-using common::SelectionWidget;
+namespace vis4 {
 
 class Filter : public Tool
 {
@@ -44,7 +40,7 @@ public:
 
         components->initialize(model()->components());
 
-        connect(components, SIGNAL( selectionChanged(const vis4::common::Selection &) ),
+        connect(components, SIGNAL( selectionChanged(const vis4::Selection&) ),
                 this, SLOT(filtersChanged()));
         connect(components, SIGNAL( itemDoubleClicked(int) ),
                 this, SLOT( goToComponent(int) ));
@@ -58,7 +54,7 @@ public:
         connect(groupEventsCheckBox, SIGNAL(  stateChanged(int) ),
                 this, SLOT(filtersChanged()));
 
-        QWidget * eventsTab = new QWidget(this);
+        QWidget* eventsTab = new QWidget(this);
         eventsTab->setObjectName("events_tab");
         eventsTab->setLayout(new QVBoxLayout());
         eventsTab->layout()->addWidget(groupEventsCheckBox);
@@ -74,14 +70,14 @@ public:
 
         states->initialize(model()->states());
 
-        connect(events, SIGNAL( selectionChanged(const vis4::common::Selection &) ),
-                this, SLOT(filtersChanged()));
+        connect(events, SIGNAL(selectionChanged(const vis4::Selection &)), this,
+                        SLOT(filtersChanged()));
 
-        connect(states, SIGNAL( selectionChanged(const vis4::common::Selection &) ),
-                this, SLOT(filtersChanged()));
+        connect(states, SIGNAL(selectionChanged(const vis4::Selection &)), this,
+                        SLOT(filtersChanged()));
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
-                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
+        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)), this,
+                             SLOT(modelChanged(Trace_model::TraceModelPtr &)));
 
         modelChanged(model());
         restoreState();
@@ -91,7 +87,7 @@ public:
     QAction* createAction()
     {
         QAction* filter_action = new QAction(QIcon(":/filter.png"),
-                                             tr("Fi&lter"),
+                                             tr("Fi&lter"),//? strange
                                              this);
         filter_action->setShortcut(QKeySequence(Qt::Key_L));
         return filter_action;
@@ -107,7 +103,7 @@ private: /* methods */
         if (!state_restored) return;
 
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
         settings.beginGroup("filter_tool");
 
         settings.setValue("active_tab", tabWidget->currentWidget()->objectName());
@@ -129,7 +125,7 @@ private: /* methods */
     void restoreState()
     {
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
         settings.beginGroup("filter_tool");
 
         QString active_tab = settings.value("active_tab", "components_tab").toString();
@@ -183,7 +179,7 @@ private slots:
         if (sender() == states || !sender())
             filtered = filtered->filter_states(states->selection());
 
-        canvas()->setModel(filtered);
+        getCanvas()->setModel(filtered);
     }
 
     void goToComponent(int component)
@@ -191,9 +187,8 @@ private slots:
         if (!model()->components().hasChildren(component))
             component = model()->components().itemParent(component);
 
-        TraceModelPtr m =
-            model()->set_parent_component(component);
-        canvas()->setModel(m);
+        TraceModelPtr m = model()->set_parent_component(component);
+        getCanvas()->setModel(m);
     }
 
 private: /* members */

@@ -27,8 +27,6 @@
 namespace vis4 {
 
 using std::set;
-using common::Time;
-using common::Selection;
 
 class Found_item_highlight : public CanvasItem
 {
@@ -228,9 +226,9 @@ public:
 
 
         highlight = new Found_item_highlight;
-        canvas()->addItem(highlight);
+        getCanvas()->addItem(highlight);
 
-        connect(canvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
+        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
                 this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
 
         connect(this, SIGNAL( messageBox(const QString &) ),
@@ -289,8 +287,7 @@ private: /* methods */
             }
             Time new_min_time = new_max_time - shown_time_range;
 
-            canvas()->setModel(
-                model()->set_range(new_min_time, new_max_time));
+            getCanvas()->setModel(model()->set_range(new_min_time, new_max_time));
         }
     }
 
@@ -332,7 +329,7 @@ private: /* methods */
         highlighted_max = max;
         highlightChanged();
 
-        canvas()->ensureVisible(0, highlight->rect().y());
+        getCanvas()->ensureVisible(0, highlight->rect().y());
     }
 
     void resetHightlight()
@@ -475,7 +472,7 @@ private: /* methods */
 
             if (min <= max)
             {
-                QRect r = canvas()->boundingRect(highlighted_component, min, max);
+                QRect r = getCanvas()->boundingRect(highlighted_component, min, max);
                 r.adjust(-1, -1, 1, 1);
                 highlight->setRect(r);
             }
@@ -489,7 +486,7 @@ private: /* methods */
         if (!state_restored) return;
 
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
         settings.beginGroup("find_tool");
 
         settings.setValue("search_on_single", singleComponent->isChecked());
@@ -506,7 +503,7 @@ private slots:
     void restoreState()
     {
         QSettings settings;
-        prepare_settings(settings);
+        prepareSettings(settings);
         settings.beginGroup("find_tool");
 
         // We must read and store all settings before applying some.
@@ -616,7 +613,7 @@ private slots:
 
     void showMessageBox(const QString & message)
     {
-        QMessageBox::information(canvas(), tr("Search"), message);
+        QMessageBox::information(getCanvas(), tr("Search"), message);
     }
 
     void tabStateChanged()
