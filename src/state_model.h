@@ -4,7 +4,7 @@
 #include <QString>
 #include <QColor>
 
-#include "time_vis3.h"
+#include "time_vis.h"
 
 namespace vis4 {
 

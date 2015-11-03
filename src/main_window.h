@@ -43,8 +43,9 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    /** Creates useless instance. Call to initialize must be made
-     *   to bring this object to life.
+    /**
+     * Creates useless instance. Call to initialize must be made
+     * to bring this object to life.
      */
     MainWindow();
 
@@ -56,7 +57,6 @@ public:
      * 'show', below.
      */
     void initialize(TraceModelPtr & model);
-    void initCanvas(TraceModelPtr & model);
 
     /** Preparing current path in QSettings to store settings per trace. */
     virtual void prepare_settings(QSettings& settings,
@@ -83,7 +83,9 @@ protected:
     bool eventFilter(QObject* watched, QEvent* event);
 
 private:
-
+    void initCanvas(TraceModelPtr & model);
+    void initToolbar();
+    void initSidebar();
     /**
      * Данная функция создает набор используемых инструментов с
      * помощью вызовов функций installTool, installBrowser и

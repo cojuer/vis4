@@ -1,7 +1,7 @@
 #ifndef TIMEEDIT_H
 #define TIMEEDIT_H
 
-#include "time_vis3.h"
+#include "time_vis.h"
 
 #include <QtWidgets/QAbstractSpinBox>
 #include <QtWidgets/QLineEdit>

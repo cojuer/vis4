@@ -12,7 +12,7 @@ int main(int ac, char* av[])
     app.setOrganizationDomain("lvk.cs.msu.su");
     app.setApplicationName("vis4");
 
-    TraceModelPtr model(new OTF_trace_model("../otf_traces/philosophers/philosophers.otf"));
+    TraceModelPtr model(new OTF_trace_model("../otf_traces/out/out.otf"));
 
     OTF_main_window mw;
     mw.initialize(model);

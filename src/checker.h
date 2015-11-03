@@ -12,6 +12,7 @@ namespace vis4 {
 class Checker;
 typedef boost::shared_ptr<Checker> pChecker;
 
+//? what is this class for?
 class Checker : public QObject {
     Q_OBJECT
 public: /** static methods */

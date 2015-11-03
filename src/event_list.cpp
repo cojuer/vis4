@@ -32,9 +32,11 @@ void Event_list::showEvents(TraceModelPtr & model, const Time & time)
     int nearest_event = -1; Time min_distance; int row = 0;
     for(;;)
     {
-        std::auto_ptr<Event_model> e = model->next_event();
+        //std::unique_ptr<Event_model> e = model->next_event();
+        Event_model* e = model->next_event();
 
-        if (!e.get())
+        //if (!e.get())
+        if (e == nullptr)
             break;
 
         model_->insertRow(row);
@@ -50,7 +52,8 @@ void Event_list::showEvents(TraceModelPtr & model, const Time & time)
         index = model_->index(row, 1, QModelIndex());
         model_->setData(index, e->shortDescription());
         model_->setData(index, e->shortDescription(), Qt::ToolTipRole);
-        events.push_back(e.release());
+        //events.push_back(e.release());
+        events.push_back(e);
         ++row;
     }
 

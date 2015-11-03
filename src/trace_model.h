@@ -6,7 +6,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "time_vis3.h"
+#include "time_vis.h"
 #include "selection.h"
 
 class Trace;
@@ -81,7 +81,7 @@ public:
 
     /**
      * Возвращает объект Trace_model соответствующий "начальному" положению
-     * в структуре компонетов, максимальному возможному диапазону времен и
+     * в структуре компонентов, максимальному возможному диапазону времен и
      * не имеющий никаких фильтров.
      */
     virtual TraceModelPtr root() = 0;
@@ -89,8 +89,10 @@ public:
 /** @defgroup hierarchy Methods for managing components hierarchy */
 /// @{
 
-    /** Returns the link of the parent component.
-        Link may be used to refer to parent component in components selection. */
+    /**
+     * Returns the link of the parent component.
+     * Link may be used to refer to parent component in components selection.
+     */
     virtual int parent_component() const = 0;
 
     /** Returns Trace_model with given component as current parent. */
@@ -126,16 +128,11 @@ public:
 /** @defgroup data Methods for obtaining trace data. */
 /// @{
 
-    /** Возвращает следующее событие с трассе и увеличивает внутренний указатель
-        событий. Если больше собитый нет, возвращает нулевой указатель. */
-    virtual std::auto_ptr<Event_model> next_event() = 0;
-
-    /** Возвращает следующее состояние в трассе и увеличивает внутренний указатель
-    событий. Если больше собитый нет, возвращает нулевой указатель. */
-    virtual std::auto_ptr<State_model> next_state() = 0;
-
-    /** Возвращает следующее состояние в трассе и увеличивает внутренний указатель
-    событий. Если больше собитый нет, возвращает нулевой указатель. */
+    /** Возвращает следующее событие с трассы и увеличивает внутренний указатель
+        событий. Если больше событий нет, возвращает нулевой указатель. */
+    //virtual std::unique_ptr<Event_model> next_event() = 0;
+    virtual Event_model* next_event() = 0;
+    virtual State_model* next_state() = 0;
     virtual std::auto_ptr<Group_model> next_group() = 0;
 
 /// @}

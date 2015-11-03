@@ -10,6 +10,7 @@
 #include <QtPrintSupport/QPrintDialog>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QMenu>
+#include <QDebug>
 
 #include "main_window.h"
 #include "trace_model.h"
@@ -27,7 +28,7 @@ MainWindow::MainWindow() :
 
 void MainWindow::initialize(TraceModelPtr & model)
 {
-    model = restore_model(model);//? why?
+    model = restore_model(model);//? trying to take settings from QSettings, but this is sooo bad
     initCanvas(model);
     // Restore window geometry
     QRect r = restore_geometry();
@@ -38,34 +39,11 @@ void MainWindow::initialize(TraceModelPtr & model)
     else
     {
         r = QApplication::desktop()->screenGeometry();
-        resize(r.width(), r.height() * 80 / 100);
+        resize(r.width(), r.height());
     }
 
-    toolbar = new QToolBar(tr("Toolbar"), this);
-    addToolBar(toolbar);
-
-    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    toolbar->toggleViewAction()->setEnabled(false);
-    toolbar->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(toolbar, SIGNAL( customContextMenuRequested(const QPoint &) ),
-        this, SLOT( toolbarContextMenu(const QPoint &) ));
-
-    sidebar = new QDockWidget(this);
-    addDockWidget(Qt::LeftDockWidgetArea, sidebar);
-    sidebar->setWindowTitle(tr("Browse trace"));
-    sidebar->setFeatures(QDockWidget::DockWidgetClosable);
-    sidebar->installEventFilter(this);
-
-    sidebarContents = new QStackedWidget(sidebar);
-    sidebar->setWidget(sidebarContents);
-
-    QAction *sidebarTrigger = new QAction(this);
-    sidebarTrigger->setShortcut(Qt::Key_F9);
-    sidebarTrigger->setShortcutContext(Qt::WindowShortcut);
-    addAction(sidebarTrigger);
-
-    connect(sidebarTrigger, SIGNAL( triggered(bool) ),
-            this, SLOT( sidebarShowHide() ));
+    initToolbar();
+    initSidebar();
 
     xinitialize(sidebarContents, canvas);
 
@@ -289,6 +267,8 @@ void MainWindow::addShortcuts(QWidget *widget)
     }
 }
 
+//? it is better to use local trace settings for some number of last traces
+/** use settings directory of settings */
 void MainWindow::prepare_settings(QSettings& settings,
                                   const TraceModelPtr & model) const
 {
@@ -632,6 +612,39 @@ void MainWindow::resetView()
     }
     activateTool(browser);
     canvas->setFocus(Qt::OtherFocusReason);
+}
+
+void MainWindow::initToolbar()
+{
+    toolbar = new QToolBar(tr("Toolbar"), this);
+    addToolBar(toolbar);
+
+    toolbar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    toolbar->toggleViewAction()->setEnabled(false);
+    toolbar->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(toolbar, SIGNAL( customContextMenuRequested(const QPoint &) ), this,
+                     SLOT( toolbarContextMenu(const QPoint &) ));
+
+}
+
+void MainWindow::initSidebar()
+{
+    sidebar = new QDockWidget(this);
+    addDockWidget(Qt::LeftDockWidgetArea, sidebar);
+    sidebar->setWindowTitle(tr("Browse trace"));
+    sidebar->setFeatures(QDockWidget::DockWidgetClosable);
+    sidebar->installEventFilter(this);
+
+    sidebarContents = new QStackedWidget(sidebar);
+    sidebar->setWidget(sidebarContents);
+
+    QAction *sidebarTrigger = new QAction(this);
+    sidebarTrigger->setShortcut(Qt::Key_F9);
+    sidebarTrigger->setShortcutContext(Qt::WindowShortcut);
+    addAction(sidebarTrigger);
+
+    connect(sidebarTrigger, SIGNAL( triggered(bool) ),
+            this, SLOT( sidebarShowHide() ));
 }
 
 }

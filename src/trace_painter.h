@@ -1,7 +1,7 @@
 #ifndef TRACE_PAINTER_H
 #define TRACE_PAINTER_H
 
-#include "time_vis3.h"
+#include "time_vis.h"
 
 #include <QPainter>
 #include <QMap>

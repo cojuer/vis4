@@ -4,7 +4,7 @@
 #include <QPainter>
 
 #include "timeunit_control.h"
-#include "time_vis3.h"
+#include "time_vis.h"
 
 namespace vis4 {
 

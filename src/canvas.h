@@ -7,7 +7,7 @@
 
 #include "trace_model.h"
 #include "trace_painter.h"
-#include "time_vis3.h"
+#include "time_vis.h"
 
 class QKeyEvent;
 
@@ -34,6 +34,7 @@ public:
      * Генерирует сигнал modelChanged.
      */
     void setModel(TraceModelPtr model);
+
     TraceModelPtr& model() const;
 
     void setCursor(const QCursor& c);
@@ -58,11 +59,19 @@ public:
      *    где рисуются имена компонетов). Положение курсора в этом
      *    случае соответсвуюет показанному моменту времени.
      */
-    enum clickTarget { nothingClicked = 1, componentClicked, stateClicked, lifelinesClicked };
+    enum clickTarget
+    {
+        nothingClicked = 1,
+        componentClicked,
+        stateClicked,
+        lifelinesClicked
+    };
 
-    /** Добавляет новый графический элемент. Все элементы рисуются поверх собственно
-        трасы. Все управление элементами должно делаться интструментами, которые их
-        добавили. */
+    /**
+     * Добавляет новый графический элемент. Все элементы рисуются поверх собственно
+     * трасы. Все управление элементами должно делаться интструментами, которые их
+     * добавили.
+     */
     void addItem(class CanvasItem* item);
 public slots:
 

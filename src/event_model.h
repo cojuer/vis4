@@ -1,7 +1,7 @@
 #ifndef EVENT_MODEL_H
 #define EVENT_MODEL_H
 
-#include "time_vis3.h"
+#include "time_vis.h"
 #include <QString>
 
 class QWidget;

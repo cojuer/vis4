@@ -4,12 +4,13 @@ namespace vis4 {
 
 const int Selection::ROOT;
 
-int Selection::addItem(const QString & title, int parent)
+int Selection::addItem(const QString& title, int parent)
 {
     int link = items_.size();
     items_ << title; filter_ << true;
-    properties_ << QHash<QString, QVariant>();
-    links_ << QList<int>(); parents_ << parent;
+    properties_ << QHash<QString, QVariant>();//? empty hash? nice
+    links_ << QList<int>();
+    parents_ << parent;
 
     if (parent == ROOT)
     {
@@ -24,13 +25,13 @@ int Selection::addItem(const QString & title, int parent)
     return link;
 }
 
-const QString & Selection::item(int link) const
+const QString& Selection::item(int link) const
 {
     Q_ASSERT(link < items_.size());
     return items_[link];
 }
 
-const QList<int> & Selection::items(int parent) const
+const QList<int>& Selection::items(int parent) const
 {
     Q_ASSERT(parent < items_.size());
     return (parent == ROOT) ? topLevelItems_ : links_[parent];
@@ -38,7 +39,8 @@ const QList<int> & Selection::items(int parent) const
 
 int Selection::itemLink(int index, int parent) const
 {
-    if (parent == ROOT) {
+    if (parent == ROOT)
+    {
         Q_ASSERT(index < topLevelItems_.size());
         return topLevelItems_[index];
     }
@@ -53,7 +55,12 @@ int Selection::itemLink(const QString & title, int parent) const
     Q_ASSERT(parent < items_.size());
 
     foreach (int link, items(parent))
-        if (items_[link] == title) return link;
+    {
+        if (items_[link] == title)
+        {
+            return link;
+        }
+    }
 
     return ROOT;
 }
@@ -71,29 +78,38 @@ int Selection::itemIndex(int link) const
     Q_ASSERT(link < items_.size());
     int parent = itemParent(link);
     if (parent == ROOT)
+    {
         return topLevelItems_.indexOf(link);
+    }
     else
+    {
         return links_[parent].indexOf(link);
+    }
 }
 
 const QList<int> Selection::enabledItems(int parent) const
 {
     QList<int> items;
 
-    if (parent == ROOT) {
-        for (int i = 0; i < topLevelItems_.size(); i++)
+    if (parent == ROOT)
+    {
+        for (int i = 0; i < topLevelItems_.size(); ++i)
         {
             if (filter_[topLevelItems_[i]])
+            {
                 items << itemLink(i);
+            }
         }
     }
     else
     {
         Q_ASSERT(parent < items_.size());
-        for (int i = 0; i < links_[parent].size(); i++)
+        for (int i = 0; i < links_[parent].size(); ++i)
         {
             if (filter_[links_[parent][i]])
+            {
                 items << itemLink(i, parent);
+            }
         }
     }
 
@@ -106,7 +122,9 @@ QVariant Selection::itemProperty(int link, const QString & property) const
    Q_ASSERT(link < items_.size());
 
    if (!properties_[link].contains(property))
+   {
         return QVariant();
+   }
 
    return properties_[link][property];
 }
@@ -158,18 +176,27 @@ void Selection::setEnabled(int link, bool enabled)
     int parent = parents_[link];
     if (!enabled && parent != ROOT && filter_[parent])
     {
-        for (int i = 0; i < itemsCount(parent); i++)
+        for (int i = 0; i < itemsCount(parent); ++i)
+        {
             if (filter_[itemLink(i, parent)]) return;
+        }
 
         setEnabled(parent, false); return;
     }
 
     if (enabled) {
-        for (int i = 0; i < itemsCount(link); i++)
-            if (filter_[itemLink(i, link)]) return;
+        for (int i = 0; i < itemsCount(link); ++i)
+        {
+            if (filter_[itemLink(i, link)])
+            {
+                return;
+            }
+        }
 
-        for (int i = 0; i < itemsCount(link); i++)
+        for (int i = 0; i < itemsCount(link); ++i)
+        {
             setEnabled(itemLink(i, link), true);
+        }
         return;
     }
 }
@@ -185,7 +212,12 @@ int Selection::enabledCount(int parent) const
 
     int count = 0;
     foreach (int  link, items(parent))
-        if (filter_[link]) count++;
+    {
+        if (filter_[link])
+        {
+            count++;
+        }
+    }
 
     return count;
 }

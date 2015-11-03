@@ -11,7 +11,6 @@ INCLUDEPATH += /usr/include/libxml2
 SOURCES += vis4.cpp \
     trace_model.cpp \
     selection.cpp \
-    time_vis3.cpp \
     otf_trace_model.cpp \
     event_list.cpp \
     canvas_item.cpp \
@@ -27,10 +26,10 @@ SOURCES += vis4.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
     grx.cpp \
-    otf_trace_data.cpp
+    otf_trace_data.cpp \
+    time_vis.cpp
 HEADERS += trace_model.h \
     selection.h \
-    time_vis3.h \
     otf_trace_model.h \
     state_model.h \
     group_model.h \
@@ -54,6 +53,7 @@ HEADERS += trace_model.h \
     tools/timeedit.h \
     tools/selection_widget.h \
     grx.h \
-    otf_trace_data.h
+    otf_trace_data.h \
+    time_vis.h
 RESOURCES += vis3.qrc
 OTHER_FILES += 

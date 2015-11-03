@@ -1,11 +1,13 @@
 #ifndef OTF_TRACE_MODEL_H
 #define OTF_TRACE_MODEL_H
 
+#include <QVector>
 #include <QDomDocument>
 #include <QDomElement>
 #include <QFile>
 #include <QMap>
 #include <QDebug>
+#include <QTextCodec>
 
 #include <sstream>
 #include <set>
@@ -13,6 +15,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cassert>
+#include <memory>
 
 #include <boost/enable_shared_from_this.hpp>
 #include <otf.h>
@@ -33,6 +36,9 @@ typedef struct {
     uint64_t count;
     int parent_component;
     Selection* components;
+    Selection* state_types;
+    QVector<State_model*>* states;
+    QVector<Event_model*> events;
     uint64_t countSend;
     uint64_t countRecv;
 } HandlerArgument;
@@ -55,33 +61,34 @@ public: /** methods */
     QString component_name(int component, bool full = false) const;
     bool has_children(int component) const;
 
-    Time min_time() const;
-    Time max_time() const;
-    Time min_resolution() const;
+    Time min_time() const override;
+    Time max_time() const override;
+    Time min_resolution() const override;
 
-    void rewind();
+    void rewind() override;
 
-    std::auto_ptr<State_model> next_state();
-    std::auto_ptr<Group_model> next_group();
+    State_model* next_state() override;
+    std::auto_ptr<Group_model> next_group() override;
     std::auto_ptr<Event_model> next_event_unsorted();
-    std::auto_ptr<Event_model> next_event();
+    //std::unique_ptr<Event_model> next_event() override;
+    Event_model* next_event() override;
 
     TraceModelPtr root();
     TraceModelPtr set_parent_component(int component);
     TraceModelPtr set_range(const Time& min, const Time& max);
 
-    const Selection & components() const;
+    const Selection& components() const;
     TraceModelPtr filter_components(const Selection & filter);
 
-    const Selection & events() const;
-    const Selection & states() const;
+    const Selection& events() const;
+    const Selection& states() const;
     const Selection& available_states() const;
 
-    TraceModelPtr filter_states(const Selection & filter);
-    TraceModelPtr install_checker(Checker * checker);
-    TraceModelPtr filter_events(const Selection & filter);
+    TraceModelPtr filter_states(const Selection& filter);
+    TraceModelPtr install_checker(Checker* checker);
+    TraceModelPtr filter_events(const Selection& filter);
 
-    QString save() const;
+    QString save() const override;
     bool groupsEnabled() const;
     TraceModelPtr setGroupsEnabled(bool enabled);
     void restore(const QString& s);
@@ -91,7 +98,7 @@ private:    /** members */
     OTF_Reader* reader;
 
     int parent_component_;
-    Selection components_;
+    Selection components_;//? processes?
     Selection events_;
     bool groups_enabled_;
     Selection states_;
@@ -100,7 +107,7 @@ private:    /** members */
     Time min_time_;
     Time max_time_;
 
-    OTF_HandlerArray *handlers;
+    OTF_HandlerArray* handlers;
     HandlerArgument ha;
     uint64_t ret;
 
@@ -131,6 +138,9 @@ private:    /** methods */
     // All events sorted by the time.
     QVector<Event_model*> allEvents;
     int currentEvent;
+
+    QVector<State_model*> allStates;
+    int currentState;
 
     // Need to hold a reference to root so that it's not
     // deleted.
@@ -165,7 +175,12 @@ static int handleDefFunctionGroup (void *userData, uint32_t stream, uint32_t fun
 
 static int handleDefFunction (void *userData, uint32_t stream, uint32_t func, const char *name, uint32_t funcGroup, uint32_t source)
 {
-    qDebug() << "stream = " << stream << " func: " << func << " name: " << name << " funcGroup: " << funcGroup << " source: " << source;
+    QTextCodec *codec = QTextCodec::codecForName( "KOI8-R" );
+    QString tr_name = codec->toUnicode(name);
+    QTextCodec *codec1 = QTextCodec::codecForName( "UTF-8" );
+    tr_name = codec1->fromUnicode(tr_name);
+    ((HandlerArgument*)userData)->state_types->addItem(tr_name, -1);
+    qDebug() << "stream = " << stream << " func: " << func << " name: " << tr_name << " funcGroup: " << funcGroup << " source: " << source;
     return OTF_RETURN_OK;
 }
 
@@ -179,12 +194,40 @@ static int handleDefMarker(void *userData, uint32_t stream, uint32_t token, cons
 /** Обработчики событий и состояний */
 static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-     qDebug() << "ENTER: " << function;
-     return OTF_RETURN_OK;
+    State_model* sm = new State_model();
+    sm->component = process;
+    sm->type = function;
+    sm->begin = scalarTime<int>(time);
+    sm->end = scalarTime<int>(time + 1000);//TEST
+    sm->color = Qt::yellow;
+    ((HandlerArgument*)userData)->states->push_back(sm);
+    Event_model* em = new Event_model();
+    em->time = scalarTime<int>(time);
+    em->component = process;
+    em->kind = "ENTER";
+    em->letter = 'E';
+    ((HandlerArgument*)userData)->events.push_back(em);
+    qDebug() << "ENTER: " << function << "time: " << time;
+    return OTF_RETURN_OK;
 }
 
 static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
+    for (int i = ((HandlerArgument*)userData)->states->size() - 1; i > 0; --i)
+    {
+        //TEST
+        if (process == (*((HandlerArgument*)userData)->states)[i]->component)
+        {
+            (*((HandlerArgument*)userData)->states)[i]->end = scalarTime<int>(time);
+        }
+    }
+    Event_model* em = new Event_model();
+    em->time = scalarTime<int>(time);
+    em->component = process;
+    em->kind = "LEAVE";
+    em->letter = 'L';
+    ((HandlerArgument*)userData)->events.push_back(em);
+    qDebug() << "ENTER: " << function << "time: " << time;
      qDebug() << "LEAVE: " << function;
      return OTF_RETURN_OK;
 }

@@ -16,7 +16,7 @@ class Selection {
 
 public: /* static constants */
 
-    static const int ROOT = -1;
+    static const int ROOT = -1;//? why we need -1 root?
 
 public: /* methods */
 
@@ -52,8 +52,8 @@ public: /* methods */
     void setEnabled(int link, bool enabled);
     void setEnabled(int index, int parent, bool enabled);
 
-    Selection & enableAll(int parent = ROOT, bool recursive = false);
-    Selection & disableAll(int parent = ROOT, bool recursive = false);
+    Selection& enableAll(int parent = ROOT, bool recursive = false);
+    Selection& disableAll(int parent = ROOT, bool recursive = false);
 
     void clear();
 
@@ -62,8 +62,8 @@ public: /* methods */
 /** @defgroup comparison Comparison operators overload. */
 /// @{
 
-    bool operator==(const Selection & other) const;
-    bool operator!=(const Selection & other) const;
+    bool operator==(const Selection& other) const;
+    bool operator!=(const Selection& other) const;
 
 /// @}
 
@@ -72,14 +72,17 @@ public: /* methods */
 private: /* members */
 
     QVector<QString> items_;
+
+    /** state of the item (enabled/disabled) */
     QVector<bool> filter_;
 
-    QVector< QHash<QString, QVariant> > properties_;
+    QVector<QHash<QString, QVariant>> properties_;
 
-    QVector< QList<int> > links_;
+    QVector<QList<int>> links_;
     QVector<int> parents_;
-    QList<int> topLevelItems_;
 
+    /** items with root parent */
+    QList<int> topLevelItems_;
 };
 
 } // namespaces

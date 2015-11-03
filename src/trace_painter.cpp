@@ -1,4 +1,5 @@
 #include <utility>
+#include <memory>
 unsigned int qHash(const std::pair< std::pair<int, int>, std::pair<int, int> >& p);
 
 #include "trace_painter.h"
@@ -14,6 +15,7 @@ unsigned int qHash(const std::pair< std::pair<int, int>, std::pair<int, int> >& 
 #include <QtWidgets/QApplication>
 #include <QSet>
 #include <QSettings>
+#include <QDebug>
 
 namespace {
 
@@ -61,8 +63,11 @@ namespace vis4 {
 using std::vector;
 using std::pair;
 
-Trace_painter::Trace_painter()
-    : right_margin(5), painter(0), tg(0), state_(Ready)
+Trace_painter::Trace_painter() :
+    right_margin(5),
+    painter(0),
+    tg(0),
+    state_(Ready)
 {
     QFontMetrics fm(QApplication::font());
     text_elements_height = (fm.height() + 2)/2*2;
@@ -131,7 +136,6 @@ void Trace_painter::setModel(TraceModelPtr & model_)
 void Trace_painter::setPaintDevice(QPaintDevice * paintDevice)
 {
     Q_ASSERT(paintDevice);
-
     if (painter) delete painter;
     painter = new QPainter(paintDevice);
     painter->setRenderHint(QPainter::Antialiasing);
@@ -536,10 +540,10 @@ void Trace_painter::drawStates(int from_component, int to_component)
 
     for(;;)
     {
-        std::auto_ptr<State_model> s = model->next_state();
-        if (!s.get()) break;
+        State_model* s = model->next_state();
+        if (s == nullptr) break;
 
-        int lifeline = model->lifeline(s.get()->component);
+        int lifeline = model->lifeline(s->component);
         if (lifeline < from_component || lifeline > to_component) continue;
 
         int pixel_begin = pixelPositionForTime(s->begin);
@@ -566,7 +570,12 @@ void Trace_painter::drawStates(int from_component, int to_component)
 
             if (!printer_flag)
             {
-                State_model* sm = s.release();
+                State_model* sm = new State_model();
+                sm->begin = scalarTime<int>(boost::any_cast<int>(s->begin.data()));
+                sm->end = scalarTime<int>(boost::any_cast<int>(s->end.data()));
+                sm->component = s->component;
+                sm->type = s->type;
+                sm->color = s->color;
                 tg->states.push_back(
                     qMakePair(r, boost::shared_ptr<State_model>(sm)));
             }
@@ -619,12 +628,20 @@ void Trace_painter::drawEvents(int from_component, int to_component)
     model->rewind();
     for(;;)
     {
-        std::auto_ptr<Event_model> e = model->next_event();
-        if (!e.get()) break;
+        //std::unique_ptr<Event_model> e = model->next_event();
+        Event_model* e = model->next_event();
+        if (e == nullptr)
+        //if (!e.get())
+        {
+            break;
+        }
 
-        int lifeline = model->lifeline(e.get()->component);
-        if (lifeline < from_component || lifeline > to_component) continue;
-
+        //int lifeline = model->lifeline(e.get()->component);
+        int lifeline = model->lifeline(e->component);
+        if (lifeline < from_component || lifeline > to_component)
+        {
+            continue;
+        }
         int pos = pixelPositionForTime(e->time);
 
         // Workaround a bug in tracedb -- it often
@@ -687,7 +704,6 @@ NP      tg->eventsNear[lifeline][pos] = true;
         // where the next letter can be drawn.
         QRect bound(letter_x, letter_y-mainFontDescent,
                     letter_width + subletter_width + 1, mainFontHeight);
-
         Event_letter_drawing drawing;
         drawing.priority = e->priority;
         drawing.letter = e->letter;
@@ -746,12 +762,12 @@ NP      tg->eventsNear[lifeline][pos] = true;
             letters_to_draw[lifeline].insert(le, drawing);
         }
 
-        if (!printer_flag && was_drawned) {
+        if (!printer_flag && was_drawned)
+        {
             QApplication::processEvents();
             if (state_ == Canceled) return;
         }
     }
-
     for (int i = 0; i < letters_to_draw.size(); ++i)
     {
         Event_letter_drawing d;
@@ -935,7 +951,7 @@ void Trace_painter::drawTimeline(QPainter * painter, int x, int y)
             arrow.setPoint(1, pos+3, 9+2);
             arrow.setPoint(2, pos-3, 9+2);
             painter->drawPolygon(arrow);
-
+            //? this time used to paint!!
             Time time_here = Time::scale(model->min_time(), model->max_time(),
                                          double(pos-left_margin)/pixel_lenth);
 
