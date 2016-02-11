@@ -14,18 +14,18 @@ namespace vis4 {
 class TimeUnitControl : public QWidget
 {
     Q_OBJECT
-public: /* methods */
+public: /** methods */
     TimeUnitControl(QWidget *parent);
     QSize sizeHint() const;
 signals:
     void timeSettingsChanged();
-protected: /* methods */
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void initStyleOption(QStyleOptionComboBox *option) const;
+protected: /** methods */
+    void paintEvent(QPaintEvent* event);
+    void mousePressEvent(QMouseEvent* event);
+    void initStyleOption(QStyleOptionComboBox* option) const;
 private slots:
-    void menuActionTriggered(QAction * action);
-private: /* members */
+    void menuActionTriggered(QAction* action);
+private: /** members */
     QMenu* menu;
 };
 

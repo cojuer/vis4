@@ -23,6 +23,7 @@
 #include "trace_model.h"
 #include "state_model.h"
 #include "event_model.h"
+#include "message_model.h"
 #include "canvas_item.h"
 #include "group_model.h"
 #include "event_list.h"
@@ -38,7 +39,7 @@ typedef struct {
     Selection* components;
     Selection* state_types;
     QVector<State_model*>* states;
-    QVector<Event_model*> events;
+    QVector<EventModel*>* events;
     uint64_t countSend;
     uint64_t countRecv;
 } HandlerArgument;
@@ -55,7 +56,7 @@ public: /** methods */
     ~OTF_trace_model();
 
     int parent_component() const;
-    const QList<int> & visible_components() const;
+    const QList<int>& visible_components() const;
     int lifeline(int component) const;
     ComponentType component_type(int component) const;
     QString component_name(int component, bool full = false) const;
@@ -68,10 +69,9 @@ public: /** methods */
     void rewind() override;
 
     State_model* next_state() override;
-    std::auto_ptr<Group_model> next_group() override;
-    std::auto_ptr<Event_model> next_event_unsorted();
-    //std::unique_ptr<Event_model> next_event() override;
-    Event_model* next_event() override;
+    Group_model* next_group() override;
+    std::auto_ptr<EventModel> next_event_unsorted();
+    EventModel* next_event() override;
 
     TraceModelPtr root();
     TraceModelPtr set_parent_component(int component);
@@ -111,11 +111,6 @@ private:    /** members */
     HandlerArgument ha;
     uint64_t ret;
 
-//?
-    ComponentTree::Link hierarchy_pos;
-    QMap<ComponentTree::Link, int> components_map_;
-    boost::shared_ptr<ComponentTree> hierarchy_backend;
-
 private:    /** methods */
     Time getTime(int t) const;
     void initialize();
@@ -124,27 +119,28 @@ private:    /** methods */
 
 //?
     void findNextItem(const QString& elementName);
-    QDomElement currentElement;
-    std::vector<QDomElement> subcomponents;
+
+    //TEST
+    void testAddMessages();
+    void updateTime();
 
     QList<int> visible_components_;
     QMap<int, int> lifeline_map_;
 
-    // The current item we iterate over -- could be state,
-    // or event, or group event.
-    QDomElement currentItem;
     int currentSubcomponent;
 
     // All events sorted by the time.
-    QVector<Event_model*> allEvents;
+    QVector<EventModel*> allEvents;
     int currentEvent;
 
     QVector<State_model*> allStates;
     int currentState;
 
-    // Need to hold a reference to root so that it's not
-    // deleted.
-    QDomElement root_;
+    QVector<Group_model*> allGroups;
+    int currentGroup;
+
+    QVector<Message_model*> allMessages;
+    int currentMessage;
 };
 
 
@@ -198,16 +194,16 @@ static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32
     sm->component = process;
     sm->type = function;
     sm->begin = scalarTime<int>(time);
-    sm->end = scalarTime<int>(time + 1000);//TEST
+    sm->end = scalarTime<int>(-1);//TEST
     sm->color = Qt::yellow;
     ((HandlerArgument*)userData)->states->push_back(sm);
-    Event_model* em = new Event_model();
+    EventModel* em = new EventModel();
     em->time = scalarTime<int>(time);
     em->component = process;
     em->kind = "ENTER";
     em->letter = 'E';
-    ((HandlerArgument*)userData)->events.push_back(em);
-    qDebug() << "ENTER: " << function << "time: " << time;
+    ((HandlerArgument*)userData)->events->push_back(em);
+    qDebug() << "ENTER: " << function << "time: " << time << " type: " << function;
     return OTF_RETURN_OK;
 }
 
@@ -221,15 +217,14 @@ static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32
             (*((HandlerArgument*)userData)->states)[i]->end = scalarTime<int>(time);
         }
     }
-    Event_model* em = new Event_model();
+    EventModel* em = new EventModel();
     em->time = scalarTime<int>(time);
     em->component = process;
     em->kind = "LEAVE";
     em->letter = 'L';
-    ((HandlerArgument*)userData)->events.push_back(em);
-    qDebug() << "ENTER: " << function << "time: " << time;
-     qDebug() << "LEAVE: " << function;
-     return OTF_RETURN_OK;
+    ((HandlerArgument*)userData)->events->push_back(em);
+    qDebug() << "LEAVE: " << function << "time: " << time << " type: " << function;
+    return OTF_RETURN_OK;
 }
 
  static int handleMarker(void *userData, uint64_t time, uint32_t process, uint32_t token, const char *text, OTF_KeyValueList *list)

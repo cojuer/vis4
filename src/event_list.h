@@ -9,32 +9,30 @@
 
 namespace vis4 {
 
-class Event_model;
+class EventModel;
 
-class Event_list : public QTreeView
+class EventList : public QTreeView
 {
     Q_OBJECT
 public:
-    Event_list(QWidget* parent);
+    EventList(QWidget* parent);
 
-    void showEvents(TraceModelPtr& model, const Time & time);
+    void showEvents(TraceModelPtr& model, const Time& time);
 
     void updateTime();
 
     QSize sizeHint() const;
-
     void scrollTo(const QModelIndex & index, ScrollHint hint = EnsureVisible);
 
-    Event_model* currentEvent();
-    void setCurrentEvent(Event_model* event);
+    EventModel* currentEvent();
+    void setCurrentEvent(EventModel* event);
 
 signals:
-    void currentEventChanged(Event_model*);
+    void currentEventChanged(EventModel*);//? what slot is it used with
 private slots:
-    void eventListRowChanged(const QModelIndex& index);
+    void eventListRowChanged();
 private:
-    QStandardItemModel* model_;
-    QVector<Event_model*> events;
+    QVector<EventModel*> events;
 };
 
 }

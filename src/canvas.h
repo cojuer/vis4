@@ -28,21 +28,14 @@ Q_OBJECT
 public:
     Canvas(QWidget* parent);
 
-    /**
-     * Устанавливает модель, показываемую в данный момент, и обновляет
-     * объект. При всех изменениях модели, этот метод должен быть вызван явно.
-     * Генерирует сигнал modelChanged.
-     */
     void setModel(TraceModelPtr model);
-
-    TraceModelPtr& model() const;
-
     void setCursor(const QCursor& c);
 
-    /** По вертильной координате, возвращает номер ближайшей линии жизни. */
-    int nearest_lifeline(int y);
+    TraceModelPtr& getModel() const;//->getModel()
 
-    /** По номеру компонента в времени, возвращает координаты точки. */
+    int nearest_lifeline(int y);//->getNearestLifeline
+
+
     QPoint lifeline_point(int component, const Time& time);
 
     QPair<Time, Time> nearby_range(const Time& time);
@@ -67,11 +60,7 @@ public:
         lifelinesClicked
     };
 
-    /**
-     * Добавляет новый графический элемент. Все элементы рисуются поверх собственно
-     * трасы. Все управление элементами должно делаться интструментами, которые их
-     * добавили.
-     */
+
     void addItem(class CanvasItem* item);
 public slots:
 
@@ -192,7 +181,7 @@ private: /** members */
     std::auto_ptr<Trace_painter> trace_painter;
     std::auto_ptr<Trace_geometry> trace_geometry;
 
-    QPaintDevice * paintBuffer;
+    QPaintDevice* paintBuffer;
     bool portable_drawing;
 
     int visir_position;

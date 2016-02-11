@@ -628,15 +628,12 @@ void Trace_painter::drawEvents(int from_component, int to_component)
     model->rewind();
     for(;;)
     {
-        //std::unique_ptr<Event_model> e = model->next_event();
-        Event_model* e = model->next_event();
+        EventModel* e = model->next_event();
         if (e == nullptr)
-        //if (!e.get())
         {
             break;
         }
 
-        //int lifeline = model->lifeline(e.get()->component);
         int lifeline = model->lifeline(e->component);
         if (lifeline < from_component || lifeline > to_component)
         {
@@ -684,14 +681,14 @@ NP      tg->eventsNear[lifeline][pos] = true;
         unsigned letter_y = y - text_elements_height/2
             - event_line_extra_height - event_line_and_letter_spacing;
 
-        if (e->letter_position == Event_model::left_top
-            || e->letter_position == Event_model::left_bottom)
+        if (e->letter_position == EventModel::left_top
+            || e->letter_position == EventModel::left_bottom)
         {
             letter_x = pos - letter_width - subletter_width - 1;
         }
 
-        if (e->letter_position == Event_model::left_bottom
-            || e->letter_position == Event_model::right_bottom)
+        if (e->letter_position == EventModel::left_bottom
+            || e->letter_position == EventModel::right_bottom)
         {
             letter_y = y+text_elements_height/2
                 + event_line_extra_height + event_line_and_letter_spacing
@@ -798,8 +795,8 @@ void Trace_painter::drawGroups(int from_comp, int to_comp)
     model->rewind();
     for(;;)
     {
-        std::auto_ptr<Group_model> g = model->next_group();
-        if (!g.get()) break;
+        Group_model* g = model->next_group();
+        if (g == nullptr) break;
 
         if (g->type == Group_model::arrow)
         {

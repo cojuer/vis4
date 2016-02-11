@@ -78,7 +78,7 @@ public:
      */
     void update(Canvas* canvasPtr)
     {
-        TraceModelPtr model = canvasPtr->model();
+        TraceModelPtr model = canvasPtr->getModel();
 
         startTimeLabel->setText(model->min_time().toString(true));
         endTimeLabel->setText(model->max_time().toString(true));
@@ -126,14 +126,14 @@ public:
         mainLayout = new QVBoxLayout(this);
         splitter = new QSplitter(Qt::Vertical ,this);
 
-        eventList = new Event_list(this);
+        eventList = new EventList(this);
         /* Qt 4.2 seem to have a bug -- if details widget has
            QGridLayout and one row if it is expanding, then
            size policies on event list and details widget don't work
            -- both widgets get equal size.  */
         splitter->addWidget(eventList);
-        connect(eventList, SIGNAL(currentEventChanged(Event_model*)), this, 
-                           SLOT(currentEventChanged(Event_model*)));
+        connect(eventList, SIGNAL(currentEventChanged(EventModel*)), this,
+                           SLOT(currentEventChanged(EventModel*)));
 
         details = new QWidget(this);
         splitter->addWidget(details);
@@ -149,21 +149,21 @@ public:
         }
     }
 
-    void showEvent(Canvas *canvas, Event_model *event)
+    void showEvent(Canvas* canvasPtr, EventModel* eventPtr)
     {
         // We block signals to permit flicker effect
         eventList->blockSignals(true);
-        update(canvas, event->component, event->time);
-        eventList->setCurrentEvent(event);
+        update(canvasPtr, eventPtr->component, eventPtr->time);
+        eventList->setCurrentEvent(eventPtr);
         eventList->blockSignals(false);
 
         // Since eventList was blocked we have to update event details manually
-        currentEventChanged(event);
+        currentEventChanged(eventPtr);
     }
 
-    void update(Canvas *canvas, int component, const Time &time)
+    void update(Canvas* canvasPtr, int component, const Time &time)
     {
-        trace_ = canvas->model();
+        trace_ = canvasPtr->getModel();
         int parent_component = trace_->parent_component();
 
         Selection component_filter = trace_->components();
@@ -171,7 +171,7 @@ public:
         component_filter.disableAll(parent_component);
         component_filter.setEnabled(component, true);
 
-        QPair<Time, Time> nearby = canvas->nearby_range(time);
+        QPair<Time, Time> nearby = canvasPtr->nearby_range(time);
         filtered_ = trace_->set_range(nearby.first, nearby.second);
         filtered_ = filtered_->filter_components(component_filter);
 
@@ -198,7 +198,7 @@ public:
     }
 
 private slots:
-    void currentEventChanged(Event_model *event)
+    void currentEventChanged(EventModel *event)
     {
         if (!event)
         {
@@ -206,44 +206,32 @@ private slots:
             return;
         }
 
-        if (event->customDetailsWidget())
+        if (!using_default_details)
         {
-            if (using_default_details)
-            {
-                deleteAllChildren(details);
-                nameLabel = 0;
-            }
-            event->createDetailsWidget(details);
-            using_default_details = false;
+            deleteAllChildren(details);
+            nameLabel = 0;
         }
-        else
+
+        if (!nameLabel)
         {
-            if (!using_default_details)
-            {
-                deleteAllChildren(details);
-                nameLabel = 0;
-            }
+            QGridLayout* infoLayout = new QGridLayout(details);
+            infoLayout->setMargin(0);
 
-            if (!nameLabel)
-            {
-                QGridLayout* infoLayout = new QGridLayout(details);
-                infoLayout->setMargin(0);
+            infoLayout->addWidget(new QLabel(tr("Type:"), details), 0, 0);
+            nameLabel = new QLabel("", details);
+            infoLayout->addWidget(nameLabel, 0, 1);
 
-                infoLayout->addWidget(new QLabel(tr("Type:"), details), 0, 0);
-                nameLabel = new QLabel("", details);
-                infoLayout->addWidget(nameLabel, 0, 1);
+            infoLayout->addWidget(new QLabel(tr("Time:"), details), 1, 0);
+            timeLabel = new QLabel("", details);
+            infoLayout->addWidget(timeLabel, 1, 1);
 
-                infoLayout->addWidget(new QLabel(tr("Time:"), details), 1, 0);
-                timeLabel = new QLabel("", details);
-                infoLayout->addWidget(timeLabel, 1, 1);
-
-                infoLayout->setRowStretch(2, 1);
-            }
-
-            nameLabel->setText(event->kind);
-            timeLabel->setText(event->time.toString(true));
-            using_default_details = true;
+            infoLayout->setRowStretch(2, 1);
         }
+
+        nameLabel->setText(event->kind);
+        timeLabel->setText(event->time.toString(true));
+        using_default_details = true;
+
 
         /* Expand the minimum size of details widget to the current
            size hint, so that it never shrinks below that size.
@@ -307,7 +295,7 @@ private:
 
     QLabel* nameLabel;
     QLabel* timeLabel;
-    Event_list* eventList;
+    EventList* eventList;
     QWidget* details;
     bool using_default_details;
 
@@ -525,7 +513,7 @@ public:
     }
 
     // 'do' is to avoid naming conflict with the signal.
-    void doShowEvent(Event_model* event)
+    void doShowEvent(EventModel* event)
     {
         infoStack->setCurrentWidget(event_info_);
         event_info_->showEvent(getCanvas(), event);

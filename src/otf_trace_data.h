@@ -82,7 +82,6 @@ static int handleDefMarker(void* userData, uint32_t stream, uint32_t token, cons
 /** Обработчики событий и состояний */
 static int handleEnter (void* userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList* list)
 {
-     //fprintf( stdout, "      Enter time: %u function name: '%u'\n", process, function );
      qDebug() << "ENTER: " << function;
      return OTF_RETURN_OK;
 }

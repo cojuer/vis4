@@ -146,13 +146,13 @@ public:
         selectEventLabel = new QLabel(tr("Snap to event:"), this);
         mainLayout->addWidget(selectEventLabel);
 
-        events = new Event_list(this);
+        events = new EventList(this);
         mainLayout->addWidget(events);
 
         mainLayout->addStretch();
 
-        connect(events, SIGNAL(currentEventChanged(Event_model*)),
-                this, SLOT(currentEventChanged(Event_model*)));
+        connect(events, SIGNAL(currentEventChanged(EventModel*)),
+                this, SLOT(currentEventChanged(EventModel*)));
     }
 
     void setCurrentlySelecting(bool s)
@@ -232,7 +232,7 @@ signals:
 
 private slots:
 
-    void currentEventChanged(Event_model* event)
+    void currentEventChanged(EventModel* event)
     {
         emit eventSelected(event->time);
     }
@@ -242,7 +242,7 @@ private:
     QLabel* timeLabel;
 
     QLabel* selectEventLabel;
-    Event_list* events;
+    EventList* events;
 
     Time time;
     bool currentlySelecting;

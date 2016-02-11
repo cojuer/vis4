@@ -11,13 +11,13 @@ OTF_trace_model::OTF_trace_model(const QString& filename) :
 {
     states_.clear();
 
-    ha = (HandlerArgument){ 0 /* count */, parent_component_ /*parent */, &components_ /*components*/, &states_, &allStates, QVector<Event_model*>(), 0, 0};
+    ha = (HandlerArgument){ 0, parent_component_, &components_, &states_, &allStates, &allEvents, 0, 0};
 
     manager = OTF_FileManager_open(100);//? what if > 100?
     assert( manager );
 
     initialize();
-    max_time_ = getTime(1000000);
+    max_time_ = getTime(1000);
 
     handlers = OTF_HandlerArray_open();
     assert(handlers);
@@ -69,11 +69,16 @@ OTF_trace_model::OTF_trace_model(const QString& filename) :
     // чтение событий Events
     OTF_Reader_setRecordLimit(reader, 1000);
     OTF_Reader_readEvents( reader, handlers);
-    OTF_Reader_setRecordLimit(reader, 3);
     OTF_Reader_readMarkers( reader, handlers);
+    OTF_Reader_readStatistics( reader, handlers);
+    OTF_Reader_readSnapshots( reader, handlers);
 
     qDebug() << "read definition records: " << (unsigned long long int)ret;
     qDebug() << "countSend=" << ha.countSend << " countRecv=" << ha.countRecv;
+
+    //TEST
+    testAddMessages();
+    updateTime();
 }
 
 OTF_trace_model::~OTF_trace_model() {}
@@ -82,10 +87,7 @@ void OTF_trace_model:: initialize_component_list()
 {
     components_.clear();
     int rootLink = components_.addItem("Stand", Selection::ROOT);
-    //components_.setItemProperty(rootLink, "ctlink", ComponentTree::ROOT);
-    //components_.setItemProperty(0, "current_parent", rootLink);
     parent_component_ = rootLink;
-    //components_map_[ComponentTree::ROOT] = rootLink;
 }
 
 int OTF_trace_model:: parent_component() const
@@ -148,8 +150,7 @@ Time OTF_trace_model::min_time() const
 
 Time OTF_trace_model::max_time() const
 {
-    //return max_time_;
-    return getTime(10000);
+    return max_time_;
 }
 
 Time OTF_trace_model::min_resolution() const
@@ -159,76 +160,48 @@ Time OTF_trace_model::min_resolution() const
 
 void OTF_trace_model::rewind()
 {
-    currentItem.clear();
-    currentSubcomponent = -1;
-
-    allEvents.clear();
-    QMultiMap<Time, Event_model*> events;
-
-    for(;;)
-    {
-        std::auto_ptr<Event_model> e = next_event_unsorted();
-
-        Event_model* ep = e.release();
-
-        if (!ep)
-        {
-            break;
-        }
-
-        events.insert(ep->time, ep);
-    }
-
-    for(QMultiMap<Time, Event_model*>::iterator i = events.begin(),
-            e = events.end(); i != e; ++i)
-    {
-        allEvents.push_back(i.value());
-    }
     currentEvent = 0;
-
-    currentItem.clear();
     currentSubcomponent = -1;
-    allEvents = ha.events;//? TEST
+    currentGroup = 0;
+    //testAddMessages();
+}
+
+void OTF_trace_model::testAddMessages()
+{
+    Group_model* gm = new Group_model();
+    std::vector<Group_model::point> gmvec;
+    Group_model::point gp1;
+    gp1.component = 1;
+    gp1.time = getTime(0);
+    Group_model::point gp2;
+    gp2.component = 2;
+    gp2.time = getTime(1000);
+    Group_model::point gp3;
+    gp3.component = 3;
+    gp3.time = getTime(1000);
+    gmvec.push_back(gp1);
+    gmvec.push_back(gp2);
+    gmvec.push_back(gp3);
+    gm->points = gmvec;
+    gm->type = Group_model::arrow;
+    allGroups.push_back(gm);
+}
+
+void OTF_trace_model::updateTime()
+{
+    max_time_ = allEvents[allEvents.size() - 1]->time;
+    //? TEST
+    for (int i = 0; i < allStates.size(); ++i)
+    {
+        if (boost::any_cast<int>(allStates[i]->end.data()) == -1)
+        {
+            allStates[i]->end = max_time_;
+        }
+    }
 }
 
 State_model* OTF_trace_model::next_state()
 {
-    /*
-    for(;;)//? wow, so predictable
-    {
-        findNextItem("states");
-
-        if (currentItem.isNull())
-            return std::auto_ptr<State_model>();
-
-        int component = visible_components_[currentSubcomponent];
-        QString state_name = currentItem.attribute("name").toLatin1().data();
-
-        int sparent = states_.itemLink(0, Selection::ROOT);
-        while (states_.itemProperty(sparent, "component").toInt() != component)
-        {
-            int index = states_.itemIndex(sparent);
-            Q_ASSERT(index+1 < states_.itemsCount());
-            sparent = states_.itemLink(index+1, Selection::ROOT);
-        }
-
-        int state_id = states_.itemLink(state_name, sparent);
-        Q_ASSERT(state_id != -1);
-
-        if (!states_.isEnabled(sparent)) continue;
-        if (!states_.isEnabled(state_id)) continue;
-
-        std::auto_ptr<State_model> r(new State_model);
-
-        r->begin = getTime(currentItem.attribute("begin").toInt());
-        r->end = getTime(currentItem.attribute("end").toInt());
-        r->component = component;
-        r->type = state_id;
-        r->color = Qt::yellow;
-
-        return r;
-    }
-    */
     if (currentState < allStates.size())
     {
         return allStates[currentState++];
@@ -240,143 +213,32 @@ State_model* OTF_trace_model::next_state()
     }
 }
 
-std::auto_ptr<Group_model> OTF_trace_model::next_group()
+Group_model* OTF_trace_model::next_group()
 {
-    if (!groups_enabled_) return std::auto_ptr<Group_model>();
-
-    for(;;)
+    if (currentGroup < allGroups.size())
     {
-        findNextItem("groups");
-
-        if (currentItem.isNull())
-        {
-            return std::auto_ptr<Group_model>();
-        }
-        else
-        {
-            std::auto_ptr<Group_model> r(new Group_model);
-
-            r->type = Group_model::arrow;
-            r->points.resize(2);
-            r->points[0].component = visible_components_[currentSubcomponent];
-            r->points[0].time = getTime(
-                currentItem.attribute("time").toInt());
-            r->points[1].time = getTime(
-                currentItem.attribute("target_time").toInt());
-
-            QString to_component_s =
-                currentItem.attribute("target_component");
-
-            int to_component = -1;
-            for(unsigned i = 0; i < subcomponents.size(); ++i)
-            {
-                if (to_component_s == subcomponents[i].attribute("name"))
-                {
-                    to_component = i;
-                    break;
-                }
-            }
-            if (to_component != -1)
-            {
-                r->points[1].component = visible_components_[to_component];
-                return r;
-            }
-        }
+        return allGroups[currentGroup++];
     }
-}
-
-std::auto_ptr<Event_model> OTF_trace_model:: next_event_unsorted()
-{
-    Time time;
-    for(;;)
-    {
-        findNextItem("events");
-
-        if (currentItem.isNull())
-            break;
-
-        time = getTime(currentItem.attribute("time").toInt());
-
-        QString kind_att = currentItem.attribute("kind");
-        bool allowed_kind = false;
-        if (kind_att.isEmpty())
-        {
-            allowed_kind = true;
-        }
-        else
-        {
-            foreach(int event, events_.items())
-            {
-                if (events_.item(event) == kind_att)
-                {
-                    allowed_kind = events_.isEnabled(event);
-                    break;
-                }
-            }
-        }
-
-        if (time >= min_time_ && time <= max_time_ && allowed_kind)
-            break;
-    }
-
-    if (currentItem.isNull())
-        return std::auto_ptr<Event_model>();
     else
     {
-        std::auto_ptr<Event_model> r(new Event_model);
-
-        r->time = time;
-        r->letter = currentItem.attribute("letter")[0].toLatin1();
-        if (currentItem.hasAttribute("subletter"))
-            r->subletter = currentItem.attribute("subletter")[0].toLatin1();
-        else
-            r->subletter = '\0';
-        if (currentItem.hasAttribute("position"))
-        {
-            QString p = currentItem.attribute("position");
-            if (p == "left_top")
-            {
-                r->letter_position = Event_model::left_top;
-            }
-            else if (p == "right_top")
-            {
-                r->letter_position = Event_model::right_top;
-            }
-            else if (p == "left_bottom")
-            {
-                r->letter_position = Event_model::left_bottom;
-            }
-            else if (p == "right_bottom")
-            {
-                r->letter_position = Event_model::right_bottom;
-            }
-        }
-        else
-            r->letter_position = Event_model::right_top;
-
-        if (currentItem.hasAttribute("priority"))
-            r->priority = currentItem.attribute("priority").toInt();
-        else
-            r->priority = 0;
-
-        r->kind = currentItem.attribute("kind").toLatin1().data();
-        r->component = visible_components_[currentSubcomponent];
-
-        return r;
+        currentGroup = 0;
+        return nullptr;
     }
 }
 
-Event_model* OTF_trace_model::next_event()
-//std::unique_ptr<Event_model> OTF_trace_model::next_event()
+std::auto_ptr<EventModel> OTF_trace_model:: next_event_unsorted()
+{
+    return std::auto_ptr<EventModel>();
+}
+
+EventModel* OTF_trace_model::next_event()
 {
     if (currentEvent >= allEvents.count())
     {
-        //return std::unique_ptr<Event_model>();
         return nullptr;
     }
     else
     {
-        //return std::unique_ptr<Event_model>(allEvents[currentEvent++]);
         return allEvents[currentEvent++];
     }
 }
@@ -384,19 +246,9 @@ Event_model* OTF_trace_model::next_event()
 TraceModelPtr OTF_trace_model::root()
 {
     OTFTraceModelPtr n(new OTF_trace_model(*this));
-    n->currentElement = root_;
     n->parent_component_ = Selection::ROOT;
 
     n->min_time_ = getTime(0);
-    QString max_time_at = n->currentElement.attribute("max_time");
-    if (max_time_at.isEmpty())
-    {
-        n->max_time_ = max_time_;
-    }
-    else
-    {
-        n->max_time_ = getTime(max_time_at.toInt());
-    }
 
     n->events_.enableAll(Selection::ROOT, true);
     n->adjust_components();
@@ -413,7 +265,6 @@ TraceModelPtr OTF_trace_model::set_parent_component(int component)
     if (component == Selection::ROOT)
     {
         OTFTraceModelPtr n(new OTF_trace_model(*this));
-        n->currentElement = root_;
         n->parent_component_ = Selection::ROOT;
         n->adjust_components();
         return n;
@@ -422,7 +273,6 @@ TraceModelPtr OTF_trace_model::set_parent_component(int component)
     if (component == components_.itemParent(parent_component_))
     {
         OTFTraceModelPtr n(new OTF_trace_model(*this));
-        n->currentElement = currentElement.parentNode().toElement();
         n->parent_component_ = component;
         n->adjust_components();
         return n;
@@ -431,9 +281,6 @@ TraceModelPtr OTF_trace_model::set_parent_component(int component)
     if (components_.itemParent(component) == parent_component_)
     {
         OTFTraceModelPtr n(new OTF_trace_model(*this));
-
-        QDomNodeList subcomponents = currentElement.childNodes();
-        n->currentElement = subcomponents.at(components_.itemIndex(component)).toElement();
 
         n->parent_component_ = component;
         n->adjust_components();
@@ -446,15 +293,6 @@ TraceModelPtr OTF_trace_model::set_parent_component(int component)
     while (parents.front() != component)
         parents.prepend(components_.itemParent(component));
     parents.pop_front();
-
-    n->currentElement = root_;
-    while (!parents.isEmpty())
-    {
-        int component = parents.first();
-
-        QDomNodeList subcomponents = currentElement.childNodes();
-        currentElement = subcomponents.at(components_.itemIndex(component)).toElement();
-    }
 
     n->parent_component_ = component;
     n->adjust_components();
@@ -520,12 +358,6 @@ TraceModelPtr OTF_trace_model::filter_events(const Selection& filter)
 QString OTF_trace_model::save() const
 {
     QString componentPos;
-    for(QDomElement c = currentElement;
-        !c.isNull() && c.tagName() == "component";
-        c = c.parentNode().toElement())
-    {
-        componentPos = c.attribute("name") + "/" + componentPos;
-    }
     componentPos = "/" + componentPos;
 
     return  componentPos + ":" +
@@ -539,7 +371,10 @@ bool OTF_trace_model::groupsEnabled() const
 
 TraceModelPtr OTF_trace_model::setGroupsEnabled(bool enabled)
 {
-    if (groups_enabled_ == enabled) return shared_from_this();
+    if (groups_enabled_ == enabled)
+    {
+        return shared_from_this();
+    }
 
     OTFTraceModelPtr n(new OTF_trace_model(*this));
     n->groups_enabled_ = enabled;
@@ -548,30 +383,8 @@ TraceModelPtr OTF_trace_model::setGroupsEnabled(bool enabled)
 
 void OTF_trace_model::restore(const QString& s)
 {
-    QStringList parts = s.split(":");
-    if (parts.size() < 2)
-        return;
-
-    QStringList path_parts = parts[0].split("/",QString::SkipEmptyParts);
-    currentElement = root_; parent_component_ = Selection::ROOT;
-    foreach(QString s, path_parts)
-    {
-        for(QDomElement e = currentElement.firstChildElement();
-            !e.isNull();
-            e = e.nextSiblingElement("component"))
-        {
-            if (e.attribute("name") == s)
-            {
-                currentElement = e;
-                parent_component_ = components_.itemLink(s, parent_component_);
-                break;
-            }
-        }
-    }
+    parent_component_ = Selection::ROOT;
     adjust_components();
-
-    min_time_ = getTime(parts[1].toInt());
-    max_time_ = getTime(parts[2].toInt());
 }
 
 Time OTF_trace_model::getTime(int t) const//? it must not be here
@@ -581,70 +394,7 @@ Time OTF_trace_model::getTime(int t) const//? it must not be here
 
 void OTF_trace_model::initialize()
 {
-
-    QString max_time_at = root_.attribute("max_time");
-    max_time_ = getTime(max_time_at.toInt());
-
-    // Initialize components and states
-    /*
-    components_.clear();
-    states_.clear();
-    typedef std::pair<QDomElement, int> node;
-    std::queue<node> nodes;
-    nodes.push(node(root_, Selection::ROOT));
-
-    fprintf( stdout, "parent component %u \n", parent_component_);
-    int current_link = components_.addItem("Component_1", parent_component_);
-    current_link = components_.addItem("Component_2", parent_component_);
-    parent_component_ = current_link;
-*/
-/*
-    QString fullComponentName = component_name(current_link, true);
-    int sparent = states_.itemLink(fullComponentName);
-
-    if (sparent == -1) {
-        sparent = states_.addItem(fullComponentName);
-        states_.setItemProperty(sparent, "component", current_link);
-    }
-
-    states_.addItem("STATE_1", sparent);
-*/
-/*
-    while (!nodes.empty())
-    {
-        QDomElement parent = nodes.front().first.toElement();
-        for (QDomElement e = parent.firstChildElement("component");
-        !e.isNull();
-        e = e.nextSiblingElement("component"))
-        {
-            int current_link = components_.addItem(e.attribute("name"),  nodes.front().second);
-            nodes.push(node(e, current_link));
-
-            QDomElement statesNode = e.firstChildElement("states");
-            if (!statesNode.isNull()) {
-                QString fullComponentName = component_name(current_link, true);
-                int sparent = states_.itemLink(fullComponentName);
-
-                if (sparent == -1) {
-                    sparent = states_.addItem(fullComponentName);
-                    states_.setItemProperty(sparent, "component", current_link);
-                }
-
-                for (QDomElement stateNode = statesNode.firstChildElement("state");
-                    !stateNode.isNull(); stateNode = stateNode.nextSiblingElement("state"))
-                {
-                    states_.addItem(stateNode.attribute("name"), sparent);
-                }
-            }
-        }
-        nodes.pop();
-    }
-
-    components_.setItemProperty(0, "current_parent", parent_component_);
-    available_states_ = states_;
-*/
     // Initialize events
-
     events_.clear();
     events_.addItem("Update");
     events_.addItem("Delay");
@@ -658,25 +408,20 @@ void OTF_trace_model::adjust_components()
     visible_components_ = components_.enabledItems(parent_component_);
     components_.setItemProperty(0, "current_parent", parent_component_);
 
-    subcomponents.clear();
-    QDomNodeList nodes = currentElement.childNodes();
-    foreach(int component, visible_components_)
-    {
-        int index = components_.itemIndex(component);
-        subcomponents.push_back(nodes.at(index).toElement());
-    }
-
     lifeline_map_.clear();
     for (int ll = 0; ll < visible_components_.size(); ll++)
     {
-        QList<int> queue; queue << visible_components_[ll];
+        QList<int> queue;
+        queue << visible_components_[ll];
         while (!queue.isEmpty())
         {
             int comp = queue.takeFirst();
             lifeline_map_[comp] = ll;
 
             foreach(int child, components_.enabledItems(comp))
+            {
                 queue << child;
+            }
         }
     }
 
@@ -684,26 +429,6 @@ void OTF_trace_model::adjust_components()
 
 void OTF_trace_model::findNextItem(const QString& elementName)
 {
-    if (!currentItem.isNull())
-        currentItem = currentItem.nextSiblingElement();
 
-    if (currentItem.isNull())
-    {
-        for(;;)
-        {
-            ++currentSubcomponent;
-            if (unsigned(currentSubcomponent) >= subcomponents.size())
-                break;
-
-            QDomElement group = subcomponents[currentSubcomponent]
-                .firstChildElement(elementName);
-
-            if (!group.isNull())
-            {
-                currentItem = group.firstChildElement();
-                break;
-            }
-        }
-    }
 }
 }

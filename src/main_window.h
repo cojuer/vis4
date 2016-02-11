@@ -20,7 +20,7 @@ class QStackedWidget;
 namespace vis4 {
 
 class Trace_model;
-class Event_model;
+class EventModel;
 class Tool;
 class Browser;
 
@@ -44,8 +44,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     /**
-     * Creates useless instance. Call to initialize must be made
-     * to bring this object to life.
+     * Creates useless instance.
      */
     MainWindow();
 
@@ -63,13 +62,11 @@ public:
                                   const TraceModelPtr & model) const;
 
 protected:
-    /** Добавляет controllingWidget к списку инструментов, доступных пользователю
-    в sidebar. */
+    /** Adds controllingWidget to the list of tools, available on sidebar. */
     void installTool(Tool* tool);
 
     /**
-     * Добавляет инструмент навигации к списку инструментов, доступных пользователю
-     * в sidebar.
+     * Adds navigation tool to the list of tools, available on sidebar.
      */
     void installBrowser(Browser* browser);
 
@@ -115,7 +112,7 @@ private slots:
 
     void modelChanged(TraceModelPtr &);
 
-    void showEvent(Event_model* event);
+    void showEvent(EventModel* event);
 
     void showState(State_model* state);
 

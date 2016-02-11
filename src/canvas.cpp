@@ -49,6 +49,11 @@ Canvas::Canvas(QWidget* parent) :
                        SLOT(timeSettingsChanged()));
 }
 
+/**
+ * Устанавливает модель, показываемую в данный момент, и обновляет
+ * объект. При всех изменениях модели, этот метод должен быть вызван явно.
+ * Генерирует сигнал modelChanged.
+ */
 void Canvas::setModel(TraceModelPtr model)
 {
     /* Optimization: don't do anything if the model
@@ -65,7 +70,7 @@ void Canvas::setModel(TraceModelPtr model)
     }
 }
 
-TraceModelPtr & Canvas::model() const
+TraceModelPtr & Canvas::getModel() const
 {
     return contents_->model_;
 }
@@ -74,7 +79,7 @@ void Canvas::timeSettingsChanged()
 {
     timeline_->update();
 
-    emit modelChanged(model());
+    emit modelChanged(contents_->model_);
 
     QSettings settings;
     settings.setValue("time_unit", Time::unit_name(Time::getUnit()));
@@ -93,6 +98,7 @@ void Canvas::setCursor(const QCursor& c)
     contents_->setCursor(c);
 }
 
+/** По вертильной координате, возвращает номер ближайшей линии жизни. */
 int Canvas::nearest_lifeline(int y)
 {
     int best_l = -1;
@@ -109,6 +115,7 @@ int Canvas::nearest_lifeline(int y)
     return best_l;
 }
 
+/** По номеру компонента в времени, возвращает координаты точки. */
 QPoint Canvas::lifeline_point(int component, const Time& time)
 {
     return QPoint(contents_->trace_painter->pixelPositionForTime(time),
@@ -136,10 +143,10 @@ void Canvas::scrollContentsBy(int dx, int dy)
     QScrollArea::scrollContentsBy(dx, dy);
 }
 
-void Canvas::resizeEvent(QResizeEvent* event)
+void Canvas::resizeEvent(QResizeEvent* eventPtr)
 {
     // Permit redrawing if only height was changed
-    if (updateTimer || event->size().width() != event->oldSize().width())
+    if (updateTimer || eventPtr->size().width() != eventPtr->oldSize().width())
     {
         // Start a timer which will repaint canvas after 300 msec
         // since last resize event. Thus we prevents repainting
@@ -148,13 +155,13 @@ void Canvas::resizeEvent(QResizeEvent* event)
         updateTimer = startTimer(300);
     }
 
-    QScrollArea::resizeEvent(event);
+    QScrollArea::resizeEvent(eventPtr);
 
     if (!timeline_) return;
     timeline_->move(viewport()->x(), viewport()->y() + viewport()->height());
 }
 
-void Canvas::timerEvent(QTimerEvent * event)
+void Canvas::timerEvent(QTimerEvent* timerEventPtr)
 {
     // If user holds mouse button, resizing is not finished.
     if (QApplication::mouseButtons() & Qt::LeftButton)
@@ -163,25 +170,32 @@ void Canvas::timerEvent(QTimerEvent * event)
     killTimer(updateTimer); updateTimer = 0;
 
     // Repaint timeline.
-    if (timeline_) {
+    if (timeline_)
+    {
         unsigned height = timeline_->sizeHint().height();
         timeline_->resize(viewport()->width(), height);
         timeline_->repaint();
     }
 
     // Redraw current model
-    if (model().get()) {
-        contents_->setModel(model(), true);
-        emit modelChanged(model());
+    if (getModel().get())
+    {
+        contents_->setModel(getModel(), true);
+        emit modelChanged(getModel());
     }
 }
 
-void Canvas::closeEvent(QCloseEvent *event)
+void Canvas::closeEvent(QCloseEvent* closeEventPtr)
 {
     // Stop background drawing
     contents_->trace_painter->setState(Trace_painter::Canceled);
 }
 
+/**
+ * Добавляет новый графический элемент. Все элементы рисуются поверх собственно
+ * трассы. Все управление элементами должны производить инструменты, которые их
+ * добавили.
+ */
 void Canvas::addItem(class CanvasItem* item)
 {
     contents_->items.push_back(item);
@@ -196,7 +210,7 @@ void Canvas::setPortableDrawing(bool p)
 Contents_widget::Contents_widget(Canvas* parent) : 
     QWidget(parent), 
     parent_(parent), 
-    paintBuffer(0),
+    paintBuffer(nullptr),
     portable_drawing(false), 
     visir_position((unsigned)-1)//? what?
 {
@@ -242,18 +256,24 @@ void Contents_widget::setModel(TraceModelPtr model, bool force)
     if (!need_redraw) return;
 
     if (trace_painter->state() == Trace_painter::Canceled)
+    {
         return;
+    }
 
     // Stop current drawing
     if (trace_painter->state() == Trace_painter::Active ||
         trace_painter->state() == Trace_painter::Background)
     {
         trace_painter->setState(Trace_painter::Canceled);
-        pendingRedraw = true; return;
+        pendingRedraw = true;
+        return;
     }
 
     // Don't draw trace util canvas is visible
-    if (!isVisible()) return;
+    if (!isVisible())
+    {
+        return;
+    }
 
     // Draw trace
     QApplication::setOverrideCursor(Qt::BusyCursor);

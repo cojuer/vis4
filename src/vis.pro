@@ -5,9 +5,13 @@ CONFIG += c++11
 LIBS = -L/usr/lib \
     -lm \
     -lotf \
+    -lotf2 \
     -lxml2 \
-    -Wl,-rpath=/usr/lib
-INCLUDEPATH += /usr/include/libxml2
+    -Wl,-rpath=/usr/lib \
+    -L/opt/otf2/lib \
+    -Wl,-rpath=/opt/otf2/lib
+INCLUDEPATH += /opt/otf2/include \
+    /usr/include/libxml2
 SOURCES += vis4.cpp \
     trace_model.cpp \
     selection.cpp \
@@ -21,13 +25,14 @@ SOURCES += vis4.cpp \
     timeunit_control.cpp \
     tools/tool.cpp \
     otf_main_window.cpp \
-    tools/find_tabs.cpp \
-    checker.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
     grx.cpp \
     otf_trace_data.cpp \
-    time_vis.cpp
+    time_vis.cpp \
+    otf2_trace_data.cpp \
+    otf2_tracemodel.cpp \
+    message_model.cpp
 HEADERS += trace_model.h \
     selection.h \
     otf_trace_model.h \
@@ -48,12 +53,14 @@ HEADERS += trace_model.h \
     tools/goto.h \
     tools/find.h \
     tools/filter.h \
-    tools/find_tabs.h \
-    checker.h \
     tools/timeedit.h \
     tools/selection_widget.h \
     grx.h \
     otf_trace_data.h \
-    time_vis.h
+    time_vis.h \
+    otf2_trace_data.h \
+    otf2_tracemodel.h \
+    message_model.h
+
 RESOURCES += vis3.qrc
 OTHER_FILES += 

@@ -186,23 +186,23 @@ public:
         findTabWidget = new QTabWidget(this);
         mainLayout->addWidget(findTabWidget);
 
-        queryTab = new FindQueryTab(this);
+        //queryTab = new FindQueryTab(this);
         findTabWidget->addTab(queryTab, queryTab->name());
 
-        connect(queryTab, SIGNAL( showEvent(Event_model*) ),
-            this, SLOT( eventFound(Event_model*) ));
+        connect(queryTab, SIGNAL( showEvent(EventModel*) ),
+            this, SLOT( eventFound(EventModel*) ));
         connect(queryTab, SIGNAL( stateChanged() ),
             this, SLOT( tabStateChanged() ));
 
-        eventsTab = new FindEventsTab(this);
+        //eventsTab = new FindEventsTab(this);
         findTabWidget->addTab(eventsTab, eventsTab->name());
 
-        connect(eventsTab, SIGNAL( showEvent(Event_model*) ),
-            this, SLOT( eventFound(Event_model*) ));
+        connect(eventsTab, SIGNAL( showEvent(EventModel*) ),
+            this, SLOT( eventFound(EventModel*) ));
         connect(eventsTab, SIGNAL( stateChanged() ),
             this, SLOT( tabStateChanged() ));
 
-        statesTab = new FindStatesTab(this);
+        //statesTab = new FindStatesTab(this);
         findTabWidget->addTab(statesTab, statesTab->name());
         connect(statesTab, SIGNAL( showState(State_model*) ),
             this, SLOT( stateFound(State_model*) ));
@@ -645,7 +645,7 @@ private slots:
         saveState();
     }
 
-    void eventFound(Event_model * e)
+    void eventFound(EventModel * e)
     {
         startTime = e->time;
         maybeReposition(e->time);

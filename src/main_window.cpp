@@ -191,8 +191,8 @@ void MainWindow::installTool(Tool* controllingWidget)
     connect(controllingWidget, SIGNAL(activateMe()), this,
                                SLOT(activateTool()));
 
-    connect(controllingWidget, SIGNAL(showEvent(Event_model*)), this,
-                               SLOT(showEvent(Event_model*)));
+    connect(controllingWidget, SIGNAL(showEvent(EventModel*)), this,
+                               SLOT(showEvent(EventModel*)));
 
     connect(controllingWidget, SIGNAL(showState(State_model*)), this,
                                SLOT(showState(State_model*)));
@@ -352,7 +352,7 @@ void MainWindow::modelChanged(TraceModelPtr & m)
     actPrint->setEnabled(m->visible_components().size() != 0);
 }
 
-void MainWindow::showEvent(Event_model *event)
+void MainWindow::showEvent(EventModel *event)
 {
     browser->doShowEvent(event);
     activateTool(browser);
@@ -384,7 +384,7 @@ void MainWindow::actionPrint()
     printDialog.setPrintRange(QAbstractPrintDialog::Selection);
 
     // Convert max_time from Time to int
-    TraceModelPtr model = canvas->model();
+    TraceModelPtr model = canvas->getModel();
     boost::any max_time_raw = model->root()->max_time().data();
     long long *max_time_ll = boost::any_cast<long long>(&max_time_raw);
     if (max_time_ll)
@@ -464,7 +464,7 @@ TraceModelPtr & MainWindow::restore_model(TraceModelPtr & model)
 
 TraceModelPtr MainWindow::model() const
 {
-    return canvas->model();
+    return canvas->getModel();
 }
 
 

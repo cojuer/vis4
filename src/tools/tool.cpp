@@ -21,7 +21,7 @@ Tool::Tool(QWidget* parentPtr, Canvas* canvasPtr) :
 
 boost::shared_ptr<Trace_model>& Tool::model() const
 {
-    return canvasPtr->model();
+    return canvasPtr->getModel();
 }
 
 QAction* Tool::getAction()

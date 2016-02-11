@@ -12,12 +12,15 @@ QStringList Checker::availableCheckers()
 {
     QStringList result;
     for (int i = 0; i < checkers.size(); ++i)
+    {
         result << checkers[i]->name();
+    }
     return result;
 }
 
 pChecker Checker::createChecker(const QString & checker_name)
 {
+    std::cout << checkers.size() << "!!!!!" << std::endl;
     for (int i = 0; i < checkers.size(); ++i)
     {
         if (checkers[i]->name() == checker_name)

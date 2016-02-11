@@ -52,13 +52,10 @@ bool FindEventsTab::findNext()
         filtered_model_->rewind();
     }
 
-    //std::unique_ptr<Event_model> e = filtered_model_->next_event();
     Event_model* e = filtered_model_->next_event();
-    //if (e.get())
     if (e != nullptr)
     {
         model_ = model_->set_range(e->time, model_->max_time());
-        //emit showEvent(e.get());
         emit showEvent(e);
         return true;
     }
@@ -296,15 +293,11 @@ bool FindQueryTab::findNext()
         model_with_checker->rewind();
     }
 
-    //std::unique_ptr<Event_model> e =
-    //    model_with_checker->next_event();
     Event_model* e = model_with_checker->next_event();
 
-    //if (e.get())
     if (e != nullptr)
     {
         model_ = model_->set_range(e->time, model_->max_time());
-        //emit showEvent(e.get());
         emit showEvent(e);
         return true;
     }
@@ -443,7 +436,7 @@ void FindQueryTab::activateCheckerEvents()
     }
 
     Canvas * canvas = find_tool_->getCanvas();
-    canvas->setModel(canvas->model()->filter_events(events));
+    canvas->setModel(canvas->getModel()->filter_events(events));
 }
 
 void FindQueryTab::checkerStateChanged()

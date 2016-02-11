@@ -6,7 +6,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "checker.h"
 #include "tool.h"
 #include "selection_widget.h"
 
@@ -16,7 +15,7 @@ class QStackedLayout;
 namespace vis4 {
 
 class Trace_model;
-class Event_model;
+class EventModel;
 class State_model;
 
 /** Base class for find tabs. */
@@ -62,7 +61,7 @@ public: /** methods */
     void saveState(QSettings& settings);
     void restoreState(QSettings& settings);
 signals:
-    void showEvent(Event_model*);
+    void showEvent(EventModel*);
 private slots:
     void selectionChanged(const vis4::Selection& selection);
 private: /** widgets */
@@ -119,7 +118,7 @@ private: /** methods */
     /** Creates checkers and ininialize event/subevent lists. */
     void initializeCheckers();
 signals:
-    void showEvent(Event_model*);
+    void showEvent(EventModel*);
 private slots:
     void updateChecker();
     void activateCheckerEvents();
@@ -128,9 +127,9 @@ private: /** widgets */
     TraceModelPtr model_;
     TraceModelPtr model_with_checker;
 
-    QList<pChecker> checkers;
-    Checker* active_checker;
-    bool active_checker_is_ready;
+    //QList<pChecker> checkers;
+    //Checker* active_checker;
+    //bool active_checker_is_ready;
 
     QComboBox* checkerCombo;
     QStackedLayout* checkerWidgetContainer;

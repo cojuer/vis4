@@ -13,7 +13,7 @@ class Trace;
 
 namespace vis4 {
 
-class Event_model;
+class EventModel;
 class State_model;
 class Group_model;
 class Checker;
@@ -130,10 +130,9 @@ public:
 
     /** Возвращает следующее событие с трассы и увеличивает внутренний указатель
         событий. Если больше событий нет, возвращает нулевой указатель. */
-    //virtual std::unique_ptr<Event_model> next_event() = 0;
-    virtual Event_model* next_event() = 0;
+    virtual EventModel* next_event() = 0;
     virtual State_model* next_state() = 0;
-    virtual std::auto_ptr<Group_model> next_group() = 0;
+    virtual Group_model* next_group() = 0;
 
 /// @}
 

@@ -14,7 +14,7 @@ class QToolBar;
 namespace vis4 {
 
 class Trace_model;
-class Event_model;
+class EventModel;
 class MainWindow;
 
 /**
@@ -90,7 +90,7 @@ signals:
      * чтобы показать подробную информацию о событии event. Переключение
      * инструментов при этом происходит автоматически.
      */
-    void showEvent(Event_model* eventPtr);
+    void showEvent(EventModel* eventPtr);
     void showState(State_model* statePtr);
     /**
      *  Данный сигнал может использоваться дочерними классами для переключения
@@ -141,7 +141,7 @@ public:
     для навигации, в конец toolbar. */
     virtual void addToolbarActions(QToolBar* toolbar) = 0;
     /** При вызове должен показать детальную информацию о событии event. */
-    virtual void doShowEvent(Event_model* event) = 0;
+    virtual void doShowEvent(EventModel* event) = 0;
     virtual void doShowState(State_model* state) = 0;
 };
 
