@@ -168,22 +168,22 @@ void OTF_trace_model::rewind()
 
 void OTF_trace_model::testAddMessages()
 {
-    Group_model* gm = new Group_model();
-    std::vector<Group_model::point> gmvec;
-    Group_model::point gp1;
+    GroupModel* gm = new GroupModel();
+    QVector<GroupModel::Point> gmvec;
+    GroupModel::Point gp1;
     gp1.component = 1;
     gp1.time = getTime(0);
-    Group_model::point gp2;
+    GroupModel::Point gp2;
     gp2.component = 2;
     gp2.time = getTime(1000);
-    Group_model::point gp3;
+    GroupModel::Point gp3;
     gp3.component = 3;
     gp3.time = getTime(1000);
     gmvec.push_back(gp1);
     gmvec.push_back(gp2);
     gmvec.push_back(gp3);
     gm->points = gmvec;
-    gm->type = Group_model::arrow;
+    gm->type = GroupModel::arrow;
     allGroups.push_back(gm);
 }
 
@@ -213,7 +213,7 @@ State_model* OTF_trace_model::next_state()
     }
 }
 
-Group_model* OTF_trace_model::next_group()
+GroupModel* OTF_trace_model::next_group()
 {
     if (currentGroup < allGroups.size())
     {

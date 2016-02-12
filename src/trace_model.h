@@ -15,7 +15,7 @@ namespace vis4 {
 
 class EventModel;
 class State_model;
-class Group_model;
+class GroupModel;
 class Checker;
 
 class Trace_model;
@@ -132,7 +132,7 @@ public:
         событий. Если больше событий нет, возвращает нулевой указатель. */
     virtual EventModel* next_event() = 0;
     virtual State_model* next_state() = 0;
-    virtual Group_model* next_group() = 0;
+    virtual GroupModel* next_group() = 0;
 
 /// @}
 

@@ -27,7 +27,6 @@ SOURCES += vis4.cpp \
     otf_main_window.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
-    grx.cpp \
     otf_trace_data.cpp \
     time_vis.cpp \
     otf2_trace_data.cpp \
@@ -55,7 +54,6 @@ HEADERS += trace_model.h \
     tools/filter.h \
     tools/timeedit.h \
     tools/selection_widget.h \
-    grx.h \
     otf_trace_data.h \
     time_vis.h \
     otf2_trace_data.h \

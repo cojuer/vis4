@@ -5,7 +5,7 @@
 
 namespace vis4 {
 
-class Message_model
+class MessageModel
 {
 public:
     struct Point

@@ -27,7 +27,6 @@
 #include "canvas_item.h"
 #include "group_model.h"
 #include "event_list.h"
-#include "grx.h"
 
 namespace vis4 {
 
@@ -69,7 +68,7 @@ public: /** methods */
     void rewind() override;
 
     State_model* next_state() override;
-    Group_model* next_group() override;
+    GroupModel* next_group() override;
     std::auto_ptr<EventModel> next_event_unsorted();
     EventModel* next_event() override;
 
@@ -136,10 +135,10 @@ private:    /** methods */
     QVector<State_model*> allStates;
     int currentState;
 
-    QVector<Group_model*> allGroups;
+    QVector<GroupModel*> allGroups;
     int currentGroup;
 
-    QVector<Message_model*> allMessages;
+    QVector<MessageModel*> allMessages;
     int currentMessage;
 };
 

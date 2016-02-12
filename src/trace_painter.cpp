@@ -795,10 +795,10 @@ void Trace_painter::drawGroups(int from_comp, int to_comp)
     model->rewind();
     for(;;)
     {
-        Group_model* g = model->next_group();
+        GroupModel* g = model->next_group();
         if (g == nullptr) break;
 
-        if (g->type == Group_model::arrow)
+        if (g->type == GroupModel::arrow)
         {
             int from_lifeline = model->lifeline(g->points[0].component);
             int from_pixel = pixelPositionForTime(g->points[0].time);

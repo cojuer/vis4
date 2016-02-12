@@ -2,6 +2,7 @@
 #define GROUP_MODEL_H
 
 #include <vector>
+#include <QVector>
 
 #include "time_vis.h"
 
@@ -11,19 +12,19 @@ namespace vis4 {
  * GroupModel is a collection of timeline points that must be
  * specially decorated as a group.
  */
-class Group_model
+class GroupModel
 {
 public:
     static const int arrow = 1;
 
-    struct point
+    struct Point
     {
         int component;
         Time time;
     };
 
     int type;//? what is this time?
-    std::vector<point> points;
+    QVector<Point> points;
 };
 
 }
