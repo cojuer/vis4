@@ -13,7 +13,7 @@ class QKeyEvent;
 
 namespace vis4 {
 
-class State_model;
+class StateModel;
 
 /**
  * Класс для показа и взаимодействия с трассой.
@@ -85,7 +85,7 @@ signals:
     void mouseEvent(QEvent* event,
                     Canvas::clickTarget target,
                     int component,
-                    State_model* state,
+                    StateModel* state,
                     const Time& time,
                     bool events_near);
 
@@ -152,7 +152,7 @@ private: /** methods */
 
     void targetUnderCursor(
         const QPoint& pos, Canvas::clickTarget* target,
-        int* component, State_model** state, bool* events_near);
+        int* component, StateModel** state, bool* events_near);
 
 private: /** QWidget overrides */
 

@@ -7,7 +7,8 @@ const int Selection::ROOT;
 int Selection::addItem(const QString& title, int parent)
 {
     int link = items_.size();
-    items_ << title; filter_ << true;
+    items_ << title;
+    filter_ << true;
     properties_ << QHash<QString, QVariant>();//? empty hash? nice
     links_ << QList<int>();
     parents_ << parent;
@@ -152,7 +153,7 @@ int Selection::itemsCount(int parent) const
     return items(parent).size();
 }
 
-int Selection::totalItemsCount() const
+int Selection::size() const
 {
     return items_.size();
 }
@@ -184,7 +185,8 @@ void Selection::setEnabled(int link, bool enabled)
         setEnabled(parent, false); return;
     }
 
-    if (enabled) {
+    if (enabled)
+    {
         for (int i = 0; i < itemsCount(link); ++i)
         {
             if (filter_[itemLink(i, link)])
@@ -218,35 +220,38 @@ int Selection::enabledCount(int parent) const
             count++;
         }
     }
-
     return count;
 }
 
-Selection & Selection::enableAll(int parent, bool recursive)
+Selection& Selection::enableAll(int parent, bool recursive)
 {
     QList<int> queue = items(parent);
-    while (!queue.isEmpty()) {
+    while (!queue.isEmpty())
+    {
         int link = queue.takeFirst();
         filter_[link] = true;
 
         if (recursive)
+        {
             queue << links_[link];
+        }
     }
-
     return *this;
 }
 
-Selection & Selection::disableAll(int parent, bool recursive)
+Selection& Selection::disableAll(int parent, bool recursive)
 {
     QList<int> queue = items(parent);
-    while (!queue.isEmpty()) {
+    while (!queue.isEmpty())
+    {
         int link = queue.takeFirst();
         filter_[link] = false;
 
         if (recursive)
+        {
             queue << links_[link];
+        }
     }
-
     return *this;
 }
 
@@ -275,9 +280,10 @@ Selection Selection::operator&(const Selection & other) const
 {
     Q_ASSERT(items_.size() == other.items_.size());
     Selection result(*this);
-    for (int i = 0; i < filter_.size(); i++)
+    for (int i = 0; i < filter_.size(); ++i)
+    {
         result.filter_[i] = filter_[i] && other.filter_[i];
-
+    }
     return result;
 }
 

@@ -322,7 +322,7 @@ bool Contents_widget::event(QEvent *event)
         // If mouse cursor on state, display state info tip.
         Canvas::clickTarget target = Canvas::nothingClicked;
         int component = -1;
-        State_model* state = 0;
+        StateModel* state = 0;
         bool events_near = false;
 
         targetUnderCursor(helpEvent->pos(), &target, &component, &state, &events_near);
@@ -428,7 +428,7 @@ void Contents_widget::mouseMoveEvent(QMouseEvent* ev)
 
     Canvas::clickTarget target = Canvas::nothingClicked;
     int component = -1;
-    State_model* state = 0;
+    StateModel* state = 0;
     bool events_near = false;
 
     targetUnderCursor(ev->pos(), &target, &component, &state, &events_near);
@@ -533,7 +533,7 @@ void Contents_widget::mouseReleaseEvent(QMouseEvent* event)
 
     Canvas::clickTarget target;
     int component = -1;
-    State_model* state = 0;
+    StateModel* state = 0;
     bool events_near = false;
 
     targetUnderCursor(event->pos(), &target, &component, &state, &events_near);
@@ -548,7 +548,7 @@ void Contents_widget::mouseReleaseEvent(QMouseEvent* event)
 
 void Contents_widget::targetUnderCursor(
     const QPoint& pos, Canvas::clickTarget* target,
-    int* component, State_model** state, bool* events_near)
+    int* component, StateModel** state, bool* events_near)
 {
     *target = Canvas::nothingClicked;
 

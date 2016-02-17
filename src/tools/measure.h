@@ -362,7 +362,7 @@ private:
 private slots:
 
     bool mouseEvent(QEvent* event, Canvas::clickTarget target,
-                    int component,  State_model*,
+                    int component,  StateModel*,
                     const Time& time, bool eventsNear)
     {
         if (!active_)

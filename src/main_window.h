@@ -114,7 +114,7 @@ private slots:
 
     void showEvent(EventModel* event);
 
-    void showState(State_model* state);
+    void showState(StateModel* state);
 
     void browse();
 
@@ -124,7 +124,7 @@ private slots:
     void mouseEvent(QEvent* event,
                     Canvas::clickTarget target,
                     int component,
-                    State_model* state,
+                    StateModel* state,
                     const Time& time,
                     bool events_near);
 

@@ -118,7 +118,7 @@ Trace_model::ComponentType OTF_trace_model::component_type(int component) const
 
 QString OTF_trace_model::component_name(int component, bool full) const
 {
-    Q_ASSERT(component >= 0 && component < components_.totalItemsCount());
+    Q_ASSERT(component >= 0 && component < components_.size());
 
     if (!full) return components_.item(component);
 
@@ -200,7 +200,7 @@ void OTF_trace_model::updateTime()
     }
 }
 
-State_model* OTF_trace_model::next_state()
+StateModel* OTF_trace_model::next_state()
 {
     if (currentState < allStates.size())
     {

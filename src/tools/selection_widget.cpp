@@ -47,10 +47,10 @@ public: /*methods*/
 
     void setSelection(const Selection & base, const Selection & current)
     {
-        Q_ASSERT(base.totalItemsCount() == current.totalItemsCount());
+        Q_ASSERT(base.size() == current.size());
 
         frozen.clear();
-        for (int i = 0; i < base.totalItemsCount(); ++i)
+        for (int i = 0; i < base.size(); ++i)
             if (!base.isEnabled(i)) frozen << i;
 
         selection_ = current;
@@ -271,7 +271,7 @@ void SelectionWidget::initialize(const Selection & base, const Selection & curre
     view->setRootIsDecorated(current.hasSubitems());
     viewModel->setSelection(base, current);
 
-    bool selection_empty = (current.totalItemsCount() == 0);
+    bool selection_empty = (current.size() == 0);
     showAll->setEnabled(!selection_empty);
     hideAll->setEnabled(!selection_empty);
 

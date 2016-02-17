@@ -11,7 +11,7 @@ namespace vis4 {
 /**
  * State description for visualization purposes.
  */
-class State_model
+class StateModel
 {
 public:
     Time begin;
@@ -26,7 +26,7 @@ public:
     /** The color to be used when drawing it.  */
     QColor color;
 
-    virtual ~State_model() {}
+    virtual ~StateModel() {}
 };
 
 }

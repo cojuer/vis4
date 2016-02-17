@@ -35,13 +35,14 @@ typedef struct
     int parent_component;
     Selection* components;
     Selection* state_types;
-    QVector<State_model*>* states;
+    QVector<StateModel*>* states;
     QVector<EventModel*>* events;
     uint64_t countSend;
     uint64_t countRecv;
 } OTF2_HandlerArgument;
 
 class OTF2_TraceModel :
+    public Trace_model,
     public boost::enable_shared_from_this<OTF2_TraceModel>
 {
 public: /** members */
@@ -51,40 +52,41 @@ public: /** methods */
     OTF2_TraceModel(const QString& filename);
     ~OTF2_TraceModel();
 
-    int getParentComponent() const;
-    const QList<int>& getVisibleComponents() const;
+    int parent_component() const;
+    const QList<int>& visible_components() const;
     int lifeline(int component) const;
-    QString componentName(int component, bool full = false) const;
-    bool hasChildren(int component) const;
+    ComponentType component_type(int component) const;
+    QString component_name(int component, bool full = false) const;
+    bool has_children(int component) const;
 
-    Time getMinTime() const;
-    Time getMaxTime() const;
-    Time getMinResolution() const;
+    Time min_time() const override;
+    Time max_time() const override;
+    Time min_resolution() const override;
 
-    void rewind();
+    void rewind() override;
 
-    State_model* nextState();
-    GroupModel* nextGroup();
-    EventModel* nextEvent();
-    EventModel* nextEventUnsorted();//?
+    StateModel* next_state() override;
+    GroupModel* next_group() override;
+    std::auto_ptr<EventModel> next_event_unsorted();
+    EventModel* next_event() override;
 
     TraceModelPtr root();
-    TraceModelPtr setParentComponent(int component);
-    TraceModelPtr setRange(const Time& min, const Time& max);
+    TraceModelPtr set_parent_component(int component);
+    TraceModelPtr set_range(const Time& min, const Time& max);
 
-    const Selection& getComponents() const;
-    TraceModelPtr filterComponents(const Selection & filter);
+    const Selection& components() const;
+    TraceModelPtr filter_components(const Selection & filter);
 
-    const Selection& getEvents() const;
-    const Selection& getStates() const;
-    const Selection& getAvailableStates() const;
+    const Selection& events() const;
+    const Selection& states() const;
+    const Selection& available_states() const;
 
-    TraceModelPtr filterStates(const Selection& filter);
-    TraceModelPtr installChecker(Checker* checker);
-    TraceModelPtr filterEvents(const Selection& filter);
+    TraceModelPtr filter_states(const Selection& filter);
+    TraceModelPtr install_checker(Checker* checker);
+    TraceModelPtr filter_events(const Selection& filter);
 
-    QString save() const;
-    bool areGroupsEnabled() const;
+    QString save() const override;
+    bool groupsEnabled() const;
     TraceModelPtr setGroupsEnabled(bool enabled);
     void restore(const QString& s);
 
@@ -92,15 +94,15 @@ private:    /** members */
     OTF_FileManager* manager;
     OTF2_Reader* reader;
 
-    int parentComponent;
-    Selection components;//? processes?
-    Selection events;
-    bool groupsEnabled;
-    Selection states;
-    Selection availableStates;
+    int parent_component_;
+    Selection components_;//? processes?
+    Selection events_;
+    bool groups_enabled_;
+    Selection states_;
+    Selection available_states_;
 
-    Time minTime;
-    Time maxTime;
+    Time min_time_;
+    Time max_time_;
 
     OTF_HandlerArray* handlers;
     OTF2_HandlerArgument ha;
@@ -109,21 +111,23 @@ private:    /** members */
 private:    /** methods */
     Time getTime(int t) const;
     void initialize();
-    void adjustComponents();
-    void initializeComponentList();
+    void adjust_components();
+    void initialize_component_list();
 
+    void findNextItem(const QString& elementName);
+
+    void testAddMessages();
     void updateTime();
 
-
-    QList<int> visibleComponents;
-    QMap<int, int> lifelineMap;
+    QList<int> visible_components_;
+    QMap<int, int> lifeline_map_;
 
     int currentSubcomponent;
 
     QVector<EventModel*> allEvents;
     int currentEvent;
 
-    QVector<State_model*> allStates;
+    QVector<StateModel*> allStates;
     int currentState;
 
     QVector<GroupModel*> allGroups;

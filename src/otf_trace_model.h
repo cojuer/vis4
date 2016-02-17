@@ -37,7 +37,7 @@ typedef struct {
     int parent_component;
     Selection* components;
     Selection* state_types;
-    QVector<State_model*>* states;
+    QVector<StateModel*>* states;
     QVector<EventModel*>* events;
     uint64_t countSend;
     uint64_t countRecv;
@@ -67,7 +67,7 @@ public: /** methods */
 
     void rewind() override;
 
-    State_model* next_state() override;
+    StateModel* next_state() override;
     GroupModel* next_group() override;
     std::auto_ptr<EventModel> next_event_unsorted();
     EventModel* next_event() override;
@@ -132,7 +132,7 @@ private:    /** methods */
     QVector<EventModel*> allEvents;
     int currentEvent;
 
-    QVector<State_model*> allStates;
+    QVector<StateModel*> allStates;
     int currentState;
 
     QVector<GroupModel*> allGroups;
@@ -189,7 +189,7 @@ static int handleDefMarker(void *userData, uint32_t stream, uint32_t token, cons
 /** Обработчики событий и состояний */
 static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-    State_model* sm = new State_model();
+    StateModel* sm = new StateModel();
     sm->component = process;
     sm->type = function;
     sm->begin = scalarTime<int>(time);

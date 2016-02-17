@@ -141,8 +141,8 @@ void MainWindow::initialize(TraceModelPtr & model)
         activateTool(browser);
     }
 
-    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const Time&, bool)), this,
-                    SLOT(mouseEvent(QEvent*, Canvas::clickTarget, int, State_model*, const Time&, bool)));
+    connect(canvas, SIGNAL(mouseEvent(QEvent*, Canvas::clickTarget, int, StateModel*, const Time&, bool)), this,
+                    SLOT(mouseEvent(QEvent*, Canvas::clickTarget, int, StateModel*, const Time&, bool)));
 
     connect(canvas, SIGNAL(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const Time&)), this,
                     SLOT(mouseMoveEvent(QMouseEvent*, Canvas::clickTarget, int, const Time&)));
@@ -194,8 +194,8 @@ void MainWindow::installTool(Tool* controllingWidget)
     connect(controllingWidget, SIGNAL(showEvent(EventModel*)), this,
                                SLOT(showEvent(EventModel*)));
 
-    connect(controllingWidget, SIGNAL(showState(State_model*)), this,
-                               SLOT(showState(State_model*)));
+    connect(controllingWidget, SIGNAL(showState(StateModel*)), this,
+                               SLOT(showState(StateModel*)));
 
     connect(controllingWidget, SIGNAL(browse()), this,
                                SLOT(browse()));
@@ -358,7 +358,7 @@ void MainWindow::showEvent(EventModel *event)
     activateTool(browser);
 }
 
-void MainWindow::showState(State_model *state)
+void MainWindow::showState(StateModel *state)
 {
     browser->doShowState(state);
     activateTool(browser);
@@ -471,7 +471,7 @@ TraceModelPtr MainWindow::model() const
 void MainWindow::mouseEvent(QEvent *event,
                     Canvas::clickTarget target,
                     int component,
-                    State_model *state,
+                    StateModel *state,
                     const Time& time,
                     bool events_near)
 {

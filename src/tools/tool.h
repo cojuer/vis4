@@ -64,7 +64,7 @@ public:
      * вызываются методы всех имеющихся инструментов. Порядок вызова не
      * определен и возвращаемое значение игнорируется.
      */
-    virtual bool mouseEvent(QEvent* event, Canvas::clickTarget target, int component, State_model* state, const Time& time, bool events_near)
+    virtual bool mouseEvent(QEvent* event, Canvas::clickTarget target, int component, StateModel* state, const Time& time, bool events_near)
     {
         return false;
     }
@@ -91,7 +91,7 @@ signals:
      * инструментов при этом происходит автоматически.
      */
     void showEvent(EventModel* eventPtr);
-    void showState(State_model* statePtr);
+    void showState(StateModel* statePtr);
     /**
      *  Данный сигнал может использоваться дочерними классами для переключения
      *  на иструмент "общего обзора трассы".
@@ -142,7 +142,7 @@ public:
     virtual void addToolbarActions(QToolBar* toolbar) = 0;
     /** При вызове должен показать детальную информацию о событии event. */
     virtual void doShowEvent(EventModel* event) = 0;
-    virtual void doShowState(State_model* state) = 0;
+    virtual void doShowState(StateModel* state) = 0;
 };
 
 Browser* createBrowser(QWidget* parent, Canvas* canvas);

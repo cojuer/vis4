@@ -12,7 +12,7 @@ namespace vis4 {
 
 class Trace_model;
 class Trace_geometry;
-class State_model;
+class StateModel;
 
 /** Trace painter.
     Class encapsulates all common methods for drawing on screen
@@ -208,7 +208,7 @@ public: /* methods */
         if point is withing the clickable area, and null otherwise. */
     bool clickable_component(const QPoint& point, int & component) const;
 
-    State_model* clickable_state(const QPoint& point) const;
+    StateModel* clickable_state(const QPoint& point) const;
 
     int componentAtPosition(const QPoint & point);
 
@@ -238,7 +238,7 @@ private: /* members */
     // FIXME: it might be bad to store all states here,
     // and better solution would be to re-get them from trace
     // on click.
-    QVector<QPair<QRect, boost::shared_ptr<State_model> > > states;
+    QVector<QPair<QRect, boost::shared_ptr<StateModel> > > states;
 
     friend class Trace_painter;
 };

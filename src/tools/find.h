@@ -204,8 +204,8 @@ public:
 
         //statesTab = new FindStatesTab(this);
         findTabWidget->addTab(statesTab, statesTab->name());
-        connect(statesTab, SIGNAL( showState(State_model*) ),
-            this, SLOT( stateFound(State_model*) ));
+        connect(statesTab, SIGNAL( showState(StateModel*) ),
+            this, SLOT( stateFound(StateModel*) ));
         connect(statesTab, SIGNAL( stateChanged() ),
             this, SLOT( tabStateChanged() ));
 
@@ -294,7 +294,7 @@ private: /* methods */
     bool mouseEvent(QEvent* event,
                           Canvas::clickTarget target,
                           int component,
-                          State_model* state,
+                          StateModel* state,
                           const Time& time,
                           bool events_near)
     {
@@ -655,7 +655,7 @@ private slots:
 
     }
 
-    void stateFound(State_model * s)
+    void stateFound(StateModel * s)
     {
         startTime = s->begin;
         maybeReposition(s->begin);

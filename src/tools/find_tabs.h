@@ -16,7 +16,7 @@ namespace vis4 {
 
 class Trace_model;
 class EventModel;
-class State_model;
+class StateModel;
 
 /** Base class for find tabs. */
 class FindTab : public QWidget {
@@ -88,7 +88,7 @@ public: /* methods */
     void saveState(QSettings& settings);
     void restoreState(QSettings& settings);
 signals:
-    void showState(State_model*);
+    void showState(StateModel*);
 private slots:
     void selectionChanged(const vis4::Selection & selection);
 private: /** widgets */

@@ -540,7 +540,7 @@ void Trace_painter::drawStates(int from_component, int to_component)
 
     for(;;)
     {
-        State_model* s = model->next_state();
+        StateModel* s = model->next_state();
         if (s == nullptr) break;
 
         int lifeline = model->lifeline(s->component);
@@ -570,14 +570,14 @@ void Trace_painter::drawStates(int from_component, int to_component)
 
             if (!printer_flag)
             {
-                State_model* sm = new State_model();
+                StateModel* sm = new StateModel();
                 sm->begin = scalarTime<int>(boost::any_cast<int>(s->begin.data()));
                 sm->end = scalarTime<int>(boost::any_cast<int>(s->end.data()));
                 sm->component = s->component;
                 sm->type = s->type;
                 sm->color = s->color;
                 tg->states.push_back(
-                    qMakePair(r, boost::shared_ptr<State_model>(sm)));
+                    qMakePair(r, boost::shared_ptr<StateModel>(sm)));
             }
         }
 
@@ -995,9 +995,9 @@ bool Trace_geometry::clickable_component(const QPoint& point, int & component) c
     return false;
 }
 
-State_model* Trace_geometry::clickable_state(const QPoint& point) const
+StateModel* Trace_geometry::clickable_state(const QPoint& point) const
 {
-    typedef QPair<QRect, boost::shared_ptr<State_model> > pt;
+    typedef QPair<QRect, boost::shared_ptr<StateModel> > pt;
     foreach(const pt& p, states)
     {
         if (p.first.contains(point))

@@ -12,11 +12,12 @@ namespace vis4 {
  * Class implements support for containing and filtering
  * a set of items. Items may be placed in hierarchy.
  */
-class Selection {
+class Selection
+{
 
 public: /* static constants */
 
-    static const int ROOT = -1;//? why we need -1 root?
+    static const int ROOT = -1;
 
 public: /* methods */
 
@@ -25,26 +26,26 @@ public: /* methods */
 /** @defgroup operations Methods for operation on items. */
 /// @{
 
-    int totalItemsCount() const;
+    int size() const;
 
-    int addItem(const QString & title, int parent = ROOT);
-    const QString & item(int link) const;
+    int addItem(const QString& title, int parent = ROOT);
+    const QString& item(int link) const;
 
     bool hasChildren(int parent) const;
     int itemsCount(int parent = ROOT) const;
-    const QList<int> & items(int parent = ROOT) const;
+    const QList<int>& items(int parent = ROOT) const;
 
     int enabledCount(int parent = ROOT) const;
     const QList<int> enabledItems(int parent = ROOT) const;
 
     int itemLink(int index, int parent = ROOT) const;
-    int itemLink(const QString & title, int parent = ROOT) const;
+    int itemLink(const QString& title, int parent = ROOT) const;
 
     int itemParent(int link) const;
     int itemIndex(int link) const;
 
-    QVariant itemProperty(int link, const QString & property) const;
-    void setItemProperty(int link, const QString & property, const QVariant & value);
+    QVariant itemProperty(int link, const QString& property) const;
+    void setItemProperty(int link, const QString& property, const QVariant& value);
 
     bool isEnabled(int link) const;
     bool isEnabled(int index, int parent) const;
@@ -67,7 +68,7 @@ public: /* methods */
 
 /// @}
 
-    Selection operator&(const Selection & other) const;
+    Selection operator&(const Selection& other) const;
 
 private: /* members */
 

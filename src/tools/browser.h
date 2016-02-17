@@ -351,7 +351,7 @@ public:
         infoLayout->addStretch();
     }
 
-    void update(TraceModelPtr model, State_model* state)
+    void update(TraceModelPtr model, StateModel* state)
     {
         startTimeLabel->setText(state->begin.toString());
         endTimeLabel->setText(state->end.toString());
@@ -519,7 +519,7 @@ public:
         event_info_->showEvent(getCanvas(), event);
     }
 
-    void doShowState(State_model* state)
+    void doShowState(StateModel* state)
     {
         infoStack->setCurrentWidget(state_info_);
         state_info_->update(model(), state);
@@ -538,7 +538,7 @@ private:
     bool mouseEvent(QEvent* event,
                           Canvas::clickTarget target,
                           int component,
-                          State_model* state,
+                          StateModel* state,
                           const Time& time,
                           bool events_near)
     {
