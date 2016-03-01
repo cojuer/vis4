@@ -63,7 +63,7 @@ namespace vis4 {
 using std::vector;
 using std::pair;
 
-Trace_painter::Trace_painter() :
+TracePainter::TracePainter() :
     right_margin(5),
     painter(0),
     tg(0),
@@ -107,33 +107,33 @@ Trace_painter::Trace_painter() :
 	if (!settings.contains("component_externals"))
 		settings.setValue("component_externals", "#F87C7C");
 
-    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::RCHM),
+    componentLabelColors.insert(static_cast<int>(TraceModel::ComponentType::RCHM),
         settings.value("component_rchm").toString());
-    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::CHM),
+    componentLabelColors.insert(static_cast<int>(TraceModel::ComponentType::CHM),
         settings.value("component_chm").toString());
-    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::CHANNEL),
+    componentLabelColors.insert(static_cast<int>(TraceModel::ComponentType::CHANNEL),
         settings.value("component_channel").toString());
-    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::INTERFACE),
+    componentLabelColors.insert(static_cast<int>(TraceModel::ComponentType::INTERFACE),
         settings.value("component_interface").toString());
-    componentLabelColors.insert(static_cast<int>(Trace_model::ComponentType::EXTERNAL_OBJECTS),
+    componentLabelColors.insert(static_cast<int>(TraceModel::ComponentType::EXTERNAL_OBJECTS),
         settings.value("component_externals").toString());
 
 }
 
-Trace_painter::~Trace_painter()
+TracePainter::~TracePainter()
 {
     if (painter) delete painter;
 }
 
 #define NP if (!printer_flag)
 
-void Trace_painter::setModel(TraceModelPtr & model_)
+void TracePainter::setModel(TraceModelPtr & model_)
 {
     Q_ASSERT(model_.get());
     model = model_;
 }
 
-void Trace_painter::setPaintDevice(QPaintDevice * paintDevice)
+void TracePainter::setPaintDevice(QPaintDevice* paintDevice)
 {
     Q_ASSERT(paintDevice);
     if (painter) delete painter;
@@ -141,22 +141,22 @@ void Trace_painter::setPaintDevice(QPaintDevice * paintDevice)
     painter->setRenderHint(QPainter::Antialiasing);
     painter->setRenderHint(QPainter::TextAntialiasing);
 
-    printer_flag = (dynamic_cast<QPrinter*> (paintDevice) != 0);
+    printer_flag = (dynamic_cast<QPrinter*>(paintDevice) != nullptr);
 
     width = painter->device()->width();
     height = painter->device()->height();
 
-    components_per_page = (height-timeline_height -
-        (y_unparented-lifeline_stepping/2)) / lifeline_stepping;
+    components_per_page = (height - timeline_height -
+        (y_unparented - lifeline_stepping / 2)) / lifeline_stepping;
 }
 
-std::auto_ptr<Trace_geometry> Trace_painter::traceGeometry() const
+std::auto_ptr<TraceGeometry> TracePainter::traceGeometry() const
 {
-    return std::auto_ptr<Trace_geometry>(tg);
+    return std::auto_ptr<TraceGeometry>(tg);
 }
 
-QRect Trace_painter::drawTextBox(
-    const QString& text, QPainter * painter,
+QRect TracePainter::drawTextBox(
+    const QString& text, QPainter* painter,
     int x, int y, int width, int height,
     int text_start_x)
 {
@@ -169,13 +169,15 @@ QRect Trace_painter::drawTextBox(
     if (width == -1)
     {
         width = fm.width(text);
-        width += 2*left_right_pad;
+        width += 2 * left_right_pad;
     }
 
-    QRect r(x, y-height/2, width, height);
+    QRect r(x, y - height/2, width, height);
 
     if (painter)
+    {
         painter->drawRect(r);
+    }
 
     QRect text_r(r);
     text_r.adjust(left_right_pad, 0, -left_right_pad, 0);
@@ -186,7 +188,9 @@ QRect Trace_painter::drawTextBox(
     }
 
     if (painter)
+    {
         painter->drawText(text_r, Qt::AlignLeft|Qt::AlignVCenter, text);
+    }
 
     // Note: when calling with null QPainter to get just metrics,
     // we can't be sure that pen width will be 1 in subsequent calls.
@@ -197,7 +201,7 @@ QRect Trace_painter::drawTextBox(
     return r;
 }
 
-QRect Trace_painter::drawPageMarker(QPainter * painter,
+QRect TracePainter::drawPageMarker(QPainter* painter,
                                     int page, int count,
                                     int x, int y, bool horiz)
 {
@@ -210,7 +214,8 @@ QRect Trace_painter::drawPageMarker(QPainter * painter,
     int th = fm.height();
     int tw = fm.width(text);
 
-    if (painter) {
+    if (painter)
+    {
         painter->save();
 
         painter->setFont(font);
@@ -222,8 +227,12 @@ QRect Trace_painter::drawPageMarker(QPainter * painter,
         arrow_1 << QPoint(0, 0) << QPoint(th/2, -th/2) << QPoint(th/2, th/2);
         arrow_2 << QPoint(tw+th, 0) << QPoint(tw+th/2, -th/2) << QPoint(tw+th/2, th/2);
 
-        if (horiz) painter->translate(x, y);
-        else {
+        if (horiz)
+        {
+            painter->translate(x, y);
+        }
+        else
+        {
             painter->rotate(360-90);
             painter->translate(-y-tw-th, x-th);
         }
@@ -236,11 +245,10 @@ QRect Trace_painter::drawPageMarker(QPainter * painter,
         painter->restore();
     }
 
-    if (horiz) return QRect(x, y - th/2, tw + th, th);
-    else       return QRect(x - th/2, y, th + 2*th, tw + th);
+    return (horiz ? QRect(x, y - th / 2, tw + th, th) : QRect(x - th / 2, y, th + 2 * th, tw + th));
 }
 
-void Trace_painter::draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter * painter,
+void TracePainter::draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter * painter,
                         bool always_straight, bool start_arrowhead)
 {
   // The length of the from the tip of the arrow to the point
@@ -251,40 +259,49 @@ void Trace_painter::draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter 
     arrow.moveTo(x1, y1);
 
     // Determine the angle of the straight line.
-    double a1 = (x2-x1);
-    double a2 = (y2-y1);
+    double a1 = x2 - x1;
+    double a2 = y2 - y1;
     double b1 = 1;
     double b2 = 0;
 
-    double straight_length = sqrt(a1*a1 + a2*a2);
+    double straight_length = sqrt(a1 * a1 + a2 * a2);
 
-    double dot_product = a1*b1 + a2*b2;
-    double cosine = dot_product/
-        (sqrt(pow(a1, 2) + pow(a2, 2))*sqrt(b1 + b2));
+    double dot_product = a1 * b1 + a2 * b2;
+    double cosine = dot_product / (sqrt(pow(a1, 2) + pow(a2, 2)) * sqrt(b1 + b2));
     double angle = acos(cosine);
     if (y1 < y2)
     {
         angle = -angle;
     }
-    double straight_angle = angle*180/M_PI;
+    double straight_angle = angle * 180 / M_PI;
 
     double limit = 10;
 
     double angle_to_vertical;
     if (fabs(straight_angle) < 90)
+    {
         angle_to_vertical = fabs(straight_angle);
+    }
     else if (straight_angle > 0)
-        angle_to_vertical = 180-straight_angle;
+    {
+        angle_to_vertical = 180 - straight_angle;
+    }
     else
-        angle_to_vertical = 180-(-straight_angle);
+    {
+        angle_to_vertical = 180 -(-straight_angle);
+    }
 
     double angle_delta = 0;
     if (!always_straight)
+    {
         if (angle_to_vertical > limit)
+        {
             angle_delta = 30 * (angle_to_vertical - limit)/90;
+        }
+    }
     double start_angle = straight_angle > 0
-        ? straight_angle - angle_delta :
-        straight_angle + angle_delta;
+    ? straight_angle - angle_delta :
+    straight_angle + angle_delta;
 
 
     QMatrix m1;
@@ -340,72 +357,82 @@ void Trace_painter::draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter 
     }
 }
 
-int Trace_painter::pixelPositionForTime(const Time& time) const
+int TracePainter::pixelPositionForTime(const Time& time) const
 {
     int lifelines_width = width - left_margin - right_margin;
 
     Time delta = time - model->min_time();
 
-    double ratio = delta/timePerPage;
-    return int(ratio*lifelines_width + left_margin);
+    double ratio = delta / timePerPage;
+    return int(ratio * lifelines_width + left_margin);
 }
 
-Time Trace_painter::timeForPixel(int pixel_x) const
+Time TracePainter::timeForPixel(int pixel_x) const
 {
     // If x coordinate less than timeline
     // start margin, returns minimum time.
     if (pixel_x < left_margin) return model->min_time();
 
-    unsigned lifelines_width = width-left_margin-right_margin;
+    unsigned lifelines_width = width - left_margin - right_margin;
     pixel_x -= left_margin;
 
     Q_ASSERT(!timePerPage.isNull());
-    return Time::scale(model->min_time(), model->min_time()+timePerPage,
-                       double(pixel_x)/lifelines_width);
+    return Time::scale(model->min_time(), model->min_time() + timePerPage,
+                       double(pixel_x) / lifelines_width);
 }
 
-void Trace_painter::splitToPages()
+void TracePainter::splitToPages()
 {
-    // Calculate the number of pages
     pages_horizontally = 1;
-    if (model->max_time()-model->min_time() > timePerFirstPage)
-        pages_horizontally += (int)ceil( (model->max_time()-model->min_time()-timePerFirstPage)/timePerFullPage );
+    if (model->max_time() - model->min_time() > timePerFirstPage)
+    {
+        pages_horizontally += (int)ceil((model->max_time() - model->min_time() - timePerFirstPage) / timePerFullPage);
+    }
 
-    pages_vertically = (int)ceil( 1.0*model->visible_components().size() / components_per_page );
-
-    //qDebug() << "Number of pages:" << pages_horizontally << "/" << pages_vertically;
+    pages_vertically = (int)ceil(1.0 * model->visible_components().size() / components_per_page);
 }
 
-void Trace_painter::drawPage(int i, int j)
+void TracePainter::drawPage(int i, int j)
 {
     // Calculate the number of components by vertical
-    int from_component = (j == 0) ? 0 : j*components_per_page;
-    int to_component = from_component + components_per_page-1;
+    int from_component = (j == 0) ? 0 : j * components_per_page;
+    int to_component = from_component + components_per_page - 1;
 
     if (to_component >= model->visible_components().size())
-        to_component = model->visible_components().size()-1;
+    {
+        to_component = model->visible_components().size() - 1;
+    }
 
     timePerPage = (i > 0) ? timePerFullPage : timePerFirstPage;
 
     Time min_time = model->min_time();
-    if (i > 0) min_time = min_time + timePerFirstPage + timePerFullPage*(i-1);
+    if (i > 0) min_time = min_time + timePerFirstPage + timePerFullPage * (i - 1);
 
     Time max_time = min_time + timePerPage;
-    if (max_time > model->max_time()) max_time = model->max_time();
+    if (max_time > model->max_time())
+    {
+        max_time = model->max_time();
+    }
 
     // FIXME: this temporary change of model is ugly.
     TraceModelPtr saved_model = model;
     model = model->set_range(min_time, max_time);
 
-    if (i == 0) left_margin = left_margin1;
-    else        left_margin = left_margin2;
+    if (i == 0)
+    {
+        left_margin = left_margin1;
+    }
+    else
+    {
+        left_margin = left_margin2;
+    }
 
     drawComponentsList(from_component, to_component, i == 0);
     QApplication::processEvents();
     if (state_ == Canceled) return;
 
-    painter->setClipRect(left_margin, y_unparented-lifeline_stepping/2,
-        width-right_margin-left_margin, components_per_page*lifeline_stepping);
+    painter->setClipRect(left_margin, y_unparented - lifeline_stepping / 2,
+        width - right_margin-left_margin, components_per_page * lifeline_stepping);
 
     drawEvents(from_component, to_component);
     if (state_ == Canceled) return;
@@ -416,8 +443,8 @@ void Trace_painter::drawPage(int i, int j)
     drawGroups(from_component, to_component);
     if (state_ == Canceled) return;
 
-    if (printer_flag) {
-
+    if (printer_flag)
+    {
         // Draw timeline
         painter->setClipRect(0, 0, width, height);
         drawTimeline(painter, 0, height - (timeline_text_top+text_height));
@@ -442,7 +469,7 @@ void Trace_painter::drawPage(int i, int j)
 
 #define DL if (drawLabels)
 
-void Trace_painter::drawComponentsList(int from_component, int to_component, bool drawLabels)
+void TracePainter::drawComponentsList(int from_component, int to_component, bool drawLabels)
 {
 NP  {
         QLinearGradient g(0, 0, left_margin, 0);
@@ -534,7 +561,7 @@ NP          {
 
 #undef DL
 
-void Trace_painter::drawStates(int from_component, int to_component)
+void TracePainter::drawStates(int from_component, int to_component)
 {
     model->rewind();
 
@@ -586,7 +613,7 @@ void Trace_painter::drawStates(int from_component, int to_component)
     }
 }
 
-void Trace_painter::drawEvents(int from_component, int to_component)
+void TracePainter::drawEvents(int from_component, int to_component)
 {
     QFontMetrics mainFontMetrics(painter->font());
 
@@ -783,7 +810,7 @@ NP      tg->eventsNear[lifeline][pos] = true;
     }
 }
 
-void Trace_painter::drawGroups(int from_comp, int to_comp)
+void TracePainter::drawGroups(int from_comp, int to_comp)
 {
     QColor groups_color(Qt::darkGreen);
     //groups_color.setAlpha(200);
@@ -855,7 +882,7 @@ void Trace_painter::drawGroups(int from_comp, int to_comp)
     }
 }
 
-void Trace_painter::drawTrace(const Time & timePerPage, bool start_in_background)
+void TracePainter::drawTrace(const Time & timePerPage, bool start_in_background)
 {
     Q_ASSERT(painter);
     Q_ASSERT(model.get());
@@ -900,7 +927,7 @@ void Trace_painter::drawTrace(const Time & timePerPage, bool start_in_background
 
     // ...or on the screen
 
-    if (!tg) tg = new Trace_geometry();
+    if (!tg) tg = new TraceGeometry();
 
     tg->clickable_components.clear();
     tg->states.clear();
@@ -919,7 +946,7 @@ void Trace_painter::drawTrace(const Time & timePerPage, bool start_in_background
     if (state_ != Canceled) state_ = Ready;
 }
 
-void Trace_painter::drawTimeline(QPainter * painter, int x, int y)
+void TracePainter::drawTimeline(QPainter * painter, int x, int y)
 {
     if (!model) return;
 
@@ -980,7 +1007,7 @@ void Trace_painter::drawTimeline(QPainter * painter, int x, int y)
 
 #undef NP
 
-bool Trace_geometry::clickable_component(const QPoint& point, int & component) const
+bool TraceGeometry::clickable_component(const QPoint& point, int & component) const
 {
     typedef QPair<QRect, int> pt;
     foreach(const pt& p, clickable_components)
@@ -995,7 +1022,7 @@ bool Trace_geometry::clickable_component(const QPoint& point, int & component) c
     return false;
 }
 
-StateModel* Trace_geometry::clickable_state(const QPoint& point) const
+StateModel* TraceGeometry::clickable_state(const QPoint& point) const
 {
     typedef QPair<QRect, boost::shared_ptr<StateModel> > pt;
     foreach(const pt& p, states)
@@ -1006,7 +1033,7 @@ StateModel* Trace_geometry::clickable_state(const QPoint& point) const
     return 0;
 }
 
-int Trace_geometry::componentAtPosition(const QPoint& point)
+int TraceGeometry::componentAtPosition(const QPoint& point)
 {
     typedef QPair<QRect, int> pt;
     foreach(const pt& p, lifeline_rects)
@@ -1018,7 +1045,7 @@ int Trace_geometry::componentAtPosition(const QPoint& point)
     return -1;
 }
 
-int Trace_geometry::componentLabelAtPos(const QPoint& point)
+int TraceGeometry::componentLabelAtPos(const QPoint& point)
 {
     typedef QPair<QRect, int> pt;
     foreach(const pt& p, componentlabel_rects)

@@ -4,8 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
-
 #include "time_vis.h"
 #include "selection.h"
 
@@ -16,10 +14,9 @@ namespace vis4 {
 class EventModel;
 class StateModel;
 class GroupModel;
-class Checker;
 
-class Trace_model;
-typedef boost::shared_ptr<Trace_model> TraceModelPtr;
+class TraceModel;
+typedef std::shared_ptr<TraceModel> TraceModelPtr;
 
 /**
  * Абстракное представление трассы для визуализатора.
@@ -67,7 +64,7 @@ typedef boost::shared_ptr<Trace_model> TraceModelPtr;
  * Навигация по всем трем осям выполняется с помощью вызовом методов класса Trace_model, которые
  * создают новый объект класс Trace_model с новым представлением трассы.
  */
-class Trace_model
+class TraceModel
 {
 public:
     enum class ComponentType
@@ -107,10 +104,8 @@ public:
 /** @defgroup time Methods for managing model time. */
 /// @{
 
-    /** Returns minimum time that must be shown in the timing diagram. */
-    virtual Time min_time() const = 0;
 
-    /** Returns maximum time that must be shown in the timing diagram. */
+    virtual Time min_time() const = 0;
     virtual Time max_time() const = 0;
 
     /** Возвращает минимальный интервал времени, который может отобразить ВД. */
@@ -128,8 +123,6 @@ public:
 /** @defgroup data Methods for obtaining trace data. */
 /// @{
 
-    /** Возвращает следующее событие с трассы и увеличивает внутренний указатель
-        событий. Если больше событий нет, возвращает нулевой указатель. */
     virtual EventModel* next_event() = 0;
     virtual StateModel* next_state() = 0;
     virtual GroupModel* next_group() = 0;
@@ -188,9 +181,6 @@ public:
      */
     virtual const Selection& available_states() const = 0;
 
-    /** Return new model with given checker installed into. */
-    virtual TraceModelPtr install_checker(Checker * checker) = 0;
-
 /// @}
 
     /** Сохраняет текущее состояние в строку и возвращает его. Структура строки не
@@ -208,7 +198,7 @@ public:
      */
     virtual void restore(const QString& s) = 0;
 
-    virtual ~Trace_model() {}
+    virtual ~TraceModel() {}
 };
 
 
@@ -231,7 +221,7 @@ struct Trace_model_delta
  * compare time unit. This interface may change any
  * second.
  */
-int delta(const Trace_model& a, const Trace_model& b);
+int delta(const TraceModel& a, const TraceModel& b);
 
 }
 #endif

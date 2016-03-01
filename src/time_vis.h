@@ -25,6 +25,14 @@ public:
     virtual TimeInterface* add(const TimeInterface* another) = 0;
     virtual TimeInterface* sub(const TimeInterface* another) = 0;
     virtual TimeInterface* mul(double a) = 0;
+
+    /*
+    virtual TimeInterface* operator+(const TimeInterface* another) = 0;
+    virtual TimeInterface* operator-(const TimeInterface* another) = 0;
+    virtual TimeInterface* operator*(const double a) = 0;
+    virtual double operator/(const TimeInterface* another) = 0;
+    */
+
     virtual double div(const TimeInterface* another) = 0;
     virtual bool less_than(const TimeInterface* another) = 0;
     virtual boost::any data() const = 0;

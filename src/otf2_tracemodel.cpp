@@ -5,6 +5,28 @@
 namespace vis4
 {
 
+struct OTF2Location
+{
+    OTF2_LocationRef      location;
+    OTF2_StringRef        name;
+    OTF2_LocationType     locationType;
+    uint64_t              numberOfEvents;
+    OTF2_LocationGroupRef locationGroup;
+};
+
+struct OTF2Region
+{
+    OTF2_RegionRef self;
+    OTF2_StringRef name;
+};
+
+struct TestData
+{
+    QVector<OTF2Location> locations;
+    QVector<OTF2Region> regions;
+    QMap<int, QString> strings;
+};
+
 static OTF2_CallbackCode
 Enter_print( OTF2_LocationRef    location,
              OTF2_TimeStamp      time,
@@ -12,20 +34,15 @@ Enter_print( OTF2_LocationRef    location,
              OTF2_AttributeList* attributes,
              OTF2_RegionRef      region )
 {
-    StateModel* sm = new StateModel();
-    sm->component = location;
-    sm->type = region;
-    sm->begin = scalarTime<int>(time);
-    sm->end = scalarTime<int>(-1);//TEST
-    sm->color = Qt::yellow;
-    ((OTF2_HandlerArgument*)userData)->states->push_back(sm);
-    EventModel* em = new EventModel();
-    em->time = scalarTime<int>(time);
-    em->component = location;
-    em->kind = "ENTER";
-    em->letter = 'E';
-    ((OTF2_HandlerArgument*)userData)->events->push_back(em);
-    std::cout << "Entering region " << region << " at location " << location << " at time " << time << ".\n";
+    auto arg = static_cast<OTF2_HandlerArgument*>(userData);
+
+    StateModel* sm = new StateModel(location, region, scalarTime<int>(time), scalarTime<int>(-1), Qt::yellow);
+    arg->states->push_back(sm);
+
+    EventModel* em = new EventModel(scalarTime<int>(time), location, "ENTER", 'E');
+    arg->events->push_back(em);
+
+    std::cout << "Entering region " << region << " at location " << location << " at time " << time << std::endl;
     return OTF2_CALLBACK_SUCCESS;
 }
 static OTF2_CallbackCode
@@ -35,21 +52,20 @@ Leave_print( OTF2_LocationRef    location,
              OTF2_AttributeList* attributes,
              OTF2_RegionRef      region )
 {
-    for (int i = ((OTF2_HandlerArgument*)userData)->states->size() - 1; i > 0; --i)
+    auto arg = static_cast<OTF2_HandlerArgument*>(userData);
+
+    for (int i = arg->states->size() - 1; i > 0; --i)
     {
-        //TEST
-        if (location == (*((OTF2_HandlerArgument*)userData)->states)[i]->component)
+        if (location == (*arg->states)[i]->component)
         {
-            (*((OTF2_HandlerArgument*)userData)->states)[i]->end = scalarTime<int>(time);
+            (*arg->states)[i]->end = scalarTime<int>(time);
         }
     }
-    EventModel* em = new EventModel();
-    em->time = scalarTime<int>(time);
-    em->component = location;
-    em->kind = "LEAVE";
-    em->letter = 'L';
-    ((OTF2_HandlerArgument*)userData)->events->push_back(em);
-    std::cout << "Leaving region " << region << " at location " << location << " at time " << time << ".\n";
+
+    EventModel* em = new EventModel(scalarTime<int>(time), location, "LEAVE", 'L');
+    arg->events->push_back(em);
+
+    std::cout << "Leaving region " << region << " at location " << location << " at time " << time << std::endl;
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -62,61 +78,78 @@ GlobDefLocation_Register( void*                 userData,
                           OTF2_LocationGroupRef locationGroup )
 {
     std::cout << name << std::endl;
-    QVector<OTF2_LocationRef>* locations = static_cast<QVector<OTF2_LocationRef>*>(userData);
-    locations->push_back(location);
+    OTF2Location loc = {location, name, locationType, numberOfEvents, locationGroup};
+    static_cast<TestData*>(userData)->locations.push_back(loc);
     return OTF2_CALLBACK_SUCCESS;
 }
 
 static OTF2_CallbackCode
 StringReader(void *userData, OTF2_StringRef self, const char *string)
 {
-    //QMap<int, QString>* map = userData;
-    //map[self] = QString(string);
-    std::cout << self << " : " << string << std::endl;
+    static_cast<TestData*>(userData)->strings[self] = QString(string);
     return OTF2_CALLBACK_SUCCESS;
 }
 
+static OTF2_CallbackCode regionReader(void *userData, OTF2_RegionRef self, OTF2_StringRef name, OTF2_StringRef canonicalName, OTF2_StringRef description, OTF2_RegionRole regionRole, OTF2_Paradigm paradigm, OTF2_RegionFlag regionFlags, OTF2_StringRef sourceFile, uint32_t beginLineNumber, uint32_t endLineNumber)
+{
+    OTF2Region reg = {self, name};
+    static_cast<TestData*>(userData)->regions.push_back(reg);
+}
 
-OTF2_TraceModel::OTF2_TraceModel(const QString& filename)
+OTF2_TraceModel::OTF2_TraceModel(const QString& filename) :
+    currentEvent(0),
+    currentGroup(0),
+    currentState(0)
 {
     //? TEST
+    states_.clear();
+
+    TestData testData;
     ha = { 0, parent_component_, &components_, &states_, &allStates, &allEvents, 0, 0};
-    //QMap<int, QString> strmap;
     initialize();
     min_time_ = getTime(0);
     max_time_ = getTime(1000);
 
-    OTF2_Reader* reader = OTF2_Reader_Open("../otf_traces/ArchivePath/ArchiveName.otf2");
+    OTF2_Reader* reader = OTF2_Reader_Open(filename.toUtf8().constData());//should not use QString here
     OTF2_Reader_SetSerialCollectiveCallbacks(reader);
-    QVector<OTF2_LocationRef> locations;
+
     OTF2_GlobalDefReader* globalDefReader = OTF2_Reader_GetGlobalDefReader(reader);
     OTF2_GlobalDefReaderCallbacks* globalDefCallbacks = OTF2_GlobalDefReaderCallbacks_New();
+    OTF2_GlobalDefReaderCallbacks_SetRegionCallback(globalDefCallbacks, &regionReader);
     OTF2_GlobalDefReaderCallbacks_SetLocationCallback(globalDefCallbacks, &GlobDefLocation_Register);
     OTF2_GlobalDefReaderCallbacks_SetStringCallback(globalDefCallbacks, &StringReader);
     OTF2_Reader_RegisterGlobalDefCallbacks(reader,
                                            globalDefReader,
                                            globalDefCallbacks,
-                                           &locations);
+                                           &testData);
     OTF2_GlobalDefReaderCallbacks_Delete(globalDefCallbacks );
     uint64_t definitionsRead = 0;
     OTF2_Reader_ReadAllGlobalDefinitions(reader,
                                          globalDefReader,
                                          &definitionsRead);
-    for (unsigned int i = 0; i < locations.size(); ++i)
+
+    for (unsigned int i = 0; i < testData.locations.size(); ++i)
     {
-        OTF2_Reader_SelectLocation(reader, locations[i]);
+        OTF2_Reader_SelectLocation(reader, testData.locations[i].location);
     }
     bool localDefOpened = (OTF2_Reader_OpenDefFiles(reader) == OTF2_SUCCESS);
+
     OTF2_Reader_OpenEvtFiles(reader);
 
-    ha.components->addItem("first process", -1);
-    ha.state_types->addItem("first state", -1);
+    for (unsigned int i = 0; i < testData.locations.size(); ++i)
+    {
+        ha.components->addItem(testData.strings[testData.locations[i].name], -1);
+    }
+    for (unsigned int i = 0; i < testData.regions.size(); ++i)
+    {
+        ha.state_types->addItem(testData.strings[testData.regions[i].name], -1);
+    }
 
-    for (unsigned int i = 0; i < locations.size(); ++i)
+    for (unsigned int i = 0; i < testData.locations.size(); ++i)
     {
         if (localDefOpened)
         {
-            OTF2_DefReader* def_reader = OTF2_Reader_GetDefReader(reader, locations[i]);
+            OTF2_DefReader* def_reader = OTF2_Reader_GetDefReader(reader, testData.locations[i].location);
             if ( def_reader )
             {
                 uint64_t def_reads = 0;
@@ -126,7 +159,7 @@ OTF2_TraceModel::OTF2_TraceModel(const QString& filename)
                 OTF2_Reader_CloseDefReader(reader, def_reader);
             }
         }
-        OTF2_EvtReader* evt_reader = OTF2_Reader_GetEvtReader(reader, locations[i]);
+        OTF2_EvtReader* evt_reader = OTF2_Reader_GetEvtReader(reader, testData.locations[i].location);
     }
     if (localDefOpened)
     {
@@ -186,7 +219,7 @@ int OTF2_TraceModel:: lifeline(int component) const
     return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
 }
 
-Trace_model::ComponentType OTF2_TraceModel::component_type(int component) const
+TraceModel::ComponentType OTF2_TraceModel::component_type(int component) const
 {
     return has_children(component) ? ComponentType::RCHM : ComponentType::CHM;
 }
@@ -416,11 +449,6 @@ TraceModelPtr OTF2_TraceModel::filter_states(const Selection& filter)
     n->states_ = filter;
     //n->adjust_components();
     return n;
-}
-
-TraceModelPtr OTF2_TraceModel::install_checker(Checker* checker)
-{
-    return shared_from_this();
 }
 
 TraceModelPtr OTF2_TraceModel::filter_events(const Selection& filter)

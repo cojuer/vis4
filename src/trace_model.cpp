@@ -2,7 +2,7 @@
 
 namespace vis4 {
 
-int delta(const Trace_model& a, const Trace_model& b)
+int delta(const TraceModel& a, const TraceModel& b)
 {
     int result = 0;
 

@@ -19,7 +19,7 @@ Tool::Tool(QWidget* parentPtr, Canvas* canvasPtr) :
     mainWindowPtr = dynamic_cast<MainWindow*>(canvasPtr->parent());
 }
 
-boost::shared_ptr<Trace_model>& Tool::model() const
+std::shared_ptr<TraceModel>& Tool::model() const
 {
     return canvasPtr->getModel();
 }

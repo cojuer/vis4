@@ -76,8 +76,8 @@ public:
         connect(states, SIGNAL(selectionChanged(const vis4::Selection &)), this,
                         SLOT(filtersChanged()));
 
-        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)), this,
-                             SLOT(modelChanged(Trace_model::TraceModelPtr &)));
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModel::TraceModelPtr &)), this,
+                             SLOT(modelChanged(TraceModel::TraceModelPtr &)));
 
         modelChanged(model());
         restoreState();

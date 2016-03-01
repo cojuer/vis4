@@ -292,8 +292,8 @@ public:
         distanceLabel = new QLabel("", distanceGroup);
         distanceLayout->addWidget(distanceLabel);
 
-        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr&)), this,
-                             SLOT(modelChanged(Trace_model::TraceModelPtr&)));
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModel::TraceModelPtr&)), this,
+                             SLOT(modelChanged(TraceModel::TraceModelPtr&)));
 
         connect(pointA, SIGNAL(eventSelected(const Time&)), this,
                         SLOT(eventSelected(const Time&)));

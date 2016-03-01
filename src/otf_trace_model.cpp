@@ -111,7 +111,7 @@ int OTF_trace_model:: lifeline(int component) const
     return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
 }
 
-Trace_model::ComponentType OTF_trace_model::component_type(int component) const
+TraceModel::ComponentType OTF_trace_model::component_type(int component) const
 {
     return has_children(component) ? ComponentType::RCHM : ComponentType::CHM;
 }
@@ -341,11 +341,6 @@ TraceModelPtr OTF_trace_model::filter_states(const Selection& filter)
     n->states_ = filter;
     //n->adjust_components();
     return n;
-}
-
-TraceModelPtr OTF_trace_model::install_checker(Checker* checker)
-{
-    return shared_from_this();
 }
 
 TraceModelPtr OTF_trace_model::filter_events(const Selection& filter)

@@ -44,11 +44,11 @@ typedef struct {
 } HandlerArgument;
 
 class OTF_trace_model : 
-    public Trace_model,
-    public boost::enable_shared_from_this<OTF_trace_model>
+    public TraceModel,
+    public std::enable_shared_from_this<OTF_trace_model>
 {
 public: /** members */
-    typedef boost::shared_ptr<OTF_trace_model> OTFTraceModelPtr;
+    typedef std::shared_ptr<OTF_trace_model> OTFTraceModelPtr;
 
 public: /** methods */
     OTF_trace_model(const QString& filename);
@@ -84,7 +84,7 @@ public: /** methods */
     const Selection& available_states() const;
 
     TraceModelPtr filter_states(const Selection& filter);
-    TraceModelPtr install_checker(Checker* checker);
+
     TraceModelPtr filter_events(const Selection& filter);
 
     QString save() const override;
@@ -170,11 +170,12 @@ static int handleDefFunctionGroup (void *userData, uint32_t stream, uint32_t fun
 
 static int handleDefFunction (void *userData, uint32_t stream, uint32_t func, const char *name, uint32_t funcGroup, uint32_t source)
 {
+    auto arg = static_cast<HandlerArgument*>(userData);
     QTextCodec *codec = QTextCodec::codecForName( "KOI8-R" );
     QString tr_name = codec->toUnicode(name);
     QTextCodec *codec1 = QTextCodec::codecForName( "UTF-8" );
     tr_name = codec1->fromUnicode(tr_name);
-    ((HandlerArgument*)userData)->state_types->addItem(tr_name, -1);
+    arg->state_types->addItem(tr_name, -1);
     qDebug() << "stream = " << stream << " func: " << func << " name: " << tr_name << " funcGroup: " << funcGroup << " source: " << source;
     return OTF_RETURN_OK;
 }
@@ -189,39 +190,32 @@ static int handleDefMarker(void *userData, uint32_t stream, uint32_t token, cons
 /** Обработчики событий и состояний */
 static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-    StateModel* sm = new StateModel();
-    sm->component = process;
-    sm->type = function;
-    sm->begin = scalarTime<int>(time);
-    sm->end = scalarTime<int>(-1);//TEST
-    sm->color = Qt::yellow;
-    ((HandlerArgument*)userData)->states->push_back(sm);
-    EventModel* em = new EventModel();
-    em->time = scalarTime<int>(time);
-    em->component = process;
-    em->kind = "ENTER";
-    em->letter = 'E';
-    ((HandlerArgument*)userData)->events->push_back(em);
+    auto arg = static_cast<HandlerArgument*>(userData);
+    StateModel* sm = new StateModel(process, function, scalarTime<int>(time), scalarTime<int>(-1), Qt::yellow);
+    arg->states->push_back(sm);
+
+    EventModel* em = new EventModel(scalarTime<int>(time), process, "ENTER", 'E');
+    arg->events->push_back(em);
+
     qDebug() << "ENTER: " << function << "time: " << time << " type: " << function;
     return OTF_RETURN_OK;
 }
 
 static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
-    for (int i = ((HandlerArgument*)userData)->states->size() - 1; i > 0; --i)
+    auto arg = static_cast<HandlerArgument*>(userData);
+    for (int i = arg->states->size() - 1; i > 0; --i)
     {
         //TEST
-        if (process == (*((HandlerArgument*)userData)->states)[i]->component)
+        if (process == (*arg->states)[i]->component)
         {
-            (*((HandlerArgument*)userData)->states)[i]->end = scalarTime<int>(time);
+            (*arg->states)[i]->end = scalarTime<int>(time);
         }
     }
-    EventModel* em = new EventModel();
-    em->time = scalarTime<int>(time);
-    em->component = process;
-    em->kind = "LEAVE";
-    em->letter = 'L';
-    ((HandlerArgument*)userData)->events->push_back(em);
+
+    EventModel* em = new EventModel(scalarTime<int>(time), process, "LEAVE", 'L');
+    arg->events->push_back(em);
+
     qDebug() << "LEAVE: " << function << "time: " << time << " type: " << function;
     return OTF_RETURN_OK;
 }

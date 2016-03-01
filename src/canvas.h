@@ -178,8 +178,8 @@ private: /** members */
 
     Canvas* parent_;
     TraceModelPtr model_;
-    std::auto_ptr<Trace_painter> trace_painter;
-    std::auto_ptr<Trace_geometry> trace_geometry;
+    std::auto_ptr<TracePainter> trace_painter;
+    std::auto_ptr<TraceGeometry> trace_geometry;
 
     QPaintDevice* paintBuffer;
     bool portable_drawing;

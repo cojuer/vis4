@@ -433,7 +433,7 @@ void MainWindow::actionPrint()
 
         //qDebug() << "Trace model for print:" << "min time:" << min_time.toString() << "max time:" << max_time.toString();
 
-        Trace_painter tp;
+        TracePainter tp;
         tp.setModel(model);
         tp.setPaintDevice(&printer);
 

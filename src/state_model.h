@@ -26,6 +26,16 @@ public:
     /** The color to be used when drawing it.  */
     QColor color;
 
+    StateModel() {}
+
+    StateModel(unsigned int component, int type, Time begin, Time end, QColor color) :
+        component(component),
+        type(type),
+        begin(begin),
+        end(end),
+        color(color)
+    {}
+
     virtual ~StateModel() {}
 };
 

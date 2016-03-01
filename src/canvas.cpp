@@ -130,7 +130,7 @@ QRect Canvas::boundingRect(int component,
 
 QPair<Time, Time> Canvas::nearby_range(const Time& time)
 {
-    Trace_painter *tp = contents_->trace_painter.get();
+    TracePainter *tp = contents_->trace_painter.get();
     int pixel = tp->pixelPositionForTime(time);
 
     return qMakePair(tp->timeForPixel(pixel - 20),
@@ -188,7 +188,7 @@ void Canvas::timerEvent(QTimerEvent* timerEventPtr)
 void Canvas::closeEvent(QCloseEvent* closeEventPtr)
 {
     // Stop background drawing
-    contents_->trace_painter->setState(Trace_painter::Canceled);
+    contents_->trace_painter->setState(TracePainter::Canceled);
 }
 
 /**
@@ -219,7 +219,7 @@ Contents_widget::Contents_widget(Canvas* parent) :
 
     setFocusPolicy(Qt::NoFocus);
 
-    trace_painter.reset(new Trace_painter());
+    trace_painter.reset(new TracePainter());
 
     painter_timer = new QTimer(this);
     connect(painter_timer, SIGNAL( timeout() ),
@@ -255,16 +255,16 @@ void Contents_widget::setModel(TraceModelPtr model, bool force)
     trace_painter->setModel(model_);
     if (!need_redraw) return;
 
-    if (trace_painter->state() == Trace_painter::Canceled)
+    if (trace_painter->state() == TracePainter::Canceled)
     {
         return;
     }
 
     // Stop current drawing
-    if (trace_painter->state() == Trace_painter::Active ||
-        trace_painter->state() == Trace_painter::Background)
+    if (trace_painter->state() == TracePainter::Active ||
+        trace_painter->state() == TracePainter::Background)
     {
-        trace_painter->setState(Trace_painter::Canceled);
+        trace_painter->setState(TracePainter::Canceled);
         pendingRedraw = true;
         return;
     }
@@ -354,8 +354,8 @@ void Contents_widget::paintEvent(QPaintEvent* event)
     }
 
     if (!model_) return;
-    if (trace_painter->state() == Trace_painter::Active ||
-        trace_painter->state() == Trace_painter::Canceled)
+    if (trace_painter->state() == TracePainter::Active ||
+        trace_painter->state() == TracePainter::Canceled)
     {
         return;
     }
@@ -480,18 +480,18 @@ QRect Contents_widget::drawBaloon(QPainter* painter)
     int x = visir_position + 10;
     int y = parent_->verticalScrollBar()->value() + 15;
 
-    QRect try_on_right = Trace_painter::drawTextBox(s, 0, x, y, -1, trace_painter->text_elements_height);
+    QRect try_on_right = TracePainter::drawTextBox(s, 0, x, y, -1, trace_painter->text_elements_height);
     if (try_on_right.right() > width()-trace_painter->right_margin)
     {
         // Draw on left.
-        return Trace_painter::drawTextBox(s, painter,
+        return TracePainter::drawTextBox(s, painter,
                            visir_position - 10 - try_on_right.width(),
                            y, -1, trace_painter->text_elements_height);
     }
     else
     {
         if (painter)
-            Trace_painter::drawTextBox(s, painter, x, y, -1, trace_painter->text_elements_height);
+            TracePainter::drawTextBox(s, painter, x, y, -1, trace_painter->text_elements_height);
         return try_on_right;
     }
 }
@@ -624,7 +624,7 @@ void Contents_widget::doDrawing(bool start_in_background)
     trace_painter->drawTrace(model_->max_time() - model_->min_time(), start_in_background);
     painter_timer->stop();
 
-    if (trace_painter->state() == Trace_painter::Canceled) return;
+    if (trace_painter->state() == TracePainter::Canceled) return;
     trace_geometry = trace_painter->traceGeometry();
 
     updateGeometry();
@@ -633,16 +633,16 @@ void Contents_widget::doDrawing(bool start_in_background)
 
 void Contents_widget::timerTick()
 {
-    if (trace_painter->state() == Trace_painter::Active) {
-        trace_painter->setState(Trace_painter::Background);
+    if (trace_painter->state() == TracePainter::Active) {
+        trace_painter->setState(TracePainter::Background);
         painter_timer->start(500);
     }
 
-    if (trace_painter->state() == Trace_painter::Canceled) {
+    if (trace_painter->state() == TracePainter::Canceled) {
         painter_timer->stop(); return;
     }
 
-    Q_ASSERT(trace_painter->state() == Trace_painter::Background);
+    Q_ASSERT(trace_painter->state() == TracePainter::Background);
 
     // Repaint canvas with current drawing result.
     repaint();

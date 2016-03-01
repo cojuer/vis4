@@ -19,7 +19,7 @@ class QStackedWidget;
 
 namespace vis4 {
 
-class Trace_model;
+class TraceModel;
 class EventModel;
 class Tool;
 class Browser;

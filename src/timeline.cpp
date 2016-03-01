@@ -4,7 +4,7 @@
 
 namespace vis4 {
 
-Timeline::Timeline(QWidget* parent, Trace_painter * painter)
+Timeline::Timeline(QWidget* parent, TracePainter * painter)
     : QWidget(parent), tp(painter)
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
@@ -16,7 +16,7 @@ Timeline::Timeline(QWidget* parent, Trace_painter * painter)
 
 QSize Timeline::sizeHint() const
 {
-    return QSize(-1, Trace_painter::timeline_text_top + QFontMetrics(font()).height());
+    return QSize(-1, TracePainter::timeline_text_top + QFontMetrics(font()).height());
 }
 
 QSize Timeline::minimumSizeHint() const

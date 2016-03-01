@@ -6,12 +6,14 @@
 #include <QPainter>
 #include <QMap>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
+
+using std::shared_ptr;
 
 namespace vis4 {
 
-class Trace_model;
-class Trace_geometry;
+class TraceModel;
+class TraceGeometry;
 class StateModel;
 
 /** Trace painter.
@@ -25,29 +27,22 @@ class StateModel;
     For printer case method drawTrace make it possible to
     print not only visible, but any number of pages.
 */
-class Trace_painter {
+class TracePainter {
 
 public: /* types */
-
     enum StateEnum { Ready, Active, Background, Canceled };
 
 public: /* methods */
+    TracePainter();
+    ~TracePainter();
 
-    /** Constructor. */
-    Trace_painter();
-    ~Trace_painter();
-
-    /** Set model. */
-    void setModel(boost::shared_ptr<Trace_model> & model);
-
-    /** Set paint device. */
+    void setModel(std::shared_ptr<TraceModel> & model);
     void setPaintDevice(QPaintDevice* paintDevice);
+    void setState(StateEnum state) { state_ = state; }//to cpp
 
-    /** Draw the trace on the given paint device. */
     void drawTrace(const Time& timePerPage, bool start_in_background);
+    int state() { return state_; }//to cpp
 
-    int state() { return state_; }
-    void setState(StateEnum state) { state_ = state; }
 
     /** Draws text in a nice frame.
         Uses current pen and brush for the frame, and black for text.
@@ -65,8 +60,8 @@ public: /* methods */
 
        This function is public because one used not only in class Trace_painter.
     */
-    static QRect drawTextBox(const QString & text,
-                      QPainter* painter,
+    static QRect drawTextBox(const QString& text,
+                      QPainter* painterPtr,
                       int x, int y, int width, int height,
                       int text_start_x = -1);
 
@@ -76,7 +71,7 @@ public: /* methods */
        @param x             Absciss of the top left corner of the time line.
        @param y             Ordinate of the top left corner of the time line.
     */
-    void drawTimeline(QPainter * painter, int x, int y);
+    void drawTimeline(QPainter* painterPtr, int x, int y);
 
     /** Calculates x coordinate corresponding to given time on timeline. */
     int pixelPositionForTime(const Time& time) const;
@@ -84,20 +79,18 @@ public: /* methods */
     /** Calculates Time corresponding to given pixel coordinate. */
     Time timeForPixel(int pixel_x) const;
 
-    std::auto_ptr<Trace_geometry> traceGeometry() const;
+    std::auto_ptr<TraceGeometry> traceGeometry() const;//to shared
 
 private: /* methods */
 
-    /** @name Group of methods that really draw parts of trace diagram. */
-    //@{
+    /** Group of methods that really draw parts of trace diagram. */
     void drawComponentsList(int from_component, int to_component, bool drawLabels);
     void drawEvents(int from_component, int to_component);
     void drawStates(int from_component, int to_component);
     void drawGroups(int from_component, int to_component);
-    //@}
 
     /** Calculates the number of pages, that must be printed. */
-    void splitToPages();
+    void splitToPages();//? void func calculating some number seems strange
 
     /** Draw(or print) the page with given number.
         @param i Page number by horizontal.
@@ -123,6 +116,9 @@ private: /* methods */
        For a "limit angle" of 10, delta angle is 0 (the line is straight)
        For intermediate angles, we interporal.
     */
+    void draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter* painterPtr,
+                            bool always_straight = false,
+                            bool start_arrowhead = false);
 
     /** Draw a marker with a page number.
        @param painter   Painter for drawing.
@@ -132,13 +128,9 @@ private: /* methods */
        @param y         Marker Y coordinate.
        @param horiz     Marker orientation (true - horizontal, false - vertical).
     */
-    QRect drawPageMarker(QPainter * painter,
+    QRect drawPageMarker(QPainter* painterPtr,
                         int page, int count,
                         int x, int y, bool horiz);
-
-    void draw_unified_arrow(int x1, int y1, int x2, int y2, QPainter * painter,
-                            bool always_straight = false,
-                            bool start_arrowhead = false);
 
 public: /* members */
 
@@ -161,9 +153,9 @@ public: /* members */
 
 private: /* members */
 
-    boost::shared_ptr<Trace_model> model;      ///< Model for drawing.
+    shared_ptr<TraceModel> model;      ///< Model for drawing.
     QPainter * painter;                 ///< Active painter.
-    Trace_geometry * tg;                ///< Trace geometry (coords of component labels,
+    TraceGeometry * tg;                ///< Trace geometry (coords of component labels,
                                         ///< lifelines, states, events etc.
 
     bool printer_flag;          ///< Indicates paint device is QPrinter or not.
@@ -200,13 +192,13 @@ private: /* members */
     Trace_painter class. And it's used by Content_widget class
     for handling mouse events.
 */
-class Trace_geometry {
+class TraceGeometry {
 
 public: /* methods */
 
     /** Returns the pointer to the number of clickable component
         if point is withing the clickable area, and null otherwise. */
-    bool clickable_component(const QPoint& point, int & component) const;
+    bool clickable_component(const QPoint& point, int& component) const;
 
     StateModel* clickable_state(const QPoint& point) const;
 
@@ -240,7 +232,7 @@ private: /* members */
     // on click.
     QVector<QPair<QRect, boost::shared_ptr<StateModel> > > states;
 
-    friend class Trace_painter;
+    friend class TracePainter;
 };
 
 /* This declaration is needed for stupid gcc-4.1 with broken name resolving alghoritm... :(  */

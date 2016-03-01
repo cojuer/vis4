@@ -228,8 +228,8 @@ public:
         highlight = new Found_item_highlight;
         getCanvas()->addItem(highlight);
 
-        connect(getCanvas(), SIGNAL(modelChanged(Trace_model::TraceModelPtr &)),
-                this, SLOT(modelChanged(Trace_model::TraceModelPtr &)));
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModel::TraceModelPtr &)),
+                this, SLOT(modelChanged(TraceModel::TraceModelPtr &)));
 
         connect(this, SIGNAL( messageBox(const QString &) ),
             this, SLOT(showMessageBox(const QString &)), Qt::QueuedConnection);

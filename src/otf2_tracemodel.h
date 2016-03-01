@@ -39,14 +39,15 @@ typedef struct
     QVector<EventModel*>* events;
     uint64_t countSend;
     uint64_t countRecv;
+    QMap<int, QString> strings;
 } OTF2_HandlerArgument;
 
 class OTF2_TraceModel :
-    public Trace_model,
-    public boost::enable_shared_from_this<OTF2_TraceModel>
+    public TraceModel,
+    public std::enable_shared_from_this<OTF2_TraceModel>
 {
 public: /** members */
-    typedef boost::shared_ptr<OTF2_TraceModel> OTF2TraceModelPtr;
+    typedef std::shared_ptr<OTF2_TraceModel> OTF2TraceModelPtr;
 
 public: /** methods */
     OTF2_TraceModel(const QString& filename);
@@ -82,7 +83,6 @@ public: /** methods */
     const Selection& available_states() const;
 
     TraceModelPtr filter_states(const Selection& filter);
-    TraceModelPtr install_checker(Checker* checker);
     TraceModelPtr filter_events(const Selection& filter);
 
     QString save() const override;

@@ -57,18 +57,27 @@ public:
         return kind;
     }
 
+    EventModel() {}
+
+    EventModel(Time time, int component, QString kind, char letter) :
+        time(time),
+        component(component),
+        kind(kind),
+        letter(letter)
+    {}
+
     virtual ~EventModel() {}
 
     virtual bool operator==(const EventModel & other) const
     {
         // Very stupid implementation for vis_xml and vis_fake
-        if (time != other.time) return false;
-        if (kind != other.kind) return false;
-        if (letter != other.letter) return false;
-        if (subletter != other.subletter) return false;
-        if (component != other.component) return false;
-
-        return true;
+        bool equal = true;
+        equal &= (time == other.time);
+        equal &= (kind == other.kind);
+        equal &= (letter == other.letter);
+        equal &= (subletter == other.subletter);
+        equal &= (component == other.component);
+        return equal;
     }
 };
 

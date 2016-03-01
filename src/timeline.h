@@ -5,14 +5,14 @@
 
 namespace vis4 {
 
-class Trace_painter;
+class TracePainter;
 class TimeUnitControl;
 
 class Timeline : public QWidget
 {
     Q_OBJECT
 public:
-    Timeline(QWidget* parent, Trace_painter* painter);
+    Timeline(QWidget* parent, TracePainter* painter);
     /** QWidget overides */
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
@@ -21,7 +21,7 @@ signals:
 protected:
     void paintEvent(QPaintEvent*);
 private:
-    Trace_painter* tp;
+    TracePainter* tp;
     TimeUnitControl* timeUnitControl;
 };
 
