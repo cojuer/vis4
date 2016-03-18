@@ -42,13 +42,13 @@ public:
     SelectionWidget(QWidget* parent, int flags = 0);
 
     /** Initialize widget using base and current selection */
-    void initialize(const Selection & base, const Selection & current);
+    void initialize(const Selection& base, const Selection& current);
 
     /** Initialize widget using given selection */
-    void initialize(const Selection & selection);
+    void initialize(const Selection& selection);
 
     /** Returns current selection. */
-    const Selection & selection() const;
+    const Selection& selection() const;
 
     /** Minimizes widget size. If enabled, sizeHint will
        return a value of minimumSizeHint(). Used for
@@ -71,9 +71,7 @@ signals:
 private slots:
 
     void showOrHideAll();
-
     void emitSelectionChanged();
-
     void slotDoubleClick(const QModelIndex&);
 
 private:

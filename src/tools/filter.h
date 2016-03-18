@@ -14,8 +14,9 @@ class Filter : public Tool
 {
     Q_OBJECT
 public:
-    Filter(QWidget* parent, Canvas* c)
-    : Tool(parent, c), state_restored(false)
+    Filter(QWidget* parent, Canvas* c) :
+        Tool(parent, c),
+        state_restored(false)
     {
         setObjectName("filter");
         setWindowTitle(tr("Filter"));
@@ -130,9 +131,13 @@ private: /* methods */
 
         QString active_tab = settings.value("active_tab", "components_tab").toString();
         if (active_tab == "events_tab")
+        {
             tabWidget->setCurrentIndex(1);
+        }
         else if (active_tab == "states_tab")
+        {
             tabWidget->setCurrentIndex(2);
+        }
 
         settings.beginGroup("components");
         components->restoreState(settings);
@@ -140,8 +145,7 @@ private: /* methods */
 
         settings.beginGroup("events");
         events->restoreState(settings);
-        groupEventsCheckBox->setChecked(
-            settings.value("show_arrows", "yes").toString() == "yes");
+        groupEventsCheckBox->setChecked(settings.value("show_arrows", "yes").toString() == "yes");
         settings.endGroup();
 
         settings.beginGroup("states");
@@ -168,37 +172,41 @@ private slots:
         TraceModelPtr filtered = model();
 
         if (sender() == components || !sender())
+        {
             filtered = filtered->filter_components(components->selection());
-
+        }
         if (sender() == events || !sender())
+        {
             filtered = filtered->filter_events(events->selection());
-
+        }
         if (sender() == groupEventsCheckBox || !sender())
+        {
             filtered = filtered->setGroupsEnabled(groupEventsCheckBox->isChecked());
-
+        }
         if (sender() == states || !sender())
+        {
             filtered = filtered->filter_states(states->selection());
-
+        }
         getCanvas()->setModel(filtered);
     }
 
     void goToComponent(int component)
     {
         if (!model()->components().hasChildren(component))
+        {
             component = model()->components().itemParent(component);
-
+        }
         TraceModelPtr m = model()->set_parent_component(component);
         getCanvas()->setModel(m);
     }
 
 private: /* members */
 
-    SelectionWidget * components;
-
-    QTabWidget * tabWidget;
-    SelectionWidget * events;
-    QCheckBox * groupEventsCheckBox;
-    SelectionWidget * states;
+    SelectionWidget* components;
+    QTabWidget* tabWidget;
+    SelectionWidget* events;
+    QCheckBox* groupEventsCheckBox;
+    SelectionWidget* states;
 
     bool state_restored;
 };

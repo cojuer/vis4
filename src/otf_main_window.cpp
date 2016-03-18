@@ -11,15 +11,17 @@ void OTF_main_window::xinitialize(QWidget* toolContainer, Canvas* canvas)//? don
 {
     Browser* browser = createBrowser(toolContainer, canvas);
     installBrowser(browser);
-    /*
-    installTool(createGoto(toolContainer, canvas));
-    installTool(createMeasure(toolContainer, canvas));
-    installTool(createFilter(toolContainer, canvas));
-    Tool* find = createFind(toolContainer, canvas);
-    installTool(find);
-    connect(find, SIGNAL(extraHelp(const QString&)), browser,
-                  SLOT(extraHelp(const QString&)));
-    */
+
+    installTool(createGoto(toolContainer, canvas));//работает только показ всей трассы
+    installTool(createMeasure(toolContainer, canvas));//работает полностью
+
+    installTool(createFilter(toolContainer, canvas));//частично работает
+
+    //Tool* find = createFind(toolContainer, canvas);//не работает
+    //installTool(find);
+    //connect(find, SIGNAL(extraHelp(const QString&)), browser,
+    //              SLOT(extraHelp(const QString&)));
+
 }
 
 }

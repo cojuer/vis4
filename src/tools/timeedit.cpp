@@ -3,13 +3,18 @@
 
 namespace vis4 {
 
-TimeEdit::TimeEdit(QWidget * parent) : QAbstractSpinBox(parent),
-	long_long_time(false), unsigned_long_long_time(false), mNoError(true), mEdited(false)
+TimeEdit::TimeEdit(QWidget* parent) :
+    QAbstractSpinBox(parent),
+    long_long_time(false),
+    unsigned_long_long_time(false),
+    mNoError(true),
+    mEdited(false)
 {
-    connect(lineEdit(), SIGNAL( textEdited(const QString &) ),
-        this, SLOT( valueChanged(const QString &) ));
+    connect(lineEdit(), SIGNAL(textEdited(const QString &)), this,
+                        SLOT(valueChanged(const QString &)));
 
-    connect(lineEdit(), SIGNAL(editingFinished()), this, SLOT(onEditingFinished()));
+    connect(lineEdit(), SIGNAL(editingFinished()), this,
+                        SLOT(onEditingFinished()));
 
     mValidator = 0;
     mValidatorRegExp.setPattern("(\\d{1,2}:){1,2}(\\d{1,2}\\.)?\\d+");
@@ -26,7 +31,7 @@ void TimeEdit::stepBy(int steps)
 {
     if (cur_time_.isNull())
     {
-	return;
+        return;
     }
 
     Time t = cur_time_.fromString(lineEdit()->text());
@@ -36,8 +41,8 @@ void TimeEdit::stepBy(int steps)
     newUs += Time::unit_scale(u)*steps;
     if (newUs < 0)
     {
-	// проверим, чтобы не уйти в минус
-	return;
+        // проверим, чтобы не уйти в минус
+        return;
     }
 
     if (long_long_time)
@@ -55,7 +60,7 @@ void TimeEdit::stepBy(int steps)
 
     if (!validate(t))
     {
-	return;
+        return;
     }
 
     setTime(t);
@@ -70,7 +75,6 @@ Time TimeEdit::time() const
     {
         return Time();
     }
-
     return cur_time_;
 }
 
@@ -148,10 +152,8 @@ void TimeEdit::onEditingFinished()
     }
     mEdited = false;
 
-    QString value = lineEdit()->text();
-
-    Time t = cur_time_.fromString(value);
-
+    Time t = cur_time_.fromString(lineEdit()->text());
+    t = t.setData(lineEdit()->text().toInt());
     if (!validate(t) || !mNoError)
     {
 	// возвращаемся в корректное состояние
@@ -159,7 +161,6 @@ void TimeEdit::onEditingFinished()
         return;
     }
     cur_time_ = t;
-
     emit timeChanged(t);
 }
 

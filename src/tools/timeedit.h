@@ -8,23 +8,22 @@
 
 namespace vis4 {
 
-class TimeEdit : public QAbstractSpinBox {
-
+class TimeEdit : public QAbstractSpinBox
+{
     Q_OBJECT
-
 public: /** methods */
 
-    TimeEdit(QWidget * parent = 0);
+    TimeEdit(QWidget* parent = 0);
 
     StepEnabled stepEnabled () const;
     void stepBy(int steps);
 
     Time time() const;
     /** Setting time to edit. Emits a signal timeChanged(). */
-    void setTime(const Time & time);
+    void setTime(const Time& time);
 
-    void setMaximum(const Time & max_time);
-    void setMinimum(const Time & min_time);
+    void setMaximum(const Time& maxTime);
+    void setMinimum(const Time& minTime);
 
 public slots:
 
@@ -35,7 +34,7 @@ protected:
     void focusInEvent(QFocusEvent* event);
     void showEvent(QShowEvent* event);
 
-    bool validate(const Time & t) const;
+    bool validate(const Time& t) const;
 
 signals:
 
@@ -51,7 +50,7 @@ private slots:
 private: /** variables */
 
     bool long_long_time;
-    bool unsigned_long_long_time;
+    bool unsigned_long_long_time;//? Wow, perfect!!:c
 
     Time max_time_;
     Time min_time_;

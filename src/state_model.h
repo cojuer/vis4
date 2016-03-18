@@ -20,10 +20,7 @@ public:
     /** State id. Link to state in Trace_model::states(). */
     int type;
 
-    /** Номер компонента, к которому относится состояние. */
     unsigned component;
-
-    /** The color to be used when drawing it.  */
     QColor color;
 
     StateModel() {}

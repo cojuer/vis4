@@ -1,12 +1,3 @@
-#include "tool.h"
-#include "find_tabs.h"
-
-#include "canvas_item.h"
-#include "canvas.h"
-#include "trace_model.h"
-#include "event_model.h"
-#include "state_model.h"
-
 #include <QtWidgets/QAction>
 #include <QPainter>
 #include <QtWidgets/QPushButton>
@@ -24,6 +15,14 @@
 
 #include <set>
 
+#include "tool.h"
+#include "find_tabs.h"
+#include "canvas_item.h"
+#include "canvas.h"
+#include "trace_model.h"
+#include "event_model.h"
+#include "state_model.h"
+
 namespace vis4 {
 
 using std::set;
@@ -31,7 +30,6 @@ using std::set;
 class Found_item_highlight : public CanvasItem
 {
 public:
-
     void setRect(QRect r)
     {
         rect_ = r;
@@ -55,7 +53,9 @@ private:
     QRect xdraw(QPainter& painter)
     {
         if (!rect_.isValid())
+        {
             return QRect();
+        }
 
         painter.save();
 
@@ -78,20 +78,20 @@ private:
 class ItemModelWithDisabledItems : public QStandardItemModel
 {
 public:
-    ItemModelWithDisabledItems(QObject* parent)
-    : QStandardItemModel(parent)
+    ItemModelWithDisabledItems(QObject* parent) :
+        QStandardItemModel(parent)
     {
         insertColumns(0, 1);
     }
 
     int addItem(const QString& item, bool enabled,
-        const QVariant & userData = QVariant())
+        const QVariant& userData = QVariant())
     {
         int row = rowCount();
-
         insertRow(row);
         QModelIndex idx = index(row, 0, QModelIndex());
-        setData(idx, item); setData(idx, userData, Qt::UserRole);
+        setData(idx, item);
+        setData(idx, userData, Qt::UserRole);
 
         enabled_.push_back(enabled);
         return row;
@@ -99,10 +99,7 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& index) const
     {
-        if (enabled_[index.row()])
-            return QStandardItemModel::flags(index);
-        else
-            return 0;
+        return (enabled_[index.row()]) ? QStandardItemModel::flags(index) : Qt::NoItemFlags;
     }
 
 private:
@@ -113,8 +110,9 @@ class Find : public Tool
 {
     Q_OBJECT
 public:
-    Find(QWidget* parent, Canvas* c)
-    : Tool(parent, c), highlighted_component(-1),
+    Find(QWidget* parent, Canvas* c) :
+        Tool(parent, c),
+        highlighted_component(-1),
       componentListModel_(0), state_restored(false)
     {
         setObjectName("find");
@@ -137,8 +135,8 @@ public:
         find_again->setShortcutContext(Qt::WindowShortcut);
         c->addAction(find_again);
 
-        connect(find_again, SIGNAL(triggered(bool)),
-                this, SLOT(findNext()));
+        connect(find_again, SIGNAL(triggered(bool)), this,
+                            SLOT(findNext()));
 
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
@@ -150,10 +148,10 @@ public:
         startTimeLayout->addWidget(startTimeLabel);
         startTimeLayout->addStretch();
 
-        QPushButton * resetButton = new QPushButton(tr("Reset"), this);
+        QPushButton* resetButton = new QPushButton(tr("Reset"), this);
         startTimeLayout->addWidget(resetButton);
-        connect(resetButton, SIGNAL(clicked(bool)),
-                this, SLOT(reset()));
+        connect(resetButton, SIGNAL(clicked(bool)), this,
+                             SLOT(reset()));
 
         mainLayout->addLayout(startTimeLayout);
 
@@ -166,51 +164,50 @@ public:
         searchOnLayout->addWidget(allComponents);
         allComponents->setChecked(true);
 
-        connect(allComponents, SIGNAL(toggled(bool)),
-                this, SLOT( updateSearchedComponent() ));
+        connect(allComponents, SIGNAL(toggled(bool)), this,
+                               SLOT( updateSearchedComponent() ));
 
         singleComponent = new QRadioButton(tr("Selected component"));
         searchOnLayout->addWidget(singleComponent);
-        connect(singleComponent, SIGNAL(toggled(bool)),
-                this, SLOT( updateSearchedComponent() ));
+        connect(singleComponent, SIGNAL(toggled(bool)), this,
+                                 SLOT( updateSearchedComponent() ));
 
         componentList = new QComboBox(searchOnGroup);
         searchOnLayout->addWidget(componentList);
-        connect(componentList, SIGNAL(currentIndexChanged(int)),
-                this, SLOT( updateSearchedComponent() ));
-        connect(componentList, SIGNAL(currentIndexChanged(int)),
-                singleComponent, SLOT(click()));
+        connect(componentList, SIGNAL(currentIndexChanged(int)), this,
+                               SLOT( updateSearchedComponent() ));
+        connect(componentList, SIGNAL(currentIndexChanged(int)),  singleComponent,
+                               SLOT(click()));
 
         // Create find tabs
-
         findTabWidget = new QTabWidget(this);
         mainLayout->addWidget(findTabWidget);
 
         //queryTab = new FindQueryTab(this);
         findTabWidget->addTab(queryTab, queryTab->name());
 
-        connect(queryTab, SIGNAL( showEvent(EventModel*) ),
-            this, SLOT( eventFound(EventModel*) ));
-        connect(queryTab, SIGNAL( stateChanged() ),
-            this, SLOT( tabStateChanged() ));
+        connect(queryTab, SIGNAL(showEvent(EventModel*)), this,
+                          SLOT(eventFound(EventModel*)));
+        connect(queryTab, SIGNAL(stateChanged()), this,
+                          SLOT(tabStateChanged()));
 
         //eventsTab = new FindEventsTab(this);
         findTabWidget->addTab(eventsTab, eventsTab->name());
 
-        connect(eventsTab, SIGNAL( showEvent(EventModel*) ),
-            this, SLOT( eventFound(EventModel*) ));
-        connect(eventsTab, SIGNAL( stateChanged() ),
-            this, SLOT( tabStateChanged() ));
+        connect(eventsTab, SIGNAL(showEvent(EventModel*)),this,
+                           SLOT(eventFound(EventModel*)));
+        connect(eventsTab, SIGNAL(stateChanged()), this,
+                           SLOT(tabStateChanged()));
 
         //statesTab = new FindStatesTab(this);
         findTabWidget->addTab(statesTab, statesTab->name());
-        connect(statesTab, SIGNAL( showState(StateModel*) ),
-            this, SLOT( stateFound(StateModel*) ));
-        connect(statesTab, SIGNAL( stateChanged() ),
-            this, SLOT( tabStateChanged() ));
+        connect(statesTab, SIGNAL(showState(StateModel*)), this,
+                           SLOT(stateFound(StateModel*)));
+        connect(statesTab, SIGNAL(stateChanged()), this,
+                           SLOT(tabStateChanged()));
 
-        connect(findTabWidget, SIGNAL( currentChanged(int) ),
-                this, SLOT(switchTab(int)));
+        connect(findTabWidget, SIGNAL(currentChanged(int)), this,
+                               SLOT(switchTab(int)));
 
         //"Find" button
 
@@ -221,18 +218,16 @@ public:
 
         findButton = new QPushButton(tr("Find"), this);
         buttons->addWidget(findButton);
-        connect(findButton, SIGNAL(clicked(bool)),
-                this, SLOT( findNext() ));
-
+        connect(findButton, SIGNAL(clicked(bool)), this,
+                            SLOT( findNext() ));
 
         highlight = new Found_item_highlight;
         getCanvas()->addItem(highlight);
 
-        connect(getCanvas(), SIGNAL(modelChanged(TraceModel::TraceModelPtr &)),
-                this, SLOT(modelChanged(TraceModel::TraceModelPtr &)));
-
-        connect(this, SIGNAL( messageBox(const QString &) ),
-            this, SLOT(showMessageBox(const QString &)), Qt::QueuedConnection);
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModel::TraceModelPtr &)), this,
+                             SLOT(modelChanged(TraceModel::TraceModelPtr &)));
+        connect(this, SIGNAL(messageBox(const QString &)), this,
+                      SLOT(showMessageBox(const QString &)), Qt::QueuedConnection);
 
 #ifndef _CONCISE_
         switchTab(1);
@@ -245,8 +240,7 @@ public:
 
     QAction* createAction()
     {
-        findAction = new QAction(QIcon(":/find.png"), tr("&Find"),
-                                 this);
+        findAction = new QAction(QIcon(":/find.png"), tr("&Find"), this);
         findAction->setShortcut(QKeySequence(Qt::Key_F));
         return findAction;
     }
@@ -256,8 +250,7 @@ public:
 
 signals:
     void extraHelp(const QString& s);
-
-    void messageBox(const QString & message);
+    void messageBox(const QString& message);
 
 private: /* methods */
 
@@ -267,8 +260,7 @@ private: /* methods */
         // part of the trace, we need to shift if.
         if (event_time < model()->min_time() || event_time > model()->max_time())
         {
-            Time shown_time_range = model()->max_time()
-                - model()->min_time();
+            Time shown_time_range = model()->max_time() - model()->min_time();
 
             // Make new trace overlap with the previous
             // one by 1/10 of time.

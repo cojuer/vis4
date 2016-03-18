@@ -1,9 +1,3 @@
-#include "tool.h"
-#include "trace_model.h"
-#include "canvas.h"
-
-#include "timeedit.h"
-
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLabel>
@@ -15,18 +9,25 @@
 #include <QtWidgets/QShortcut>
 #include <QKeySequence>
 
+#include "tool.h"
+#include "trace_model.h"
+#include "canvas.h"
+#include "timeedit.h"
+
 namespace vis4 {
 
-/* Standard implementation of the 'goto' tool. Works only
-   with Time instances where result of raw() is convertible
-   either to int or long long, and
-   only when the actual integer value fits into int.  */
+/**
+ * Standard implementation of the 'goto' tool. Works only
+ * with Time instances where result of raw() is convertible
+ * either to int or long long, and
+ * only when the actual integer value fits into int.
+ */
 class Goto : public Tool
 {
     Q_OBJECT
 public:
-    Goto(QWidget* parent, Canvas* c)
-    : Tool(parent, c)
+    Goto(QWidget* parent, Canvas* canvasPtr) :
+        Tool(parent, canvasPtr)
     {
         setObjectName("goto");
         setWhatsThis(tr("<b>Goto</b>"
@@ -34,7 +35,6 @@ public:
                      "be shown."));
 
         setWindowTitle(tr("Goto"));
-
         setFocusPolicy(Qt::StrongFocus);
 
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -96,56 +96,56 @@ public:
             QKeySequence(Qt::Key_Slash), window());
         setRangeShortcut->setContext(Qt::ApplicationShortcut);
 
-        connect(okButton, SIGNAL(clicked(bool)),
-                this, SLOT(done()));
+        connect(okButton, SIGNAL(clicked(bool)), this,
+                          SLOT(done()));
 
-        connect(reset, SIGNAL(clicked(bool)),
-                this,  SLOT(reset()));
+        connect(reset, SIGNAL(clicked(bool)), this,
+                       SLOT(reset()));
 
-        connect(setStart_, SIGNAL(toggled(bool)),
-                this, SLOT(checkboxToggled(bool)));
+        connect(setStart_, SIGNAL(toggled(bool)), this,
+                           SLOT(checkboxToggled(bool)));
 
-        connect(setRange_, SIGNAL(toggled(bool)),
-                this, SLOT(checkboxToggled(bool)));
+        connect(setRange_, SIGNAL(toggled(bool)), this,
+                           SLOT(checkboxToggled(bool)));
 
-        connect(showAllTrace, SIGNAL(toggled(bool)),
-                this, SLOT(checkboxToggled(bool)));
+        connect(showAllTrace, SIGNAL(toggled(bool)), this,
+                              SLOT(checkboxToggled(bool)));
 
-        connect(setStart_time, SIGNAL(focusIn()),
-                this, SLOT(spinButtonFocusIn()));
+        connect(setStart_time, SIGNAL(focusIn()), this,
+                               SLOT(spinButtonFocusIn()));
 
-        connect(setStart_time, SIGNAL(timeChanged(Time)),
-                this, SLOT(validate()));
+        connect(setStart_time, SIGNAL(timeChanged(Time)), this,
+                               SLOT(validate()));
 
-	connect(setStart_time, SIGNAL(textChanged()),
-                this, SLOT(validate()));
+        connect(setStart_time, SIGNAL(textChanged()), this,
+                               SLOT(validate()));
 
-        connect(setRange_begin, SIGNAL(focusIn()),
-                this, SLOT(spinButtonFocusIn()));
+        connect(setRange_begin, SIGNAL(focusIn()), this,
+                                SLOT(spinButtonFocusIn()));
 
-        connect(setRange_end, SIGNAL(focusIn()),
-                this, SLOT(spinButtonFocusIn()));
+        connect(setRange_end, SIGNAL(focusIn()), this,
+                              SLOT(spinButtonFocusIn()));
 
-        connect(setRange_begin, SIGNAL(timeChanged(Time)),
-                this, SLOT(validate()));
+        connect(setRange_begin, SIGNAL(timeChanged(Time)), this,
+                                SLOT(validate()));
 
-	connect(setRange_begin, SIGNAL(textChanged()),
-                this, SLOT(validate()));
+        connect(setRange_begin, SIGNAL(textChanged()), this,
+                                SLOT(validate()));
 
-        connect(setRange_end, SIGNAL(timeChanged(Time)),
-                this, SLOT(validate()));
+        connect(setRange_end, SIGNAL(timeChanged(Time)), this,
+                              SLOT(validate()));
 
-	connect(setRange_end, SIGNAL(textChanged()),
-                this, SLOT(validate()));
+        connect(setRange_end, SIGNAL(textChanged()), this,
+                              SLOT(validate()));
 
-        connect(setStartShortcut, SIGNAL(activated()),
-                this, SLOT(setStart()));
+        connect(setStartShortcut, SIGNAL(activated()), this,
+                                  SLOT(setStart()));
 
-        connect(setRangeShortcut, SIGNAL(activated()),
-                this, SLOT(setRange()));
+        connect(setRangeShortcut, SIGNAL(activated()), this,
+                                  SLOT(setRange()));
 
-        connect(getCanvas(), SIGNAL(modelChanged(TraceModelPtr &)),
-                this, SLOT(modelChanged(TraceModelPtr &)));
+        connect(getCanvas(), SIGNAL(modelChanged(TraceModelPtr &)), this,
+                             SLOT(modelChanged(TraceModelPtr &)));
 
         modelChanged(model());
         restoreState();
@@ -196,9 +196,13 @@ public:
 
         QString s = setStart_->objectName();
         if (setRange_->isChecked())
+        {
             s = setRange_->objectName();
+        }
         if (showAllTrace->isChecked())
+        {
             s = showAllTrace->objectName();
+        }
         settings.setValue("goto_tool/checkbox", s);
     }
 
@@ -227,12 +231,14 @@ private slots:
         {
             Time min = model()->min_time();
             Time max = model()->max_time();
-            Time delta = (max - min);
+            Time delta = max - min;
 
             Time new_min = setStart_time->time();
             Time new_max = new_min + delta;
             if (new_max > model()->root()->max_time())
+            {
                 new_max = model()->root()->max_time();
+            }
 
             getCanvas()->setModel(model()->set_range(new_min, new_max));
         }
@@ -240,16 +246,15 @@ private slots:
         {
             Time new_max = setRange_end->time();
             if(new_max.isNull())
+            {
                 new_max = model()->root()->max_time();
-            getCanvas()->setModel(model()->set_range(setRange_begin->time(),
-                                                  new_max));
+            }
+            getCanvas()->setModel(model()->set_range(setRange_begin->time(), new_max));
         }
         else if (showAllTrace->isChecked())
         {
             TraceModelPtr root = model()->root();
-
-            getCanvas()->setModel(model()->set_range(
-                                   root->min_time(), root->max_time()));
+            getCanvas()->setModel(model()->set_range(root->min_time(), root->max_time()));
         }
     }
 
@@ -271,9 +276,13 @@ private slots:
     void spinButtonFocusIn()
     {
         if (sender() == setStart_time)
+        {
             setStart_->setChecked(true);
+        }
         else if (sender() == setRange_begin || sender() == setRange_end)
+        {
             setRange_->setChecked(true);
+        }
     }
 
     void validate()
@@ -282,19 +291,24 @@ private slots:
 
         if (setStart_->isChecked())
         {
-            if (setStart_time->time().isNull()) {
+            if (setStart_time->time().isNull())
+            {
                 errorMessage->setText("<b>"+tr("Error: Incorrect value")+"</b>");
                 okButton->setEnabled(false);
-            } else {
+            }
+            else
+            {
                 error = false;
             }
         }
 
-        if (setRange_->isChecked()) {
+        if (setRange_->isChecked())
+        {
             Time new_min = setRange_begin->time();
             Time new_max = setRange_end->time();
             Time min_resolution = model()->min_resolution();
-            if(new_max.isNull() && ! new_min.isNull()){
+            if(new_max.isNull() && !new_min.isNull())
+            {
                 Time t = model()->root()->max_time();
                 new_max = t;
             }
@@ -343,10 +357,12 @@ private:
 
     void keyReleaseEvent(QKeyEvent* event)
     {
-        if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) {
-            if (okButton->isEnabled())
+        if ((event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return) && okButton->isEnabled())
+        {
                 okButton->animateClick();
-        } else {
+        }
+        else
+        {
             Tool::keyReleaseEvent(event);
         }
     }
@@ -357,9 +373,9 @@ private:
     QRadioButton* setRange_;
     QRadioButton* showAllTrace;
 
-    TimeEdit * setStart_time;
-    TimeEdit * setRange_begin;
-    TimeEdit * setRange_end;
+    TimeEdit* setStart_time;
+    TimeEdit* setRange_begin;
+    TimeEdit* setRange_end;
 
     QLabel* errorMessage;
     QPushButton* okButton;

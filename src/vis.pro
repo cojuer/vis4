@@ -27,7 +27,6 @@ SOURCES += vis4.cpp \
     otf_main_window.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
-    otf_trace_data.cpp \
     time_vis.cpp \
     otf2_trace_data.cpp \
     otf2_tracemodel.cpp \
@@ -54,11 +53,11 @@ HEADERS += trace_model.h \
     tools/filter.h \
     tools/timeedit.h \
     tools/selection_widget.h \
-    otf_trace_data.h \
     time_vis.h \
     otf2_trace_data.h \
     otf2_tracemodel.h \
-    message_model.h
+    message_model.h \
+    trace_data.h
 
 RESOURCES += vis3.qrc
 OTHER_FILES += 
