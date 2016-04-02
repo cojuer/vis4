@@ -212,49 +212,45 @@ private slots:
     {
         TraceModelPtr root = model->root();
 
-        setStart_time->setMinimum(root->min_time());
-        setRange_begin->setMinimum(root->min_time());
-        setRange_end->setMinimum(root->min_time());
+        setStart_time->setMinimum(root->getMinTime());
+        setRange_begin->setMinimum(root->getMinTime());
+        setRange_end->setMinimum(root->getMinTime());
 
-        setStart_time->setMaximum(root->max_time());
-        setRange_begin->setMaximum(root->max_time());
-        setRange_end->setMaximum(root->max_time());
+        setStart_time->setMaximum(root->getMaxTime());
+        setRange_begin->setMaximum(root->getMaxTime());
+        setRange_end->setMaximum(root->getMaxTime());
 
-        setStart_time->setTime(model->min_time());
-        setRange_begin->setTime(model->min_time());
-        setRange_end->setTime(model->max_time());
+        setStart_time->setTime(model->getMinTime());
+        setRange_begin->setTime(model->getMinTime());
+        setRange_end->setTime(model->getMaxTime());
     }
 
     void done()
     {
         if (setStart_->isChecked())
         {
-            Time min = model()->min_time();
-            Time max = model()->max_time();
+            Time min = model()->getMinTime();
+            Time max = model()->getMaxTime();
             Time delta = max - min;
 
             Time new_min = setStart_time->time();
             Time new_max = new_min + delta;
-            if (new_max > model()->root()->max_time())
+            if (new_max > model()->root()->getMaxTime())
             {
-                new_max = model()->root()->max_time();
+                new_max = model()->root()->getMaxTime();
             }
 
-            getCanvas()->setModel(model()->set_range(new_min, new_max));
+            getCanvas()->setModel(model()->setRange(new_min, new_max));
         }
         else if (setRange_->isChecked())
         {
             Time new_max = setRange_end->time();
-            if(new_max.isNull())
-            {
-                new_max = model()->root()->max_time();
-            }
-            getCanvas()->setModel(model()->set_range(setRange_begin->time(), new_max));
+            getCanvas()->setModel(model()->setRange(setRange_begin->time(), new_max));
         }
         else if (showAllTrace->isChecked())
         {
             TraceModelPtr root = model()->root();
-            getCanvas()->setModel(model()->set_range(root->min_time(), root->max_time()));
+            getCanvas()->setModel(model()->setRange(root->getMinTime(), root->getMaxTime()));
         }
     }
 
@@ -291,33 +287,15 @@ private slots:
 
         if (setStart_->isChecked())
         {
-            if (setStart_time->time().isNull())
-            {
-                errorMessage->setText("<b>"+tr("Error: Incorrect value")+"</b>");
-                okButton->setEnabled(false);
-            }
-            else
-            {
                 error = false;
-            }
         }
 
         if (setRange_->isChecked())
         {
             Time new_min = setRange_begin->time();
             Time new_max = setRange_end->time();
-            Time min_resolution = model()->min_resolution();
-            if(new_max.isNull() && !new_min.isNull())
-            {
-                Time t = model()->root()->max_time();
-                new_max = t;
-            }
-            if (new_min.isNull() || new_max.isNull())
-            {
-                errorMessage->setText("<b>"+tr("Error: Incorrect value")+"</b>");
-                okButton->setEnabled(false);
-            }
-            else if (new_min > new_max)
+            Time min_resolution = model()->getMinResolution();
+            if (new_min > new_max)
             {
                 errorMessage->setText(tr("<b>Error: start > end</b>"));
                 okButton->setEnabled(false);

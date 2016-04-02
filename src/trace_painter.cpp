@@ -125,6 +125,11 @@ TracePainter::~TracePainter()
     if (painter) delete painter;
 }
 
+void TracePainter::setState(StateEnum state)
+{
+    state_ = state;
+}
+
 #define NP if (!printer_flag)
 
 void TracePainter::setModel(TraceModelPtr & model_)
@@ -153,6 +158,11 @@ void TracePainter::setPaintDevice(QPaintDevice* paintDevice)
 std::auto_ptr<TraceGeometry> TracePainter::traceGeometry() const
 {
     return std::auto_ptr<TraceGeometry>(tg);
+}
+
+int TracePainter::getState()
+{
+    return state_;
 }
 
 QRect TracePainter::drawTextBox(
@@ -361,9 +371,10 @@ int TracePainter::pixelPositionForTime(const Time& time) const
 {
     int lifelines_width = width - left_margin - right_margin;
 
-    Time delta = time - model->min_time();
+    Time delta = time - model->getMinTime();
 
-    double ratio = delta / timePerPage;
+    double ratio = (1.0 * delta.toULL()) / timePerPage.toULL();
+
     return int(ratio * lifelines_width + left_margin);
 }
 
@@ -371,25 +382,24 @@ Time TracePainter::timeForPixel(int pixel_x) const
 {
     // If x coordinate less than timeline
     // start margin, returns minimum time.
-    if (pixel_x < left_margin) return model->min_time();
+    if (pixel_x < left_margin) return model->getMinTime();
 
     unsigned lifelines_width = width - left_margin - right_margin;
     pixel_x -= left_margin;
 
-    Q_ASSERT(!timePerPage.isNull());
-    return Time::scale(model->min_time(), model->min_time() + timePerPage,
+    return Time::scale(model->getMinTime(), model->getMinTime() + timePerPage,
                        double(pixel_x) / lifelines_width);
 }
 
 void TracePainter::splitToPages()
 {
     pages_horizontally = 1;
-    if (model->max_time() - model->min_time() > timePerFirstPage)
+    if (model->getMaxTime() - model->getMinTime() > timePerFirstPage)
     {
-        pages_horizontally += (int)ceil((model->max_time() - model->min_time() - timePerFirstPage) / timePerFullPage);
+        pages_horizontally += (int)ceil((model->getMaxTime() - model->getMinTime() - timePerFirstPage) / timePerFullPage);
     }
 
-    pages_vertically = (int)ceil(1.0 * model->visible_components().size() / components_per_page);
+    pages_vertically = (int)ceil(1.0 * model->getVisibleComponents().size() / components_per_page);
 }
 
 void TracePainter::drawPage(int i, int j)
@@ -398,25 +408,25 @@ void TracePainter::drawPage(int i, int j)
     int from_component = (j == 0) ? 0 : j * components_per_page;
     int to_component = from_component + components_per_page - 1;
 
-    if (to_component >= model->visible_components().size())
+    if (to_component >= model->getVisibleComponents().size())
     {
-        to_component = model->visible_components().size() - 1;
+        to_component = model->getVisibleComponents().size() - 1;
     }
 
     timePerPage = (i > 0) ? timePerFullPage : timePerFirstPage;
 
-    Time min_time = model->min_time();
+    Time min_time = model->getMinTime();
     if (i > 0) min_time = min_time + timePerFirstPage + timePerFullPage * (i - 1);
 
     Time max_time = min_time + timePerPage;
-    if (max_time > model->max_time())
+    if (max_time > model->getMaxTime())
     {
-        max_time = model->max_time();
+        max_time = model->getMaxTime();
     }
 
     // FIXME: this temporary change of model is ugly.
     TraceModelPtr saved_model = model;
-    model = model->set_range(min_time, max_time);
+    model = model->setRange(min_time, max_time);
 
     if (i == 0)
     {
@@ -488,7 +498,7 @@ NP  {
     unsigned component_width = left_margin-30;
     unsigned y = y_unparented;
 
-    int parent = model->parent_component();
+    int parent = model->getParentComponent();
     if (parent != Selection::ROOT && from_component == 0)
     {
         // For parent component, don't reserve too much space above it.
@@ -496,14 +506,14 @@ NP  {
 
 DL      {
             // Set background color for current component type
-            painter->setBrush(componentLabelColors[static_cast<int>(model->component_type(parent))]);
+            painter->setBrush(componentLabelColors[static_cast<int>(model->getComponentType(parent))]);
 
-            QString parent_name = model->component_name(model->parent_component());
+            QString parent_name = model->getComponentName(model->getParentComponent());
             QRect r = drawTextBox(parent_name, painter,
                                   component_start, y, component_width + 15,
                                  text_elements_height);
 
-NP          tg->clickable_components.push_back(qMakePair(r, model->components().itemParent(parent)));
+NP          tg->clickable_components.push_back(qMakePair(r, model->getComponents().itemParent(parent)));
 NP          tg->componentlabel_rects.push_back(qMakePair(r, parent));
         }
 
@@ -519,16 +529,16 @@ NP          tg->componentlabel_rects.push_back(qMakePair(r, parent));
     lifeline_position.clear();
     y -= from_component*lifeline_stepping; component_start += 15;
 
-    for(int i = 0; i < model->visible_components().size(); i++)
+    for(int i = 0; i < model->getVisibleComponents().size(); i++)
     {
-        int component = model->visible_components()[i];
+        int component = model->getVisibleComponents()[i];
 
         if (i >= from_component && i <= to_component) {
-            bool composite = model->has_children(component);
-            QString name = model->component_name(component);
+            bool composite = model->hasChildren(component);
+            QString name = model->getComponentName(component);
 
             // Set background color for current component type
-            painter->setBrush(componentLabelColors[static_cast<int>(model->component_type(component))]);
+            painter->setBrush(componentLabelColors[static_cast<int>(model->getComponentType(component))]);
 
 DL          if (composite)
             {
@@ -567,13 +577,13 @@ void TracePainter::drawStates(int from_component, int to_component)
 
     for(;;)
     {
-        StateModel* s = model->next_state();
+        StateModel* s = model->getNextState();
         if (s == nullptr) break;
 
         int lifeline = model->lifeline(s->component);
         if (lifeline < from_component || lifeline > to_component) continue;
 
-        int pixel_begin = pixelPositionForTime(s->begin);
+        int pixel_begin = pixelPositionForTime(s->start);
         int pixel_end = pixelPositionForTime(s->end);
 
         painter->setBrush(s->color);
@@ -590,7 +600,7 @@ void TracePainter::drawStates(int from_component, int to_component)
         /* If a state takes only one pixel, prune it. */
         if (pixel_end != pixel_begin)
         {
-            QRect r = drawTextBox(model->states().item(s->type), painter,
+            QRect r = drawTextBox(model->getStates().item(s->type), painter,
                                   pixel_begin, lifeline_position[lifeline],
                                   pixel_end-pixel_begin, text_elements_height,
                                   text_begin);
@@ -598,13 +608,12 @@ void TracePainter::drawStates(int from_component, int to_component)
             if (!printer_flag)
             {
                 StateModel* sm = new StateModel();
-                sm->begin = scalarTime<int>(boost::any_cast<int>(s->begin.data()));
-                sm->end = scalarTime<int>(boost::any_cast<int>(s->end.data()));
+                sm->start = Time(s->start);
+                sm->end = Time(s->end);
                 sm->component = s->component;
                 sm->type = s->type;
                 sm->color = s->color;
-                tg->states.push_back(
-                    qMakePair(r, boost::shared_ptr<StateModel>(sm)));
+                tg->states.push_back(qMakePair(r, shared_ptr<StateModel>(sm)));
             }
         }
 
@@ -643,19 +652,19 @@ void TracePainter::drawEvents(int from_component, int to_component)
     // is less priority, we store all letters we want to draw in
     // list, and draw only after all events are processed.
     QVector <QList<Event_letter_drawing> > letters_to_draw;
-    letters_to_draw.resize(model->visible_components().size());
+    letters_to_draw.resize(model->getVisibleComponents().size());
 
     // With large scales, many events might want to the same pixel.
     // Drawing line for each is very slow -- because the line drawing
     // code in Qt is not trivial. Also, paining all trace in event lines
     // is ugly. So we use this vector to remember last position of
     // line and draw event line once every 3 pixels.
-    vector<int> last_event_line(model->visible_components().size(), -10);
+    vector<int> last_event_line(model->getVisibleComponents().size(), -10);
 
     model->rewind();
     for(;;)
     {
-        EventModel* e = model->next_event();
+        EventModel* e = model->getNextEvent();
         if (e == nullptr)
         {
             break;
@@ -822,7 +831,7 @@ void TracePainter::drawGroups(int from_comp, int to_comp)
     model->rewind();
     for(;;)
     {
-        GroupModel* g = model->next_group();
+        GroupModel* g = model->getNextGroup();
         if (g == nullptr) break;
 
         if (g->type == GroupModel::arrow)
@@ -888,7 +897,7 @@ void TracePainter::drawTrace(const Time & timePerPage, bool start_in_background)
     Q_ASSERT(model.get());
 
     // Special case when all components are filtered
-    if (model->visible_components().size() == 0)
+    if (model->getVisibleComponents().size() == 0)
     {
         painter->fillRect(0, 0, width, height, Qt::white);
 
@@ -935,8 +944,8 @@ void TracePainter::drawTrace(const Time & timePerPage, bool start_in_background)
     tg->componentlabel_rects.clear();
 
     tg->eventsNear.clear();
-    tg->eventsNear.resize(model->visible_components().size());
-    for(int i = 0; i < model->visible_components().size(); ++i)
+    tg->eventsNear.resize(model->getVisibleComponents().size());
+    for(int i = 0; i < model->getVisibleComponents().size(); ++i)
     {
         tg->eventsNear[i].resize(width);
     }
@@ -976,7 +985,7 @@ void TracePainter::drawTimeline(QPainter * painter, int x, int y)
             arrow.setPoint(2, pos-3, 9+2);
             painter->drawPolygon(arrow);
             //? this time used to paint!!
-            Time time_here = Time::scale(model->min_time(), model->max_time(),
+            Time time_here = Time::scale(model->getMinTime(), model->getMaxTime(),
                                          double(pos-left_margin)/pixel_lenth);
 
             QString lti = time_here.toString();
@@ -1007,53 +1016,52 @@ void TracePainter::drawTimeline(QPainter * painter, int x, int y)
 
 #undef NP
 
-bool TraceGeometry::clickable_component(const QPoint& point, int & component) const
+bool TraceGeometry::clickable_component(const QPoint& point, int& component) const
 {
-    typedef QPair<QRect, int> pt;
-    foreach(const pt& p, clickable_components)
+    foreach(auto entity, clickable_components)//?it this ok?
     {
-        if (p.first.contains(point))
+        if (entity.first.contains(point))
         {
-            component = p.second;
+            component = entity.second;
             return true;
         }
     }
-
     return false;
 }
 
 StateModel* TraceGeometry::clickable_state(const QPoint& point) const
 {
-    typedef QPair<QRect, boost::shared_ptr<StateModel> > pt;
-    foreach(const pt& p, states)
+    foreach(auto entity, states)
     {
-        if (p.first.contains(point))
-            return p.second.get();
+        if (entity.first.contains(point))
+        {
+            return entity.second.get();
+        }
     }
-    return 0;
+    return nullptr;
 }
 
 int TraceGeometry::componentAtPosition(const QPoint& point)
 {
-    typedef QPair<QRect, int> pt;
-    foreach(const pt& p, lifeline_rects)
+    foreach(auto entity, lifeline_rects)
     {
-        if (p.first.contains(point))
-            return p.second;
+        if (entity.first.contains(point))
+        {
+            return entity.second;
+        }
     }
-
     return -1;
 }
 
 int TraceGeometry::componentLabelAtPos(const QPoint& point)
 {
-    typedef QPair<QRect, int> pt;
-    foreach(const pt& p, componentlabel_rects)
+    foreach(auto entity, componentlabel_rects)
     {
-        if (p.first.contains(point))
-            return p.second;
+        if (entity.first.contains(point))
+        {
+            return entity.second;
+        }
     }
-
     return -1;
 }
 

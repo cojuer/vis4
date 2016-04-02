@@ -12,45 +12,23 @@
 #include <boost/operators.hpp>
 #include <boost/any.hpp>
 
+#include <time.h>
+
 namespace vis4 {
 
-/**
- * Interface for different time representations.
- */
-class TimeInterface
-{
-public:
-    virtual TimeInterface* fromString(const QString & time) const = 0;
-    virtual QString toString() const = 0;
-    virtual TimeInterface* add(const TimeInterface* another) = 0;
-    virtual TimeInterface* sub(const TimeInterface* another) = 0;
-    virtual TimeInterface* mul(double a) = 0;
-
-    /*
-    virtual TimeInterface* operator+(const TimeInterface* another) = 0;
-    virtual TimeInterface* operator-(const TimeInterface* another) = 0;
-    virtual TimeInterface* operator*(const double a) = 0;
-    virtual double operator/(const TimeInterface* another) = 0;
-    */
-
-    virtual double div(const TimeInterface* another) = 0;
-    virtual bool less_than(const TimeInterface* another) = 0;
-    virtual boost::any data() const = 0;
-    virtual TimeInterface* setData(const boost::any& any) const = 0;
-    virtual ~TimeInterface() {}
-};
+#define MAX_NSEC 1000000000
 
 /**
- * Class-wrapper for various time representation.
+ * Class-wrapper for struct timespec.
  */
 class Time : public boost::less_than_comparable<Time>
 {
 public: /* static methods */
 
-    enum UnitType { us, ms, sec, min, hour };
+    enum UnitType { us, ms, sec, min, hour, ns };
     enum Format { Plain, Advanced };
 
-    static const QStringList & units()  { return units_; }
+    static const QStringList& units()  { return units_; }
 
     static int getUnit()  { return unit; }
     static void setUnit(int new_unit) { unit = new_unit; }
@@ -60,13 +38,19 @@ public: /* static methods */
 
     static QString unit_name(int new_unit = -1)
     {
-        if (new_unit == -1) new_unit = unit;
+        if (new_unit == -1)
+        {
+            new_unit = unit;
+        }
         return units_[new_unit];
     }
 
     static long long unit_scale(int new_unit = -1)
     {
-        if (new_unit == -1) new_unit = unit;
+        if (new_unit == -1)
+        {
+            new_unit = unit;
+        }
         return scales_[new_unit];
     }
 
@@ -79,116 +63,140 @@ public: /* static members */
     static Format format_;
 
 public:
-    // Created uninitialized time. Using such instance in any way
-    // is a programmer's error.
-    // NOTE: most usages will assert thanks to shared_ptr.
     Time();
 
-    Time(const boost::shared_ptr<TimeInterface>& imp) : object(imp) {}
-
-    Time(const Time& another) : object(another.object) {}
+    Time(const timespec time) : data(time) {}
+    Time(const Time& another) : data(another.data) {}
+    Time(unsigned long time)
+    {
+        timespec new_data = {.tv_sec = time / MAX_NSEC, .tv_nsec = time - static_cast<int>(time / MAX_NSEC) * MAX_NSEC};
+        data = new_data;
+    }
 
     Time& operator=(const Time& another)
     {
-        object = another.object;
+        data = another.data;
         return *this;
-    }
-
-    bool isNull() const
-    {
-        return object.get() == nullptr;
     }
 
     Time operator+(const Time& another) const
     {
-        assert(typeid(*object.get()) == typeid(*another.object.get()));
-        boost::shared_ptr<TimeInterface> n(
-            object->add(another.object.get()));
-        return Time(n);
+        auto sec = data.tv_sec + another.data.tv_sec;
+        auto nsec = data.tv_nsec + another.data.tv_nsec;
+        if (nsec >= MAX_NSEC)
+        {
+            nsec -= MAX_NSEC;
+            ++sec;
+        }
+        timespec new_data = {.tv_sec = sec, .tv_nsec = nsec};
+        return Time(new_data);
     }
 
     Time operator-(const Time& another) const
     {
-        assert(typeid(*object.get()) == typeid(*another.object.get()));
-        boost::shared_ptr<TimeInterface> n(
-            object->sub(another.object.get()));
-        return Time(n);
+        auto sec = (data.tv_sec >= another.data.tv_sec) ? data.tv_sec - another.data.tv_sec : 0;
+        auto nsec = data.tv_nsec;
+        if (nsec >= another.data.tv_nsec)
+        {
+            nsec -= another.data.tv_nsec;
+        }
+        else if (sec > 0)
+        {
+            --sec;
+            nsec += MAX_NSEC - another.data.tv_nsec;
+        }
+        else
+        {
+            nsec = 0;
+        }
+        timespec new_data = {.tv_sec = sec, .tv_nsec = nsec};
+        return Time(new_data);
     }
 
-    Time operator*(double a) const
+    Time operator*(double arg) const
     {
-        boost::shared_ptr<TimeInterface> n(
-            object->mul(a));
-        return Time(n);
+        //TO UPDATE
+        auto sec = data.tv_sec;
+        sec *= arg;
+        auto nsec = data.tv_nsec;
+        nsec *= arg;
+        if (nsec >= MAX_NSEC)
+        {
+            sec += static_cast<int>(nsec / MAX_NSEC);
+            nsec -= static_cast<int>(nsec / MAX_NSEC) * MAX_NSEC;
+        }
+        timespec new_data = {.tv_sec = sec, .tv_nsec = nsec};
+        return Time(new_data);
     }
 
-    Time operator/(double a) const
+    Time operator/(double arg) const
     {
-        boost::shared_ptr<TimeInterface> n(object->mul(1 / a));
-        return Time(n);
+        //TO UPDATE
+        auto sec = data.tv_sec;
+        sec /= arg;
+        auto nsec = data.tv_nsec;
+        nsec /= arg;
+        timespec new_data = {.tv_sec = sec, .tv_nsec = nsec};
+        return Time(new_data);
     }
 
     double operator/(const Time& another) const
     {
-        assert(typeid(*object.get()) == typeid(*another.object.get()));
-        return object->div(another.object.get());
+        return 0;
+        //? why we need this?
+        //return object->div(another.object.get());
     }
 
     bool operator<(const Time& another) const
     {
-        assert(object.get());
-        assert(another.object.get());
-        assert(typeid(*object.get()) == typeid(*another.object.get()));
-        return object->less_than(another.object.get());
+        if (data.tv_sec < another.data.tv_sec)
+        {
+            return true;
+        }
+        else if (data.tv_sec == another.data.tv_sec)
+        {
+            return (data.tv_nsec < another.data.tv_nsec);
+        }
     }
 
     bool operator==(const Time& another) const
     {
-        if (object.get() == 0) return another.isNull();
-        if (another.isNull()) return false;
-
-        //? stupid code
-        /* We might add another method to Time_implementation to
-           compare this directly, but time equality comparison
-           is not done often, so we don't care about performance.  */
-        return !(*this < another) && !(another < *this);
+        return (data.tv_sec == another.data.tv_sec && data.tv_nsec == another.data.tv_nsec);
     }
 
     bool operator!=(const Time& another) const
     {
-        return !(*this == another);
+        return !(data.tv_sec == another.data.tv_sec && data.tv_nsec == another.data.tv_nsec);
     }
 
     bool sameType(const Time& another) const
     {
-        return typeid(*object.get()) == typeid(*another.object.get());
+        return true;//TO DELETE
     }
 
-    Time fromString(const QString & time) const
+    Time fromString(const QString& timeString) const
     {
-        Q_ASSERT(object.get() != 0);
-        boost::shared_ptr<TimeInterface> p(object->fromString(time));
-        return Time(p);
+        //TO UPDATE
+        unsigned long long data = timeString.toULongLong();
+        timespec time = {.tv_sec = data / MAX_NSEC, .tv_nsec = data - static_cast<int>(data / MAX_NSEC) * MAX_NSEC};
+        return Time(time);//TO UPDATE
     }
 
     QString toString(bool also_unit = false) const
     {
-        QString time_str = object->toString();
-        if (also_unit && format() == Plain)
-            time_str += " " + unit_name(getUnit());
-
-        return time_str;
+        QString timeString = QString::number(data.tv_sec * MAX_NSEC + data.tv_nsec);
+        return timeString;
     }
 
-    boost::any data() const
+    timespec getData() const
     {
-        return object->data();
+        return data;
     }
 
-    Time setData(const boost::any& any) const
+    Time setData(timespec data) const
     {
-        boost::shared_ptr<TimeInterface> p(object->setData(any));
-        return Time(p);
+        //?
+        return Time(data);
     }
 
     static Time scale(const Time& point1, const Time& point2, double pos)
@@ -196,92 +204,19 @@ public:
         return point1 + (point2 - point1) * pos;
     }
 
+    unsigned long long toULL() const
+    {
+        return data.tv_sec * MAX_NSEC + data.tv_nsec;
+    }
+
 private:
-    boost::shared_ptr<TimeInterface> object;
+    timespec data;
 };
-
-/**
- * Time representation with one template typed member.
- */
-template<class T>
-class ScalarTime : public TimeInterface
-{
-public:
-    ScalarTime(T time) :
-        time(time)
-    {}
-
-    virtual TimeInterface* add(const TimeInterface *xanother)
-    {
-        const ScalarTime *another = dynamic_cast<const ScalarTime*>(xanother);
-        return construct(time + another->time);
-    }
-
-    virtual TimeInterface* sub(const TimeInterface* xanother)
-    {
-        const ScalarTime *another = dynamic_cast<const ScalarTime*>(xanother);
-        return construct(time - another->time);
-    }
-
-    virtual TimeInterface* mul(double a)
-    {
-        return construct(T(floor(time * a + 0.5)));//? ???
-    }
-
-    virtual double div(const TimeInterface* xanother)
-    {
-        const ScalarTime *another = dynamic_cast<const ScalarTime*>(xanother);
-        return static_cast<double>(time)/another->time;
-    }
-
-    virtual bool less_than(const TimeInterface* xanother)
-    {
-        const ScalarTime* another = dynamic_cast<const ScalarTime*>(xanother);
-        return time < another->time;
-    }
-
-    boost::any data() const//? why not T? Time_implementation doesn't depends on T, that's why.
-    {
-        return time;
-    }
-
-    ScalarTime* setData(const boost::any& any) const
-    {
-        return construct(boost::any_cast<T>(any));
-    }
-
-    virtual TimeInterface* fromString(const QString & time) const//? useless
-    {
-        return new ScalarTime(*this);
-    }
-
-    virtual QString toString() const
-    {
-        return QString::number(time/Time::unit_scale());
-    }
-
-    virtual ScalarTime* construct(T time) const
-    {
-        return new ScalarTime(time);
-    }
-protected:
-    T time;
-};
-
-template<class T>
-Time scalarTime(T t)
-{
-    boost::shared_ptr<TimeInterface> p(new ScalarTime<T>(t));
-    return Time(p);
-}
 
 inline Time distance(const Time& t1, const Time& t2)
 {
     return (t1 > t2) ? t1 - t2 : t2 - t1;
 }
-
-// возвращает время в микросекундах или -1, если не ясно на основе какого типа построено время
-unsigned long long getUs(const Time & t);
 
 } // namespaces
 

@@ -11,9 +11,9 @@ void CanvasItem::draw(QPainter& painter)
     currentRect = xdraw(painter);
 }
 
-void CanvasItem::new_geometry(const QRect& r)
+void CanvasItem::new_geometry(const QRect& rect)
 {
-    static_cast<QWidget*>(parent())->update(r | currentRect);
+    static_cast<QWidget*>(parent())->update(rect | currentRect);
 }
 
 }

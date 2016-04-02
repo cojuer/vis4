@@ -6,7 +6,7 @@
 namespace vis4 {
 
 OTF_trace_model::OTF_trace_model(const QString& filename) :
-    min_time_(getTime(0)),
+    minTime(Time(0)),
     currentState(0)
 {
     states_.clear();
@@ -17,7 +17,7 @@ OTF_trace_model::OTF_trace_model(const QString& filename) :
     assert( manager );
 
     initialize();
-    max_time_ = getTime(1000);
+    maxTime = Time(1000);
 
     handlers = OTF_HandlerArray_open();
     assert(handlers);
@@ -90,47 +90,44 @@ void OTF_trace_model:: initialize_component_list()
     parent_component_ = rootLink;
 }
 
-int OTF_trace_model:: parent_component() const
+int OTF_trace_model:: getParentComponent() const
 {
     return parent_component_;
-#if 0
-    if (currentElement.tagName() == "component")
-        return currentElement.attribute("name");
-    else
-        return "";
-#endif
 }
 
-const QList<int> & OTF_trace_model:: visible_components() const
+const QList<int> & OTF_trace_model:: getVisibleComponents() const
 {
     return visible_components_;
 }
 
-int OTF_trace_model:: lifeline(int component) const
+int OTF_trace_model::lifeline(int component) const
 {
     return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
 }
 
-TraceModel::ComponentType OTF_trace_model::component_type(int component) const
+TraceModel::ComponentType OTF_trace_model::getComponentType(int component) const
 {
-    return has_children(component) ? ComponentType::RCHM : ComponentType::CHM;
+    return hasChildren(component) ? ComponentType::RCHM : ComponentType::CHM;
 }
 
-QString OTF_trace_model::component_name(int component, bool full) const
+QString OTF_trace_model::getComponentName(int component, bool full) const
 {
     Q_ASSERT(component >= 0 && component < components_.size());
 
-    if (!full) return components_.item(component);
+    if (!full)
+    {
+        return components_.item(component);
+    }
 
     QString fullname = components_.item(component).trimmed();
     for(;;)
     {
         QString splitter = "::";
-        if (component_type(component) == ComponentType::INTERFACE) splitter = ":";
+        if (getComponentType(component) == ComponentType::INTERFACE) splitter = ":";
 
         component = components_.itemParent(component);
         if (component == Selection::ROOT) break;
-        if (component == parent_component()) break;
+        if (component == getParentComponent()) break;
 
         fullname = components_.item(component).trimmed() + splitter + fullname;
     }
@@ -138,24 +135,24 @@ QString OTF_trace_model::component_name(int component, bool full) const
     return fullname;
 }
 
-bool OTF_trace_model::has_children(int component) const
+bool OTF_trace_model::hasChildren(int component) const
 {
     return components_.hasChildren(component);
 }
 
-Time OTF_trace_model::min_time() const
+Time OTF_trace_model::getMinTime() const
 {
-    return min_time_;
+    return minTime;
 }
 
-Time OTF_trace_model::max_time() const
+Time OTF_trace_model::getMaxTime() const
 {
-    return max_time_;
+    return maxTime;
 }
 
-Time OTF_trace_model::min_resolution() const
+Time OTF_trace_model::getMinResolution() const
 {
-    return getTime(3);
+    return Time(3);
 }
 
 void OTF_trace_model::rewind()
@@ -172,13 +169,13 @@ void OTF_trace_model::testAddMessages()
     QVector<GroupModel::Point> gmvec;
     GroupModel::Point gp1;
     gp1.component = 1;
-    gp1.time = getTime(0);
+    gp1.time = Time(5000);
     GroupModel::Point gp2;
     gp2.component = 2;
-    gp2.time = getTime(1000);
+    gp2.time = Time(10000);
     GroupModel::Point gp3;
     gp3.component = 3;
-    gp3.time = getTime(1000);
+    gp3.time = Time(20000);
     gmvec.push_back(gp1);
     gmvec.push_back(gp2);
     gmvec.push_back(gp3);
@@ -189,18 +186,19 @@ void OTF_trace_model::testAddMessages()
 
 void OTF_trace_model::updateTime()
 {
-    max_time_ = allEvents[allEvents.size() - 1]->time;
+    maxTime = allEvents[allEvents.size() - 1]->time;
     //? TEST
     for (int i = 0; i < allStates.size(); ++i)
     {
-        if (boost::any_cast<int>(allStates[i]->end.data()) == -1)
+        if (allStates[i]->end.getData().tv_sec == 0 &&
+             allStates[i]->end.getData().tv_nsec == 0)
         {
-            allStates[i]->end = max_time_;
+            allStates[i]->end = maxTime;
         }
     }
 }
 
-StateModel* OTF_trace_model::next_state()
+StateModel* OTF_trace_model::getNextState()
 {
     if (currentState < allStates.size())
     {
@@ -213,7 +211,7 @@ StateModel* OTF_trace_model::next_state()
     }
 }
 
-GroupModel* OTF_trace_model::next_group()
+GroupModel* OTF_trace_model::getNextGroup()
 {
     if (currentGroup < allGroups.size())
     {
@@ -226,12 +224,7 @@ GroupModel* OTF_trace_model::next_group()
     }
 }
 
-std::auto_ptr<EventModel> OTF_trace_model:: next_event_unsorted()
-{
-    return std::auto_ptr<EventModel>();
-}
-
-EventModel* OTF_trace_model::next_event()
+EventModel* OTF_trace_model::getNextEvent()
 {
     if (currentEvent >= allEvents.count())
     {
@@ -248,7 +241,8 @@ TraceModelPtr OTF_trace_model::root()
     OTFTraceModelPtr n(new OTF_trace_model(*this));
     n->parent_component_ = Selection::ROOT;
 
-    n->min_time_ = getTime(0);
+    n->minTime = allEvents[0]->time;
+    n->maxTime = allEvents[allEvents.size() - 1]->time;
 
     n->events_.enableAll(Selection::ROOT, true);
     n->adjust_components();
@@ -256,7 +250,7 @@ TraceModelPtr OTF_trace_model::root()
     return n;
 }
 
-TraceModelPtr OTF_trace_model::set_parent_component(int component)
+TraceModelPtr OTF_trace_model::setParentComponent(int component)
 {
 
     if (parent_component_ == component)
@@ -299,20 +293,20 @@ TraceModelPtr OTF_trace_model::set_parent_component(int component)
     return n;
 }
 
-TraceModelPtr OTF_trace_model::set_range(const Time& min, const Time& max)
+TraceModelPtr OTF_trace_model::setRange(const Time& min, const Time& max)
 {
     OTFTraceModelPtr n(new OTF_trace_model(*this));
-    n->min_time_ = min;
-    n->max_time_ = max;
+    n->minTime = min;
+    n->maxTime = max;
     return n;
 }
 
-const Selection & OTF_trace_model::components() const
+const Selection & OTF_trace_model::getComponents() const
 {
     return components_;
 }
 
-TraceModelPtr OTF_trace_model::filter_components(const Selection & filter)
+TraceModelPtr OTF_trace_model::filterComponents(const Selection & filter)
 {
     OTFTraceModelPtr n(new OTF_trace_model(*this));
     n->components_ = filter;
@@ -320,30 +314,29 @@ TraceModelPtr OTF_trace_model::filter_components(const Selection & filter)
     return n;
 }
 
-const Selection & OTF_trace_model::events() const
+const Selection& OTF_trace_model::getEvents() const
 {
     return events_;
 }
 
-const Selection & OTF_trace_model::states() const
+const Selection& OTF_trace_model::getStates() const
 {
     return states_;
 }
 
-const Selection& OTF_trace_model::available_states() const
+const Selection& OTF_trace_model::getAvailableStates() const
 {
     return available_states_;
 }
 
-TraceModelPtr OTF_trace_model::filter_states(const Selection& filter)
+TraceModelPtr OTF_trace_model::filterStates(const Selection& filter)
 {
     OTFTraceModelPtr n(new OTF_trace_model(*this));
     n->states_ = filter;
-    //n->adjust_components();
     return n;
 }
 
-TraceModelPtr OTF_trace_model::filter_events(const Selection& filter)
+TraceModelPtr OTF_trace_model::filterEvents(const Selection& filter)
 {
     OTFTraceModelPtr n(new OTF_trace_model(*this));
     n->events_ = filter;
@@ -356,7 +349,7 @@ QString OTF_trace_model::save() const
     componentPos = "/" + componentPos;
 
     return  componentPos + ":" +
-        min_time_.toString() + ":" + max_time_.toString();
+        minTime.toString() + ":" + maxTime.toString();
 }
 
 bool OTF_trace_model::groupsEnabled() const
@@ -380,11 +373,6 @@ void OTF_trace_model::restore(const QString& s)
 {
     parent_component_ = Selection::ROOT;
     adjust_components();
-}
-
-Time OTF_trace_model::getTime(int t) const//? it must not be here
-{
-    return scalarTime<int>(t);
 }
 
 void OTF_trace_model::initialize()

@@ -14,7 +14,7 @@ namespace vis4 {
 class StateModel
 {
 public:
-    Time begin;
+    Time start;
     Time end;
 
     /** State id. Link to state in Trace_model::states(). */
@@ -28,7 +28,7 @@ public:
     StateModel(unsigned int component, int type, Time begin, Time end, QColor color) :
         component(component),
         type(type),
-        begin(begin),
+        start(begin),
         end(end),
         color(color)
     {}

@@ -58,7 +58,7 @@ public:
     void initialize(TraceModelPtr & model);
 
     /** Preparing current path in QSettings to store settings per trace. */
-    virtual void prepare_settings(QSettings& settings,
+    virtual void prepareSettings(QSettings& settings,
                                   const TraceModelPtr & model) const;
 
 protected:
@@ -68,7 +68,7 @@ protected:
     /**
      * Adds navigation tool to the list of tools, available on sidebar.
      */
-    void installBrowser(Browser* browser);
+    void installBrowser(Browser* browser);//? why special func for Browser tool
 
     /**
      * Добавляет QAction для независимого инструмента к панели инструментов. Поведение
@@ -95,12 +95,12 @@ private:
     void resizeEvent(QResizeEvent*);
     void closeEvent(QCloseEvent*);
 
-    virtual void save_model(TraceModelPtr&);//? different coding styles=\
+    virtual void saveModel(TraceModelPtr&);
 
-    virtual TraceModelPtr& restore_model(TraceModelPtr&);
+    virtual TraceModelPtr& restoreModel(TraceModelPtr&);
 
-    virtual void save_geometry(const QRect& rect) const;
-    virtual QRect restore_geometry() const;
+    virtual void saveGeometry(const QRect& rect) const;
+    virtual QRect restoreGeometry() const;
 
 private slots:
 

@@ -83,67 +83,49 @@ public:
      */
     virtual TraceModelPtr root() = 0;
 
-/** @defgroup hierarchy Methods for managing components hierarchy */
-/// @{
-
     /**
      * Returns the link of the parent component.
      * Link may be used to refer to parent component in components selection.
      */
-    virtual int parent_component() const = 0;
+    virtual int getParentComponent() const = 0;
 
     /** Returns Trace_model with given component as current parent. */
-    virtual TraceModelPtr set_parent_component(int component) = 0;
+    virtual TraceModelPtr setParentComponent(int component) = 0;
 
     /** Возвращает true если компонет component имеет "детей" и в него можно войти.
         @sa set_parent_component. */
-    virtual bool has_children(int component) const = 0;
+    virtual bool hasChildren(int component) const = 0;
 
-/// @}
-
-/** @defgroup time Methods for managing model time. */
-/// @{
-
-
-    virtual Time min_time() const = 0;
-    virtual Time max_time() const = 0;
+    virtual Time getMinTime() const = 0;
+    virtual Time getMaxTime() const = 0;
 
     /** Возвращает минимальный интервал времени, который может отобразить ВД. */
-    virtual Time min_resolution() const = 0;
+    virtual Time getMinResolution() const = 0;
 
     /** Переводит внутренние указатели событий, состояний и групповых событий
        на минимальное время. */
     virtual void rewind() = 0;
 
     /** Возврашает новый объект Trace_model с указанным диапазоном времен. */
-    virtual TraceModelPtr set_range(const Time& min, const Time& max) = 0;
+    virtual TraceModelPtr setRange(const Time& min, const Time& max) = 0;
 
-/// @}
-
-/** @defgroup data Methods for obtaining trace data. */
-/// @{
-
-    virtual EventModel* next_event() = 0;
-    virtual StateModel* next_state() = 0;
-    virtual GroupModel* next_group() = 0;
-
-/// @}
-
-/** @defgroup filters Methods for managing filters. */
-/// @{
+    /** Methods for obtaining trace data. */
+    virtual EventModel* getNextEvent() = 0;
+    virtual StateModel* getNextState() = 0;
+    virtual GroupModel* getNextGroup() = 0;
 
     /** Returns new object with given selection of components. */
-    virtual TraceModelPtr filter_components(const Selection & filter) = 0;
+    virtual TraceModelPtr filterComponents(const Selection& filter) = 0;
 
     /** Returns current component selection. */
-    virtual const Selection& components() const = 0;
+    virtual const Selection& getComponents() const = 0;
 
     /**
      * Returns the list with links of visible components.
      * Visibility means that component is not filtered and
      * it's a child of current parent.
      */
-    virtual const QList<int>& visible_components() const = 0;
+    virtual const QList<int>& getVisibleComponents() const = 0;
 
     /**
      * Returns a lifeline number for given component.
@@ -156,35 +138,32 @@ public:
      * If "fullname" is true returns full component name,
      * which includes all its parents.
      */
-    virtual QString component_name(int component, bool fullname = false) const = 0;
-    virtual ComponentType component_type(int component) const = 0;
+    virtual QString getComponentName(int component, bool fullname = false) const = 0;
+    virtual ComponentType getComponentType(int component) const = 0;
 
     /** Returns new object with given selection of event. */
-    virtual TraceModelPtr filter_events(const Selection & filter) = 0;
+    virtual TraceModelPtr filterEvents(const Selection & filter) = 0;
 
     virtual bool groupsEnabled() const = 0;
     virtual TraceModelPtr setGroupsEnabled(bool enabled) = 0;
 
     /** Returns current event selection. */
-    virtual const Selection& events() const = 0;
+    virtual const Selection& getEvents() const = 0;
 
     /** Returns new object with given selection of states. */
-    virtual TraceModelPtr filter_states(const Selection& filter) = 0;
+    virtual TraceModelPtr filterStates(const Selection& filter) = 0;
 
     /** Returns current state selection. */
-    virtual const Selection& states() const = 0;
+    virtual const Selection& getStates() const = 0;
 
     /**
      * Returns selection with only available states enabled.
      * State is available when though one of corresponding
      * components are enabled.
      */
-    virtual const Selection& available_states() const = 0;
+    virtual const Selection& getAvailableStates() const = 0;
 
-/// @}
-
-    /** Сохраняет текущее состояние в строку и возвращает его. Структура строки не
-       определена. */
+    /** Saves current state to the string. String structure isn't specified. */
     virtual QString save() const = 0;
 
     /**

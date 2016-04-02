@@ -38,10 +38,10 @@ public: /* methods */
 
     void setModel(std::shared_ptr<TraceModel> & model);
     void setPaintDevice(QPaintDevice* paintDevice);
-    void setState(StateEnum state) { state_ = state; }//to cpp
+    void setState(StateEnum state);
 
     void drawTrace(const Time& timePerPage, bool start_in_background);
-    int state() { return state_; }//to cpp
+    int getState();
 
 
     /** Draws text in a nice frame.
@@ -132,18 +132,18 @@ private: /* methods */
                         int page, int count,
                         int x, int y, bool horiz);
 
-public: /* members */
+public: /** members */
 
-    /** @name These values used for text drawing. */
-    //@{
+    /** These values used for text drawing. */
     unsigned int text_elements_height;
     unsigned int text_height;
     unsigned int text_letter_width;
-    //@}
 
-    int right_margin, left_margin;  ///< Width of left and right margins at the current page.
+    /** Width of left and right margins at the current page.*/
+    int right_margin, left_margin;
 
-    int pages_horizontally, pages_vertically; ///< Number of pages for printing (sets by splitToPages() function).
+    /** Number of pages for printing (sets by splitToPages() function). */
+    int pages_horizontally, pages_vertically;
 
     std::vector<unsigned int> lifeline_position;
     unsigned int lifeline_stepping;
@@ -151,11 +151,11 @@ public: /* members */
     /** The height of timeline's markers */
     static const int timeline_text_top = 13;
 
-private: /* members */
+private: /** members */
 
     shared_ptr<TraceModel> model;      ///< Model for drawing.
-    QPainter * painter;                 ///< Active painter.
-    TraceGeometry * tg;                ///< Trace geometry (coords of component labels,
+    QPainter* painter;                 ///< Active painter.
+    TraceGeometry* tg;                ///< Trace geometry (coords of component labels,
                                         ///< lifelines, states, events etc.
 
     bool printer_flag;          ///< Indicates paint device is QPrinter or not.
@@ -187,25 +187,24 @@ private: /* members */
 
 };
 
-/** Class holds all methods and members to manipulate with
-    layouts of trace parts. Members of this class sets by
-    Trace_painter class. And it's used by Content_widget class
-    for handling mouse events.
-*/
-class TraceGeometry {
-
-public: /* methods */
-
-    /** Returns the pointer to the number of clickable component
-        if point is withing the clickable area, and null otherwise. */
+/**
+ * Class holds all methods and members to manipulate
+ * layouts of trace parts. Members of this class are set by
+ * TracePainter class. And it's used by Content_widget class
+ * for handling mouse events.
+ */
+class TraceGeometry
+{
+public:
+    /**
+     * Returns the pointer to the number of clickable component
+     * if point is withing the clickable area, and null otherwise.
+     */
     bool clickable_component(const QPoint& point, int& component) const;
-
     StateModel* clickable_state(const QPoint& point) const;
-
-    int componentAtPosition(const QPoint & point);
-
-    /** Function identify component's label, which rect contain point.
-     *
+    int componentAtPosition(const QPoint& point);
+    /**
+     * Function identify component's label, which rectangle contains point.
      * @param point Interesting position.
      * @return Index of component in model_->component_names array,
      *         -1 when actual component is root, and -2 when no actual
@@ -214,31 +213,21 @@ public: /* methods */
      * Function used by tooltips mechanism
      */
     int componentLabelAtPos(const QPoint& p);
-
-public: /* members */
-
-    QVector< QVector<bool> > eventsNear;
-
-private: /* members */
-
-    /// Vector, holding component label's coordinates
-    /// (used by tooltips mechanism)
-    QVector<QPair<QRect, int> > componentlabel_rects;
-    QVector<QPair<QRect, int> > lifeline_rects;
-
-    QVector<QPair<QRect, int> > clickable_components;
+public:
+    QVector<QVector<bool>> eventsNear;
+private:
+    /** Used by tooltips mechanism. */
+    QVector<QPair<QRect,int>> componentlabel_rects;
+    QVector<QPair<QRect,int>> lifeline_rects;
+    QVector<QPair<QRect,int>> clickable_components;
     // FIXME: it might be bad to store all states here,
     // and better solution would be to re-get them from trace
     // on click.
-    QVector<QPair<QRect, boost::shared_ptr<StateModel> > > states;
+    QVector<QPair<QRect, shared_ptr<StateModel>>> states;
 
     friend class TracePainter;
 };
 
-/* This declaration is needed for stupid gcc-4.1 with broken name resolving alghoritm... :(  */
-
 }
-unsigned int qHash(const std::pair< std::pair<int, int>, std::pair<int, int> >&
-                   p);
 
 #endif

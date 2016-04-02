@@ -23,8 +23,7 @@ public: /* methods */
 
     bool hasSubitems() const;
 
-/** @defgroup operations Methods for operation on items. */
-/// @{
+    /** Methods for operation on items. */
 
     int size() const;
 
@@ -58,15 +57,10 @@ public: /* methods */
 
     void clear();
 
-/// @}
-
-/** @defgroup comparison Comparison operators overload. */
-/// @{
+    /** Comparison operators overload. */
 
     bool operator==(const Selection& other) const;
     bool operator!=(const Selection& other) const;
-
-/// @}
 
     Selection operator&(const Selection& other) const;
 

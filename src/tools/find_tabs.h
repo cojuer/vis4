@@ -127,10 +127,6 @@ private: /** widgets */
     TraceModelPtr model_;
     TraceModelPtr model_with_checker;
 
-    //QList<pChecker> checkers;
-    //Checker* active_checker;
-    //bool active_checker_is_ready;
-
     QComboBox* checkerCombo;
     QStackedLayout* checkerWidgetContainer;
     QLayout* checkerSettings_layout;

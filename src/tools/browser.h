@@ -80,11 +80,11 @@ public:
     {
         TraceModelPtr model = canvasPtr->getModel();
 
-        startTimeLabel->setText(model->min_time().toString(true));
-        endTimeLabel->setText(model->max_time().toString(true));
+        startTimeLabel->setText(model->getMinTime().toString(true));
+        endTimeLabel->setText(model->getMaxTime().toString(true));
 
-        const Selection& comp_selection = model->components();
-        int parent_component = model->parent_component();
+        const Selection& comp_selection = model->getComponents();
+        int parent_component = model->getParentComponent();
 
         int visible_components = comp_selection.enabledCount(parent_component);
         int hidden_components = comp_selection.itemsCount(parent_component) - visible_components;
@@ -97,8 +97,8 @@ public:
 
         componentsLabel->setText(components);
 
-        int visible_events = model->events().enabledCount();
-        int hidden_events = model->events().itemsCount() - visible_events;
+        int visible_events = model->getEvents().enabledCount();
+        int hidden_events = model->getEvents().itemsCount() - visible_events;
 
         QString events = QString::number(visible_events);
         if (hidden_events)
@@ -164,16 +164,16 @@ public:
     void update(Canvas* canvasPtr, int component, const Time &time)
     {
         trace_ = canvasPtr->getModel();
-        int parent_component = trace_->parent_component();
+        int parent_component = trace_->getParentComponent();
 
-        Selection component_filter = trace_->components();
-        component = trace_->visible_components()[trace_->lifeline(component)];
+        Selection component_filter = trace_->getComponents();
+        component = trace_->getVisibleComponents()[trace_->lifeline(component)];
         component_filter.disableAll(parent_component);
         component_filter.setEnabled(component, true);
 
         QPair<Time, Time> nearby = canvasPtr->nearby_range(time);
-        filtered_ = trace_->set_range(nearby.first, nearby.second);
-        filtered_ = filtered_->filter_components(component_filter);
+        filtered_ = trace_->setRange(nearby.first, nearby.second);
+        filtered_ = filtered_->filterComponents(component_filter);
 
         filtered_->rewind();
 
@@ -353,13 +353,13 @@ public:
 
     void update(TraceModelPtr model, StateModel* state)
     {
-        startTimeLabel->setText(state->begin.toString());
+        startTimeLabel->setText(state->start.toString());
         endTimeLabel->setText(state->end.toString());
-        nameLabel->setText(model->states().item(state->type));
+        nameLabel->setText(model->getStates().item(state->type));
 
-        durationLabel->setText((state->end - state->begin).toString());
+        durationLabel->setText((state->end - state->start).toString());
 
-        state_begin = state->begin;
+        state_begin = state->start;
         state_end = state->end;
     }
 
@@ -552,16 +552,16 @@ private:
         bool result = false;
         if (target == Canvas::componentClicked)
         {
-            if (model()->has_children(component) && mEvent->button() == Qt::LeftButton)
+            if (model()->hasChildren(component) && mEvent->button() == Qt::LeftButton)
             {
                 TraceModelPtr new_model
-                    = model()->set_parent_component(component);
+                    = model()->setParentComponent(component);
                 getCanvas()->setModel(new_model);
 
                 result = true;
             }
         }
-        else if (time >= model()->min_time()) /* handle clicks only in the lifelines area  */
+        else if (time >= model()->getMinTime()) /* handle clicks only in the lifelines area  */
         {
             if (mEvent->modifiers() & Qt::ShiftModifier)
             {
@@ -627,61 +627,60 @@ private slots:
     void goHome()
     {
         TraceModelPtr m = model();
-        Time delta = m->max_time() - m->min_time();
+        Time delta = m->getMaxTime() - m->getMinTime();
 
-        Time new_min = m->root()->min_time();
+        Time new_min = m->root()->getMinTime();
 
-        getCanvas()->setModel(model()->set_range(new_min, new_min + delta));
+        getCanvas()->setModel(model()->setRange(new_min, new_min + delta));
     }
 
     void goEnd()
     {
         TraceModelPtr m = model();
-        Time delta = m->max_time() - m->min_time();
+        Time delta = m->getMaxTime() - m->getMinTime();
 
-        Time new_max = m->root()->max_time();
+        Time new_max = m->root()->getMaxTime();
 
-        getCanvas()->setModel(m->set_range(new_max - delta, new_max));
+        getCanvas()->setModel(m->setRange(new_max - delta, new_max));
     }
 
     void fit()
     {
         TraceModelPtr root = model()->root();
 
-        getCanvas()->setModel(model()->set_range(root->min_time(), root->max_time()));
+        getCanvas()->setModel(model()->setRange(root->getMinTime(), root->getMaxTime()));
     }
 
     void goLeft()
     {
         TraceModelPtr m = model();
-        Time delta = m->max_time() - m->min_time();
+        Time delta = m->getMaxTime() - m->getMinTime();
 
-        Time new_min = m->min_time()-delta/4;
-        Time root_min = m->root()->min_time();
+        Time new_min = m->getMinTime()-delta/4;
+        Time root_min = m->root()->getMinTime();
         if (new_min < root_min)
             new_min = root_min;
 
         Time new_max = new_min + delta;
 
         getCanvas()->setModel(
-            model()->set_range(new_min, new_max));
+            model()->setRange(new_min, new_max));
     }
 
     void goRight()
     {
         TraceModelPtr m = model();
-        Time delta = m->max_time() - m->min_time();
+        Time delta = m->getMaxTime() - m->getMinTime();
 
-        Time new_max = m->max_time()+delta/4;
-        if (new_max > m->root()->max_time())
+        Time new_max = m->getMaxTime()+delta/4;
+        if (new_max > m->root()->getMaxTime())
         {
-            new_max = m->root()->max_time();
+            new_max = m->root()->getMaxTime();
         }
 
         Time new_min = new_max - delta;
 
-        getCanvas()->setModel(
-            model()->set_range(new_min, new_max));
+        getCanvas()->setModel(model()->setRange(new_min, new_max));
     }
 
     // This is extra hacky and is desired to work only for specific
@@ -713,57 +712,57 @@ private slots:
     void zoomInCenter()
     {
         zoomInAt(Time::scale(
-                     model()->min_time(), model()->max_time(), 0.5));
+                     model()->getMinTime(), model()->getMaxTime(), 0.5));
     }
 
     void zoomOutCenter()
     {
         zoomOutAt(Time::scale(
-                      model()->min_time(), model()->max_time(), 0.5));
+                      model()->getMinTime(), model()->getMaxTime(), 0.5));
     }
 
 private:
 
     void zoomInAt(const Time& time)
     {
-        Time new_min = (model()->min_time() + time)/2;
-        Time new_max = (model()->max_time() + time)/2;
+        Time new_min = (model()->getMinTime() + time)/2;
+        Time new_max = (model()->getMaxTime() + time)/2;
 
-        if (new_max - new_min < model()->min_resolution())
+        if (new_max - new_min < model()->getMinResolution())
             return;
 
         getCanvas()->setModel(
-            model()->set_range(new_min, new_max));
+            model()->setRange(new_min, new_max));
     }
 
     void zoomOutAt(const Time& time)
     {
         Time new_min = time
-            - (time - model()->min_time())*2;
+            - (time - model()->getMinTime())*2;
         Time new_max = time
-            + (model()->max_time() - time)*2;
+            + (model()->getMaxTime() - time)*2;
 
         TraceModelPtr r = model()->root();
         if ((new_max - new_min) >
-            (r->max_time() - r->min_time()))
+            (r->getMaxTime() - r->getMinTime()))
         {
-            new_min = r->min_time();
-            new_max = r->max_time();
+            new_min = r->getMinTime();
+            new_max = r->getMaxTime();
         }
-        else if (new_min < r->min_time())
+        else if (new_min < r->getMinTime())
         {
-            new_min = r->min_time();
-            new_max = new_max - (new_min - r->min_time());
+            new_min = r->getMinTime();
+            new_max = new_max - (new_min - r->getMinTime());
         }
-        if (new_max > r->max_time())
+        if (new_max > r->getMaxTime())
         {
             Time delta = new_max - new_min;
-            new_max = r->max_time();
+            new_max = r->getMaxTime();
             new_min = new_max - delta;
         }
 
         getCanvas()->setModel(
-            model()->set_range(new_min, new_max));
+            model()->setRange(new_min, new_max));
     }
 
     /** Disables unavailable toolbar's actions. */
@@ -772,15 +771,15 @@ private:
         TraceModelPtr m = model();
         TraceModelPtr r = model()->root();
 
-        bool min_time = m->min_time() == r->min_time();
+        bool min_time = m->getMinTime() == r->getMinTime();
         startAction->setEnabled(!min_time);
         prevAction->setEnabled(!min_time);
 
-        bool max_time = m->max_time() == r->max_time();
+        bool max_time = m->getMaxTime() == r->getMaxTime();
         nextAction->setEnabled(!max_time);
         finishAction->setEnabled(!max_time);
 
-        bool max_zoom = (m->max_time()-m->min_time())/2 < m->min_resolution();
+        bool max_zoom = (m->getMaxTime()-m->getMinTime())/2 < m->getMinResolution();
         zoominAction->setEnabled(!max_zoom);
 
         bool full_trace = min_time && max_time;

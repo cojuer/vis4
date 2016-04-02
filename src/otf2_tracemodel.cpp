@@ -36,10 +36,10 @@ Enter_print( OTF2_LocationRef    location,
 {
     auto arg = static_cast<OTF2_HandlerArgument*>(userData);
 
-    StateModel* sm = new StateModel(location, region, scalarTime<int>(time), scalarTime<int>(-1), Qt::yellow);
+    StateModel* sm = new StateModel(location, region, Time(time), Time(0), Qt::yellow);
     arg->states->push_back(sm);
 
-    EventModel* em = new EventModel(scalarTime<int>(time), location, "ENTER", 'E');
+    EventModel* em = new EventModel(Time(time), location, "ENTER", 'E');
     arg->events->push_back(em);
 
     std::cout << "Entering region " << region << " at location " << location << " at time " << time << std::endl;
@@ -58,11 +58,11 @@ Leave_print( OTF2_LocationRef    location,
     {
         if (location == (*arg->states)[i]->component)
         {
-            (*arg->states)[i]->end = scalarTime<int>(time);
+            (*arg->states)[i]->end = Time(time);
         }
     }
 
-    EventModel* em = new EventModel(scalarTime<int>(time), location, "LEAVE", 'L');
+    EventModel* em = new EventModel(Time(time), location, "LEAVE", 'L');
     arg->events->push_back(em);
 
     std::cout << "Leaving region " << region << " at location " << location << " at time " << time << std::endl;
@@ -107,8 +107,8 @@ OTF2_TraceModel::OTF2_TraceModel(const QString& filename) :
     TestData testData;
     ha = { 0, parent_component_, &components_, &states_, &allStates, &allEvents, 0, 0};
     initialize();
-    min_time_ = getTime(0);
-    max_time_ = getTime(1000);
+    min_time_ = Time(0);
+    max_time_ = Time(1000);
 
     OTF2_Reader* reader = OTF2_Reader_Open(filename.toUtf8().constData());//should not use QString here
     OTF2_Reader_SetSerialCollectiveCallbacks(reader);
@@ -198,7 +198,7 @@ void OTF2_TraceModel:: initialize_component_list()
     parent_component_ = rootLink;
 }
 
-int OTF2_TraceModel:: parent_component() const
+int OTF2_TraceModel:: getParentComponent() const
 {
     return parent_component_;
 #if 0
@@ -209,7 +209,7 @@ int OTF2_TraceModel:: parent_component() const
 #endif
 }
 
-const QList<int> & OTF2_TraceModel:: visible_components() const
+const QList<int> & OTF2_TraceModel:: getVisibleComponents() const
 {
     return visible_components_;
 }
@@ -219,12 +219,12 @@ int OTF2_TraceModel:: lifeline(int component) const
     return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
 }
 
-TraceModel::ComponentType OTF2_TraceModel::component_type(int component) const
+TraceModel::ComponentType OTF2_TraceModel::getComponentType(int component) const
 {
-    return has_children(component) ? ComponentType::RCHM : ComponentType::CHM;
+    return hasChildren(component) ? ComponentType::RCHM : ComponentType::CHM;
 }
 
-QString OTF2_TraceModel::component_name(int component, bool full) const
+QString OTF2_TraceModel::getComponentName(int component, bool full) const
 {
     Q_ASSERT(component >= 0 && component < components_.size());
 
@@ -234,11 +234,11 @@ QString OTF2_TraceModel::component_name(int component, bool full) const
     for(;;)
     {
         QString splitter = "::";
-        if (component_type(component) == ComponentType::INTERFACE) splitter = ":";
+        if (getComponentType(component) == ComponentType::INTERFACE) splitter = ":";
 
         component = components_.itemParent(component);
         if (component == Selection::ROOT) break;
-        if (component == parent_component()) break;
+        if (component == getParentComponent()) break;
 
         fullname = components_.item(component).trimmed() + splitter + fullname;
     }
@@ -246,24 +246,24 @@ QString OTF2_TraceModel::component_name(int component, bool full) const
     return fullname;
 }
 
-bool OTF2_TraceModel::has_children(int component) const
+bool OTF2_TraceModel::hasChildren(int component) const
 {
     return components_.hasChildren(component);
 }
 
-Time OTF2_TraceModel::min_time() const
+Time OTF2_TraceModel::getMinTime() const
 {
     return min_time_;
 }
 
-Time OTF2_TraceModel::max_time() const
+Time OTF2_TraceModel::getMaxTime() const
 {
     return max_time_;
 }
 
-Time OTF2_TraceModel::min_resolution() const
+Time OTF2_TraceModel::getMinResolution() const
 {
-    return getTime(3);
+    return Time(3);
 }
 
 void OTF2_TraceModel::rewind()
@@ -279,14 +279,14 @@ void OTF2_TraceModel::testAddMessages()
     GroupModel* gm = new GroupModel();
     QVector<GroupModel::Point> gmvec;
     GroupModel::Point gp1;
-    gp1.component = 1;
-    gp1.time = getTime(0);
+    gp1.component = 4;
+    gp1.time = Time(10000);
     GroupModel::Point gp2;
     gp2.component = 2;
-    gp2.time = getTime(1000);
+    gp2.time = Time(10000);
     GroupModel::Point gp3;
     gp3.component = 3;
-    gp3.time = getTime(1000);
+    gp3.time = Time(20000);
     gmvec.push_back(gp1);
     gmvec.push_back(gp2);
     gmvec.push_back(gp3);
@@ -301,14 +301,14 @@ void OTF2_TraceModel::updateTime()
     //? TEST
     for (int i = 0; i < allStates.size(); ++i)
     {
-        if (boost::any_cast<int>(allStates[i]->end.data()) == -1)
+        if (allStates[i]->end.getData().tv_sec == 0 && allStates[i]->end.getData().tv_nsec == 0)
         {
             allStates[i]->end = max_time_;
         }
     }
 }
 
-StateModel* OTF2_TraceModel::next_state()
+StateModel* OTF2_TraceModel::getNextState()
 {
     if (currentState < allStates.size())
     {
@@ -321,7 +321,7 @@ StateModel* OTF2_TraceModel::next_state()
     }
 }
 
-GroupModel* OTF2_TraceModel::next_group()
+GroupModel* OTF2_TraceModel::getNextGroup()
 {
     if (currentGroup < allGroups.size())
     {
@@ -334,12 +334,7 @@ GroupModel* OTF2_TraceModel::next_group()
     }
 }
 
-std::auto_ptr<EventModel> OTF2_TraceModel:: next_event_unsorted()
-{
-    return std::auto_ptr<EventModel>();
-}
-
-EventModel* OTF2_TraceModel::next_event()
+EventModel* OTF2_TraceModel::getNextEvent()
 {
     if (currentEvent >= allEvents.count())
     {
@@ -356,7 +351,7 @@ TraceModelPtr OTF2_TraceModel::root()
     OTF2TraceModelPtr n(new OTF2_TraceModel(*this));
     n->parent_component_ = Selection::ROOT;
 
-    n->min_time_ = getTime(0);
+    n->min_time_ = Time(0);
 
     n->events_.enableAll(Selection::ROOT, true);
     n->adjust_components();
@@ -364,7 +359,7 @@ TraceModelPtr OTF2_TraceModel::root()
     return n;
 }
 
-TraceModelPtr OTF2_TraceModel::set_parent_component(int component)
+TraceModelPtr OTF2_TraceModel::setParentComponent(int component)
 {
 
     if (parent_component_ == component)
@@ -407,7 +402,7 @@ TraceModelPtr OTF2_TraceModel::set_parent_component(int component)
     return n;
 }
 
-TraceModelPtr OTF2_TraceModel::set_range(const Time& min, const Time& max)
+TraceModelPtr OTF2_TraceModel::setRange(const Time& min, const Time& max)
 {
     OTF2TraceModelPtr n(new OTF2_TraceModel(*this));
     n->min_time_ = min;
@@ -415,12 +410,12 @@ TraceModelPtr OTF2_TraceModel::set_range(const Time& min, const Time& max)
     return n;
 }
 
-const Selection & OTF2_TraceModel::components() const
+const Selection & OTF2_TraceModel::getComponents() const
 {
     return components_;
 }
 
-TraceModelPtr OTF2_TraceModel::filter_components(const Selection & filter)
+TraceModelPtr OTF2_TraceModel::filterComponents(const Selection & filter)
 {
     OTF2TraceModelPtr n(new OTF2_TraceModel(*this));
     n->components_ = filter;
@@ -428,22 +423,22 @@ TraceModelPtr OTF2_TraceModel::filter_components(const Selection & filter)
     return n;
 }
 
-const Selection & OTF2_TraceModel::events() const
+const Selection & OTF2_TraceModel::getEvents() const
 {
     return events_;
 }
 
-const Selection & OTF2_TraceModel::states() const
+const Selection & OTF2_TraceModel::getStates() const
 {
     return states_;
 }
 
-const Selection& OTF2_TraceModel::available_states() const
+const Selection& OTF2_TraceModel::getAvailableStates() const
 {
     return available_states_;
 }
 
-TraceModelPtr OTF2_TraceModel::filter_states(const Selection& filter)
+TraceModelPtr OTF2_TraceModel::filterStates(const Selection& filter)
 {
     OTF2TraceModelPtr n(new OTF2_TraceModel(*this));
     n->states_ = filter;
@@ -451,7 +446,7 @@ TraceModelPtr OTF2_TraceModel::filter_states(const Selection& filter)
     return n;
 }
 
-TraceModelPtr OTF2_TraceModel::filter_events(const Selection& filter)
+TraceModelPtr OTF2_TraceModel::filterEvents(const Selection& filter)
 {
     OTF2TraceModelPtr n(new OTF2_TraceModel(*this));
     n->events_ = filter;
@@ -488,11 +483,6 @@ void OTF2_TraceModel::restore(const QString& s)
 {
     parent_component_ = Selection::ROOT;
     adjust_components();
-}
-
-Time OTF2_TraceModel::getTime(int t) const//? it must not be here
-{
-    return scalarTime<int>(t);
 }
 
 void OTF2_TraceModel::initialize()

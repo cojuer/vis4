@@ -36,7 +36,7 @@ QAction* Tool::getAction()
 void Tool::prepareSettings(QSettings& settings) const
 {
     assert(mainWindowPtr != 0);
-    mainWindowPtr->prepare_settings(settings, model());
+    mainWindowPtr->prepareSettings(settings, model());
 }
 
 bool Tool::event(QEvent* eventPtr)

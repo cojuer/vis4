@@ -34,7 +34,7 @@ void EventList::showEvents(TraceModelPtr& traceModel, const Time& time)
     Time minDistance;//? min time range not initialized
     int row = 0;
 
-    for(auto eventPtr = traceModel->next_event(); eventPtr ;eventPtr = traceModel->next_event(), ++row)
+    for(auto eventPtr = traceModel->getNextEvent(); eventPtr ;eventPtr = traceModel->getNextEvent(), ++row)
     {
         model()->insertRow(row);
 

@@ -53,37 +53,36 @@ public: /** methods */
     OTF2_TraceModel(const QString& filename);
     ~OTF2_TraceModel();
 
-    int parent_component() const;
-    const QList<int>& visible_components() const;
+    int getParentComponent() const;
+    const QList<int>& getVisibleComponents() const;
     int lifeline(int component) const;
-    ComponentType component_type(int component) const;
-    QString component_name(int component, bool full = false) const;
-    bool has_children(int component) const;
+    ComponentType getComponentType(int component) const;
+    QString getComponentName(int component, bool full = false) const;
+    bool hasChildren(int component) const;
 
-    Time min_time() const override;
-    Time max_time() const override;
-    Time min_resolution() const override;
+    Time getMinTime() const override;
+    Time getMaxTime() const override;
+    Time getMinResolution() const override;
 
     void rewind() override;
 
-    StateModel* next_state() override;
-    GroupModel* next_group() override;
-    std::auto_ptr<EventModel> next_event_unsorted();
-    EventModel* next_event() override;
+    StateModel* getNextState() override;
+    GroupModel* getNextGroup() override;
+    EventModel* getNextEvent() override;
 
     TraceModelPtr root();
-    TraceModelPtr set_parent_component(int component);
-    TraceModelPtr set_range(const Time& min, const Time& max);
+    TraceModelPtr setParentComponent(int component);
+    TraceModelPtr setRange(const Time& min, const Time& max);
 
-    const Selection& components() const;
-    TraceModelPtr filter_components(const Selection & filter);
+    const Selection& getComponents() const;
+    TraceModelPtr filterComponents(const Selection & filter);
 
-    const Selection& events() const;
-    const Selection& states() const;
-    const Selection& available_states() const;
+    const Selection& getEvents() const;
+    const Selection& getStates() const;
+    const Selection& getAvailableStates() const;
 
-    TraceModelPtr filter_states(const Selection& filter);
-    TraceModelPtr filter_events(const Selection& filter);
+    TraceModelPtr filterStates(const Selection& filter);
+    TraceModelPtr filterEvents(const Selection& filter);
 
     QString save() const override;
     bool groupsEnabled() const;

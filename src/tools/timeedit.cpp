@@ -29,15 +29,10 @@ TimeEdit::TimeEdit(QWidget* parent) :
 
 void TimeEdit::stepBy(int steps)
 {
-    if (cur_time_.isNull())
-    {
-        return;
-    }
-
     Time t = cur_time_.fromString(lineEdit()->text());
     int u = Time::getUnit();
 
-    long long newUs = (long long)getUs(t);
+    long long newUs = t.toULL();
     newUs += Time::unit_scale(u)*steps;
     if (newUs < 0)
     {
@@ -45,17 +40,18 @@ void TimeEdit::stepBy(int steps)
         return;
     }
 
+    //? TO UPDATE
     if (long_long_time)
     {
-        t = t.setData(newUs);
+        t = Time(newUs);
     }
     else if (unsigned_long_long_time)
     {
-        t = t.setData((unsigned long long)newUs);
+        t = Time((unsigned long long)newUs);
     }
     else
     {
-        t = t.setData((int)newUs);
+        t = Time((int)newUs);
     }
 
     if (!validate(t))
@@ -71,40 +67,13 @@ void TimeEdit::stepBy(int steps)
 
 Time TimeEdit::time() const
 {
-    if (cur_time_.isNull())
-    {
-        return Time();
-    }
     return cur_time_;
 }
 
 void TimeEdit::setTime(const Time& time)
 {
     setEnabled(false);
-
-    Q_ASSERT(!time.isNull());
-
-    if (cur_time_.isNull())
-    {
-        cur_time_ = time;
-        boost::any raw = time.data();
-        if (boost::any_cast<long long>(&raw))
-        {
-            long_long_time = true;
-        }
-        else if (boost::any_cast<unsigned long long>(&raw))
-        {
-            unsigned_long_long_time = true;
-        }
-        else if (!boost::any_cast<int>(&raw))
-        {
-            qFatal("Error: Invalid underlying kind of time");
-        }
-    }
-    else
-    {
-        cur_time_ = time;
-    }
+    cur_time_ = time;
     lineEdit()->setText(time.toString());
     if (!mNoError)
     {
@@ -137,23 +106,22 @@ void TimeEdit::valueChanged(const QString & value)
 
 bool TimeEdit::validate(const Time & t) const
 {
-    if (t.isNull()) return false;
-    if (!min_time_.isNull() && min_time_ > t) return false;
-    if (!max_time_.isNull() && max_time_ < t) return false;
+    if (min_time_ > t) return false;
+    if (max_time_ < t) return false;
 
     return true;
 }
 
 void TimeEdit::onEditingFinished()
 {
-    if (cur_time_.isNull() || !mEdited)
+    if (!mEdited)
     {
         return;
     }
     mEdited = false;
 
     Time t = cur_time_.fromString(lineEdit()->text());
-    t = t.setData(lineEdit()->text().toInt());
+    t = Time(lineEdit()->text().toInt());
     if (!validate(t) || !mNoError)
     {
 	// возвращаемся в корректное состояние
@@ -187,7 +155,7 @@ void TimeEdit::onTimeSettingsChanged()
 
 QAbstractSpinBox::StepEnabled TimeEdit::stepEnabled () const
 {
-    if (!cur_time_.isNull() && getUs(cur_time_) < (unsigned long long)Time::unit_scale())
+    if (cur_time_.toULL() < (unsigned long long)Time::unit_scale())
     {
         return StepUpEnabled;
     }

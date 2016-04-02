@@ -39,12 +39,12 @@ public:
         components->minimizeSize(true);
         tabWidget->addTab(components, tr("Components"));
 
-        components->initialize(model()->components());
+        components->initialize(model()->getComponents());
 
-        connect(components, SIGNAL( selectionChanged(const vis4::Selection&) ),
-                this, SLOT(filtersChanged()));
-        connect(components, SIGNAL( itemDoubleClicked(int) ),
-                this, SLOT( goToComponent(int) ));
+        connect(components, SIGNAL(selectionChanged(const vis4::Selection&)), this,
+                            SLOT(filtersChanged()));
+        connect(components, SIGNAL(itemDoubleClicked(int)), this,
+                            SLOT(goToComponent(int)));
 
         // Create tabs with events and states selectors.
 
@@ -62,14 +62,14 @@ public:
         eventsTab->layout()->addWidget(events);
         tabWidget->addTab(eventsTab, tr("Events"));
 
-        events->initialize(model()->events());
+        events->initialize(model()->getEvents());
 
         states = new SelectionWidget(this);
         states->setObjectName("states_tab");
         states->minimizeSize(true);
         tabWidget->addTab(states, tr("States"));
 
-        states->initialize(model()->states());
+        states->initialize(model()->getStates());
 
         connect(events, SIGNAL(selectionChanged(const vis4::Selection &)), this,
                         SLOT(filtersChanged()));
@@ -101,7 +101,10 @@ private: /* methods */
 
     void saveState()
     {
-        if (!state_restored) return;
+        if (!state_restored)
+        {
+            return;
+        }
 
         QSettings settings;
         prepareSettings(settings);
@@ -160,9 +163,9 @@ private slots:
 
     void modelChanged(TraceModelPtr & model)
     {
-        components->initialize(model->components());
-        events->initialize(model->events());
-        states->initialize(model->available_states(), model->states());
+        components->initialize(model->getComponents());
+        events->initialize(model->getEvents());
+        states->initialize(model->getAvailableStates(), model->getStates());
 
         saveState();
     }
@@ -173,11 +176,11 @@ private slots:
 
         if (sender() == components || !sender())
         {
-            filtered = filtered->filter_components(components->selection());
+            filtered = filtered->filterComponents(components->selection());
         }
         if (sender() == events || !sender())
         {
-            filtered = filtered->filter_events(events->selection());
+            filtered = filtered->filterEvents(events->selection());
         }
         if (sender() == groupEventsCheckBox || !sender())
         {
@@ -185,18 +188,18 @@ private slots:
         }
         if (sender() == states || !sender())
         {
-            filtered = filtered->filter_states(states->selection());
+            filtered = filtered->filterStates(states->selection());
         }
         getCanvas()->setModel(filtered);
     }
 
     void goToComponent(int component)
     {
-        if (!model()->components().hasChildren(component))
+        if (!model()->getComponents().hasChildren(component))
         {
-            component = model()->components().itemParent(component);
+            component = model()->getComponents().itemParent(component);
         }
-        TraceModelPtr m = model()->set_parent_component(component);
+        TraceModelPtr m = model()->setParentComponent(component);
         getCanvas()->setModel(m);
     }
 

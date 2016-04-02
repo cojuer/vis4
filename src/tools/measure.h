@@ -18,17 +18,19 @@ namespace vis4 {
 class MeasureRibbon : public CanvasItem
 {
 public:
-    MeasureRibbon() : shown_(true) {}
+    MeasureRibbon() :
+        shown_(true)
+    {}
 
-    void setA(const QPoint& p)
+    void setA(const QPoint& point)
     {
-        A = p;
+        A = point;
         refresh();
     }
 
-    void setB(const QPoint& p)
+    void setB(const QPoint& point)
     {
-        B = p;
+        B = point;
         refresh();
     }
 
@@ -42,9 +44,13 @@ private: // CanvasItem override
     QRect xdraw(QPainter& painter)
     {
         if (shown_)
+        {
             return pdraw(&painter);
+        }
         else
+        {
             return pdraw(0);
+        }
     }
 
     QRect pdraw(QPainter* painter)
@@ -98,15 +104,15 @@ private: // CanvasItem override
         if (!A.isNull())
         {
             b = QRect(A - (QPoint(cross_size, cross_size)),
-                           QSize(cross_size*2, cross_size*2));
+                           QSize(cross_size * 2, cross_size * 2));
 
             if (painter)
             {
-                painter->drawLine(A.x()-cross_size, A.y(),
-                                  A.x()+cross_size, A.y());
+                painter->drawLine(A.x() - cross_size, A.y(),
+                                  A.x() + cross_size, A.y());
 
-                painter->drawLine(A.x(), A.y()-cross_size,
-                                  A.x(), A.y()+cross_size);
+                painter->drawLine(A.x(), A.y() - cross_size,
+                                  A.x(), A.y() + cross_size);
             }
         }
         b.adjust(-3, -3, 3, 3);
@@ -158,8 +164,6 @@ public:
     void setCurrentlySelecting(bool s)
     {
         currentlySelecting = s;
-        if (time.isNull())
-            showNoTime();
     }
 
     void showNoTime()
@@ -177,7 +181,7 @@ public:
                   Canvas* canvas)
     {
         this->time = time;
-        if (time.isNull() || component == -1)
+        if (component == -1)
         {
             this->time = Time();
             showNoTime();
@@ -186,15 +190,15 @@ public:
 
         selectedPoint(time);
 
-        Selection component_filter = model->components();
-        component_filter.disableAll(model->parent_component());
+        Selection component_filter = model->getComponents();
+        component_filter.disableAll(model->getParentComponent());
         component_filter.setEnabled(component, true);
 
         QPair<Time, Time> nearby = canvas->nearby_range(time);
 
         TraceModelPtr filtered_ =
-            model->set_range(nearby.first, nearby.second);
-        filtered_ = filtered_->filter_components(component_filter);
+            model->setRange(nearby.first, nearby.second);
+        filtered_ = filtered_->filterComponents(component_filter);
 
         filtered_->rewind();
 
@@ -337,10 +341,8 @@ private:
     {
         if (snapped)
         {
-            if (!time_a.isNull())
-                pointA->selectedPoint(time_a);
-            if (!time_b.isNull())
-                pointB->selectedPoint(time_b);
+            pointA->selectedPoint(time_a);
+            pointB->selectedPoint(time_b);
         }
         else
         {
@@ -348,15 +350,8 @@ private:
             pointB->setPoint(component_b, time_b, model(), getCanvas());
         }
 
-        if (!time_a.isNull() && !time_b.isNull())
-        {
-            Time d = distance(time_a, time_b);
-            distanceLabel->setText(tr("Distance: %1").arg(d.toString(true)));
-        }
-        else
-        {
-            distanceLabel->setText(tr("Points not selected yet"));
-        }
+        Time d = distance(time_a, time_b);
+        distanceLabel->setText(tr("Distance: %1").arg(d.toString(true)));
     }
 
 private slots:
@@ -392,7 +387,7 @@ private slots:
             else if (point_a_fixed && point_b_fixed)
             {
                 // Both points set. Reset point A and B;
-                component_a = getCanvas()->nearest_lifeline(mEvent->y());
+                component_a = getCanvas()->getNearestLifeline(mEvent->y());
                 ribbon->setA(getCanvas()->lifeline_point(component_a, time));
                 time_a = Time();
                 ribbon->setB(QPoint());
@@ -423,7 +418,7 @@ private slots:
         if (point_a_fixed && point_b_fixed)
             return false;
 
-        int nearest_lifeline = getCanvas()->nearest_lifeline(ev->y());
+        int nearest_lifeline = getCanvas()->getNearestLifeline(ev->y());
         QPoint p = getCanvas()->lifeline_point(nearest_lifeline, time);
 
         if (!point_a_fixed)

@@ -31,9 +31,9 @@ public:
     void setModel(TraceModelPtr model);
     void setCursor(const QCursor& c);
 
-    TraceModelPtr& getModel() const;//->getModel()
+    TraceModelPtr& getModel() const;
 
-    int nearest_lifeline(int y);//->getNearestLifeline
+    int getNearestLifeline(int y);
 
 
     QPoint lifeline_point(int component, const Time& time);
@@ -74,7 +74,7 @@ signals:
     /**
      * Сигнал, генерируемый при нажатии на какую-либо кнопку мышки.
      * Этот сигнал не должен использоваться инструментами. Вместо
-     * этого, они должны переопределять соответвстующий метод класса Tool.
+     * этого, они должны переопределять соответствующий метод класса Tool.
      * @param event  Исходное событие Qt
      * @param target Тип объекта, находящегося под курсором
      * @param component Номер ближайшего с курсору компонента
@@ -166,7 +166,7 @@ private: /** QWidget overrides */
 
     void paintEvent(QPaintEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent * event);
+    void wheelEvent(QWheelEvent* event);
 
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseReleaseEvent(QMouseEvent* event);
@@ -202,7 +202,7 @@ private:
     bool pendingRedraw;
 
     /** Painter timer. Involves repaint for showing intermediate results of drawing. */
-    QTimer * painter_timer;
+    QTimer* painter_timer;
 
     friend class Canvas;
 };

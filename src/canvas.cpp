@@ -56,21 +56,20 @@ Canvas::Canvas(QWidget* parent) :
  */
 void Canvas::setModel(TraceModelPtr model)
 {
-    /* Optimization: don't do anything if the model
-       is the same. Can happen, for example, when trying
-       to move to left when we can't move any lefter.  */
+    /**
+     * Optimization: don't do anything if the model
+     * is the same. Can happen, for example, when trying
+     * to move to left when we can't move any lefter.
+     */
     if (model.get() != contents_->model().get())
     {
         contents_->setModel(model);
-        // Emit signal after changing the model, so that receivers can operate
-        // on the new canvas.
         emit modelChanged(contents_->model_);
-
         timeline_->update();
     }
 }
 
-TraceModelPtr & Canvas::getModel() const
+TraceModelPtr& Canvas::getModel() const
 {
     return contents_->model_;
 }
@@ -93,26 +92,29 @@ void Canvas::timeSettingsChanged()
     }
 }
 
-void Canvas::setCursor(const QCursor& c)
+void Canvas::setCursor(const QCursor& cursor)
 {
-    contents_->setCursor(c);
+    contents_->setCursor(cursor);
 }
 
+#define MAX_DISTANCE 10000000
+
 /** По вертильной координате, возвращает номер ближайшей линии жизни. */
-int Canvas::nearest_lifeline(int y)
+int Canvas::getNearestLifeline(int y)
 {
-    int best_l = -1;
-    int best_distance = 10000000;
-    for(unsigned i = 0; i < contents_->trace_painter->lifeline_position.size(); ++i)
+    int result = -1;
+    int minDistance = MAX_DISTANCE;
+    auto positions = contents_->trace_painter->lifeline_position;
+    for(unsigned i = 0; i < positions.size(); ++i)
     {
-        int distance = abs((int)(contents_->trace_painter->lifeline_position[i] - y));
-        if (distance < best_distance)
+        int distance = abs(static_cast<int>(positions[i]) - y);
+        if (distance < minDistance)
         {
-            best_distance = distance;
-            best_l = i;
+            minDistance = distance;
+            result = i;
         }
     }
-    return best_l;
+    return result;
 }
 
 /** По номеру компонента в времени, возвращает координаты точки. */
@@ -122,19 +124,18 @@ QPoint Canvas::lifeline_point(int component, const Time& time)
                   contents_->trace_painter->lifeline_position[component]);
 }
 
-QRect Canvas::boundingRect(int component,
-                           const Time& min_time, const Time& max_time)
+QRect Canvas::boundingRect(int component, const Time& minTime, const Time& maxTime)
 {
-    return contents_->boundingRect(component, min_time, max_time);
+    return contents_->boundingRect(component, minTime, maxTime);
 }
 
 QPair<Time, Time> Canvas::nearby_range(const Time& time)
 {
-    TracePainter *tp = contents_->trace_painter.get();
-    int pixel = tp->pixelPositionForTime(time);
+    TracePainter* painterPtr = contents_->trace_painter.get();
+    int pixel = painterPtr->pixelPositionForTime(time);
 
-    return qMakePair(tp->timeForPixel(pixel - 20),
-                     tp->timeForPixel(pixel + 20));
+    return qMakePair(painterPtr->timeForPixel(pixel - 20),
+                     painterPtr->timeForPixel(pixel + 20));
 }
 
 void Canvas::scrollContentsBy(int dx, int dy)
@@ -145,19 +146,25 @@ void Canvas::scrollContentsBy(int dx, int dy)
 
 void Canvas::resizeEvent(QResizeEvent* eventPtr)
 {
-    // Permit redrawing if only height was changed
+    /** Permit redrawing if only height was changed */
     if (updateTimer || eventPtr->size().width() != eventPtr->oldSize().width())
     {
-        // Start a timer which will repaint canvas after 300 msec
-        // since last resize event. Thus we prevents repainting
-        // while resizing is not finished.
-        if (updateTimer) killTimer(updateTimer);
+        /**
+         * Start a timer which will repaint canvas after 300 msec
+         * since last resize event. Thus we prevents repainting
+         * while resizing is not finished.
+         */
+        if (updateTimer)
+        {
+            killTimer(updateTimer);
+        }
         updateTimer = startTimer(300);
     }
-
     QScrollArea::resizeEvent(eventPtr);
-
-    if (!timeline_) return;
+    if (!timeline_)
+    {
+        return;
+    }
     timeline_->move(viewport()->x(), viewport()->y() + viewport()->height());
 }
 
@@ -165,9 +172,11 @@ void Canvas::timerEvent(QTimerEvent* timerEventPtr)
 {
     // If user holds mouse button, resizing is not finished.
     if (QApplication::mouseButtons() & Qt::LeftButton)
+    {
         return;
-
-    killTimer(updateTimer); updateTimer = 0;
+    }
+    killTimer(updateTimer);
+    updateTimer = 0;
 
     // Repaint timeline.
     if (timeline_)
@@ -202,9 +211,9 @@ void Canvas::addItem(class CanvasItem* item)
     item->setParent(contents_);
 }
 
-void Canvas::setPortableDrawing(bool p)
+void Canvas::setPortableDrawing(bool state)
 {
-    contents_->portable_drawing = p;
+    contents_->portable_drawing = state;
 }
 
 Contents_widget::Contents_widget(Canvas* parent) : 
@@ -222,13 +231,14 @@ Contents_widget::Contents_widget(Canvas* parent) :
     trace_painter.reset(new TracePainter());
 
     painter_timer = new QTimer(this);
-    connect(painter_timer, SIGNAL( timeout() ),
-        this, SLOT( timerTick() ) );
+    connect(painter_timer, SIGNAL(timeout()), this,
+                           SLOT(timerTick()));
 
-    QPalette p = palette();
-    p.setColor(QPalette::Background, Qt::white);
-    p.setColor(QPalette::Foreground, Qt::black);
-    setPalette(p);
+    //?
+    QPalette pal = palette();
+    pal.setColor(QPalette::Background, Qt::white);
+    pal.setColor(QPalette::Foreground, Qt::black);
+    setPalette(pal);
 
     setSizePolicy(QSizePolicy::Expanding,
                   QSizePolicy::Expanding);
@@ -238,12 +248,14 @@ Contents_widget::Contents_widget(Canvas* parent) :
 
 void Contents_widget::setModel(TraceModelPtr model, bool force)
 {
-    Q_ASSERT(model.get() != 0);
+    Q_ASSERT(model.get() != nullptr);
 
     bool need_redraw = true;
     bool start_in_background = false;
-    /* At the moment, 'delta' returns 0 is the time
-       unit changed, which is just for our purposed here. */
+    /**
+     * At the moment, 'delta' returns 0 is the time
+     * unit changed, which is just for our purposed here.
+     */
     if (!force && model_)
     {
         int delta = vis4::delta(*model_, *model);
@@ -253,23 +265,21 @@ void Contents_widget::setModel(TraceModelPtr model, bool force)
 
     model_ = model;
     trace_painter->setModel(model_);
-    if (!need_redraw) return;
-
-    if (trace_painter->state() == TracePainter::Canceled)
+    if (!need_redraw || trace_painter->getState() == TracePainter::Canceled)
     {
         return;
     }
 
     // Stop current drawing
-    if (trace_painter->state() == TracePainter::Active ||
-        trace_painter->state() == TracePainter::Background)
+    if (trace_painter->getState() == TracePainter::Active ||
+        trace_painter->getState() == TracePainter::Background)
     {
         trace_painter->setState(TracePainter::Canceled);
         pendingRedraw = true;
         return;
     }
 
-    // Don't draw trace util canvas is visible
+    // Don't draw trace until canvas is visible
     if (!isVisible())
     {
         return;
@@ -277,10 +287,14 @@ void Contents_widget::setModel(TraceModelPtr model, bool force)
 
     // Draw trace
     QApplication::setOverrideCursor(Qt::BusyCursor);
-    for (;;) {
+    for (;;)
+    {
         pendingRedraw = false;
         doDrawing(start_in_background);
-        if (!pendingRedraw) break;
+        if (!pendingRedraw)
+        {
+            break;
+        }
     }
     QApplication::restoreOverrideCursor();
 }
@@ -294,21 +308,26 @@ bool Contents_widget::event(QEvent *event)
 {
     // This funnction handles only ToolTip events;
     if (event->type() != QEvent::ToolTip)
+    {
         return QWidget::event(event);
+    }
 
     // Prevents mouse events while trace is not painted
-    if (trace_geometry.get() == 0) return true;
+    if (trace_geometry.get() == nullptr)
+    {
+        return true;
+    }
 
-    QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
-    if (helpEvent->pos().x() < trace_painter->left_margin) {
-
+    QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
+    if (helpEvent->pos().x() < trace_painter->left_margin)
+    {
         // If mouse cursor on component name label,
         // display tip with full componet name.
         int component = trace_geometry->componentLabelAtPos(helpEvent->pos());
         if (component != -1)
         {
             QToolTip::showText(helpEvent->globalPos(),
-                model_->component_name(component));
+                model_->getComponentName(component));
         }
         else
         {
@@ -318,44 +337,47 @@ bool Contents_widget::event(QEvent *event)
     }
     else
     {
-
         // If mouse cursor on state, display state info tip.
         Canvas::clickTarget target = Canvas::nothingClicked;
         int component = -1;
-        StateModel* state = 0;
+        StateModel* state = nullptr;
         bool events_near = false;
 
         targetUnderCursor(helpEvent->pos(), &target, &component, &state, &events_near);
-        if (target == Canvas::stateClicked && state && component > -1) {
+        if (target == Canvas::stateClicked && state && component > -1)
+        {
             QString stateTip;
-            stateTip  = tr("State: ")+model_->states().item(state->type)+"\n";
-            stateTip += tr("Component: ")+model_->component_name(component)+"\n";
-            stateTip += tr("Start: ")+state->begin.toString()+"\n";
-            stateTip += tr("End: ")+state->end.toString()+"\n";
-            stateTip += tr("Duration:")+(state->end - state->begin).toString();
+            stateTip  = tr("State: ") + model_->getStates().item(state->type) + "\n";
+            stateTip += tr("Component: ") + model_->getComponentName(component) + "\n";
+            stateTip += tr("Start: ") + state->start.toString() + "\n";
+            stateTip += tr("End: ") + state->end.toString() + "\n";
+            stateTip += tr("Duration:") + (state->end - state->start).toString();
 
             QToolTip::showText(helpEvent->globalPos(), stateTip);
-        } else {
+        }
+        else
+        {
             QToolTip::hideText();
         }
     }
-
     return true;
 }
 
 void Contents_widget::paintEvent(QPaintEvent* event)
 {
-    // Draw white background while vis loading the trace
+    /** Draw white background while vis loading the trace */
     if (!paintBuffer)
     {
         QPainter painter(this);
         painter.fillRect(0, 0, width(), height(), Qt::white);
         return;
     }
-
-    if (!model_) return;
-    if (trace_painter->state() == TracePainter::Active ||
-        trace_painter->state() == TracePainter::Canceled)
+    if (!model_)
+    {
+        return;
+    }
+    if (trace_painter->getState() == TracePainter::Active ||
+        trace_painter->getState() == TracePainter::Canceled)
     {
         return;
     }
@@ -364,10 +386,13 @@ void Contents_widget::paintEvent(QPaintEvent* event)
 
     // Draw paint buffer at the canvas
     if (portable_drawing)
-        painter.drawImage(0, 0, *static_cast<QImage*>(paintBuffer));
+    {
+        painter.drawImage(0, 0, *static_cast<QImage*>(paintBuffer));   
+    }
     else
+    {
         painter.drawPixmap(0, 0, *static_cast<QPixmap*>(paintBuffer));
-
+    }
     // Draw outside of pixmap
     int image_height = paintBuffer->height();
     int image_width = paintBuffer->width();
@@ -408,7 +433,10 @@ void Contents_widget::paintEvent(QPaintEvent* event)
 void Contents_widget::mouseMoveEvent(QMouseEvent* ev)
 {
     // Prevents mouse events while trace is not painted
-    if (trace_geometry.get() == 0) return;
+    if (trace_geometry.get() == 0)
+    {
+        return;
+    }
 
     if (ev->x() >= trace_painter->left_margin)
     {
@@ -441,10 +469,11 @@ void Contents_widget::mouseMoveEvent(QMouseEvent* ev)
 void Contents_widget::wheelEvent(QWheelEvent * event)
 {
     if (event->modifiers() != Qt::ShiftModifier)
+    {
         return QWidget::wheelEvent(event);
-
+    }
     emit parent_->mouseEvent(event, Canvas::nothingClicked,
-        0, 0, model_->min_resolution(), false);
+        0, 0, model_->getMinResolution(), false);
 }
 
 void Contents_widget::scrolledBy(int dx, int dy)
@@ -458,13 +487,15 @@ void Contents_widget::scrolledBy(int dx, int dy)
 QSize Contents_widget::minimumSizeHint() const
 {
     if (!model_)
+    {
         return QSize(300, 200);
+    }
     else
     {
-        int components_count = model_->visible_components().size();
+        int components_count = model_->getVisibleComponents().size();
         return QSize(300,
                      trace_painter->lifeline_stepping
-                     * (components_count+1));
+                     *(components_count + 1));
     }
 }
 
@@ -533,7 +564,7 @@ void Contents_widget::mouseReleaseEvent(QMouseEvent* event)
 
     Canvas::clickTarget target;
     int component = -1;
-    StateModel* state = 0;
+    StateModel* state = nullptr;
     bool events_near = false;
 
     targetUnderCursor(event->pos(), &target, &component, &state, &events_near);
@@ -589,11 +620,13 @@ void Contents_widget::targetUnderCursor(
                 right = size;
 
             for (int i = left; i < right; ++i)
+            {
                 if (trace_geometry->eventsNear[lifeline][i])
                 {
                     *events_near = true;
                     break;
                 }
+            }
         }
     }
 }
@@ -601,19 +634,21 @@ void Contents_widget::targetUnderCursor(
 void Contents_widget::doDrawing(bool start_in_background)
 {
     // Create painter buffer
-    int components_count = model_->visible_components().size();
+    int components_count = model_->getVisibleComponents().size();
     int height = trace_painter->lifeline_stepping
-                            * (components_count+1);
+                            * (components_count + 1);
 
     if (!paintBuffer || paintBuffer->width() != width() || paintBuffer->height() != height)
     {
-        if (portable_drawing) {
-            QImage * image = new QImage(width(), height, QImage::Format_RGB32);
+        if (portable_drawing)
+        {
+            QImage* image = new QImage(width(), height, QImage::Format_RGB32);
             trace_painter->setPaintDevice(image);
             delete paintBuffer; paintBuffer = image;
         }
-        else {
-            QPixmap * pixmap = new QPixmap(width(), height);
+        else
+        {
+            QPixmap* pixmap = new QPixmap(width(), height);
             trace_painter->setPaintDevice(pixmap);
             delete paintBuffer; paintBuffer = pixmap;
         }
@@ -621,10 +656,10 @@ void Contents_widget::doDrawing(bool start_in_background)
 
     // Draw the trace!
     painter_timer->start(1000);
-    trace_painter->drawTrace(model_->max_time() - model_->min_time(), start_in_background);
+    trace_painter->drawTrace(model_->getMaxTime() - model_->getMinTime(), start_in_background);
     painter_timer->stop();
 
-    if (trace_painter->state() == TracePainter::Canceled) return;
+    if (trace_painter->getState() == TracePainter::Canceled) return;
     trace_geometry = trace_painter->traceGeometry();
 
     updateGeometry();
@@ -633,16 +668,19 @@ void Contents_widget::doDrawing(bool start_in_background)
 
 void Contents_widget::timerTick()
 {
-    if (trace_painter->state() == TracePainter::Active) {
+    if (trace_painter->getState() == TracePainter::Active)
+    {
         trace_painter->setState(TracePainter::Background);
         painter_timer->start(500);
     }
 
-    if (trace_painter->state() == TracePainter::Canceled) {
-        painter_timer->stop(); return;
+    if (trace_painter->getState() == TracePainter::Canceled)
+    {
+        painter_timer->stop();
+        return;
     }
 
-    Q_ASSERT(trace_painter->state() == TracePainter::Background);
+    Q_ASSERT(trace_painter->getState() == TracePainter::Background);
 
     // Repaint canvas with current drawing result.
     repaint();

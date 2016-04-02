@@ -258,28 +258,28 @@ private: /* methods */
     {
         // If the next found event is outside shown
         // part of the trace, we need to shift if.
-        if (event_time < model()->min_time() || event_time > model()->max_time())
+        if (event_time < model()->getMinTime() || event_time > model()->getMaxTime())
         {
-            Time shown_time_range = model()->max_time() - model()->min_time();
+            Time shown_time_range = model()->getMaxTime() - model()->getMinTime();
 
             // Make new trace overlap with the previous
             // one by 1/10 of time.
             Time one_tenth = shown_time_range/10;
 
             Time desired_new_min_time = event_time - one_tenth;
-            if (desired_new_min_time < model()->root()->min_time())
+            if (desired_new_min_time < model()->root()->getMinTime())
             {
-                desired_new_min_time = model()->root()->min_time();
+                desired_new_min_time = model()->root()->getMinTime();
             }
 
             Time new_max_time = desired_new_min_time + shown_time_range;
-            if (new_max_time > model()->root()->max_time())
+            if (new_max_time > model()->root()->getMaxTime())
             {
-                new_max_time = model()->root()->max_time();
+                new_max_time = model()->root()->getMaxTime();
             }
             Time new_min_time = new_max_time - shown_time_range;
 
-            getCanvas()->setModel(model()->set_range(new_min_time, new_max_time));
+            getCanvas()->setModel(model()->setRange(new_min_time, new_max_time));
         }
     }
 
@@ -305,7 +305,7 @@ private: /* methods */
                 // Since componentList may contains disabled(filtered) items,
                 // component number is not the same as row number,
                 // so we must convert component number to row.
-                componentList->setCurrentIndex(base_model->components().itemIndex(component));
+                componentList->setCurrentIndex(base_model->getComponents().itemIndex(component));
                 resetSearch(false);
                 emit activateMe();
                 return true;
@@ -344,12 +344,12 @@ private: /* methods */
         componentList->clear();
 
         std::set<QString> names_here_s;
-        foreach(int comp, model->visible_components())
-            names_here_s.insert(model->component_name(comp));
+        foreach(int comp, model->getVisibleComponents())
+            names_here_s.insert(model->getComponentName(comp));
 
         std::vector<QString> all_names;
-        foreach(int comp, model->components().items(model->parent_component()))
-            all_names.push_back(model->component_name(comp));
+        foreach(int comp, model->getComponents().items(model->getParentComponent()))
+            all_names.push_back(model->getComponentName(comp));
 
         delete componentListModel_;
 
@@ -369,7 +369,7 @@ private: /* methods */
         }
 
         bool tree_position_changed = (base_model.get() == 0) ||
-            (base_model->parent_component() != model->parent_component());
+            (base_model->getParentComponent() != model->getParentComponent());
 
         if (currentlySelected != -1 && !tree_position_changed)
             componentList->setCurrentIndex(currentlySelected);
@@ -392,12 +392,12 @@ private: /* methods */
         // are filtered out. Not sure what do to.
         Q_ASSERT(index != -1);
 
-        Selection component_filter = base_model->components();
-        int parent_component = base_model->parent_component();
+        Selection component_filter = base_model->getComponents();
+        int parent_component = base_model->getParentComponent();
         component_filter.disableAll(parent_component);
         component_filter.setEnabled(index, parent_component, true);
 
-        model_ = base_model->filter_components(component_filter);
+        model_ = base_model->filterComponents(component_filter);
     }
 
     void keyReleaseEvent(QKeyEvent* event)
@@ -418,10 +418,10 @@ private: /* methods */
 
         if (reset_time)
         {
-            if (startTime == model()->min_time())
-                startTime = model()->root()->min_time();
+            if (startTime == model()->getMinTime())
+                startTime = model()->root()->getMinTime();
             else
-                startTime = model()->min_time();
+                startTime = model()->getMinTime();
         }
 
         queryTab->reset();
@@ -435,7 +435,7 @@ private: /* methods */
     {
         applyComponentSelection();
 
-        model_ = model_->set_range(startTime, model_->root()->max_time());
+        model_ = model_->setRange(startTime, model_->root()->getMaxTime());
         startTimeLabel->setText(startTime.toString());
 
         queryTab->setModel(model_);
@@ -455,12 +455,12 @@ private: /* methods */
         else
         {
             Time min = highlighted_min;
-            if (min < model()->min_time())
-                min = model()->min_time();
+            if (min < model()->getMinTime())
+                min = model()->getMinTime();
 
             Time max = highlighted_max;
-            if (max > model()->max_time())
-                max = model()->max_time();
+            if (max > model()->getMaxTime())
+                max = model()->getMaxTime();
 
             if (min <= max)
             {
@@ -559,7 +559,7 @@ private slots:
 
         if (!base_model.get())
         {
-            startTime = model->min_time();
+            startTime = model->getMinTime();
         }
         else
         {
@@ -568,7 +568,7 @@ private slots:
                 delta & Trace_model_delta::components)
             {
                 need_reset = true;
-                startTime = model->min_time();
+                startTime = model->getMinTime();
             }
         }
 
@@ -587,7 +587,7 @@ private slots:
             /* Since componentList has a list of all components,
                 and the model has some components hidden, we need
                 to find the index inside the model. */
-            Selection components = base_model->components();
+            Selection components = base_model->getComponents();
             for (int i = newSearchedComponent-1; i >= 0; i--)
                 if (!components.isEnabled(i)) newSearchedComponent--;
         }
@@ -649,10 +649,10 @@ private slots:
 
     void stateFound(StateModel * s)
     {
-        startTime = s->begin;
-        maybeReposition(s->begin);
+        startTime = s->start;
+        maybeReposition(s->start);
 
-        setHighlight(s->component, s->begin, s->end);
+        setHighlight(s->component, s->start, s->end);
         emit showState(s);
     }
 

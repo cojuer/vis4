@@ -54,38 +54,37 @@ public: /** methods */
     OTF_trace_model(const QString& filename);
     ~OTF_trace_model();
 
-    int parent_component() const;
-    const QList<int>& visible_components() const;
+    int getParentComponent() const;
+    const QList<int>& getVisibleComponents() const;
     int lifeline(int component) const;
-    ComponentType component_type(int component) const;
-    QString component_name(int component, bool full = false) const;
-    bool has_children(int component) const;
+    ComponentType getComponentType(int component) const;
+    QString getComponentName(int component, bool full = false) const;
+    bool hasChildren(int component) const;
 
-    Time min_time() const override;
-    Time max_time() const override;
-    Time min_resolution() const override;
+    Time getMinTime() const override;
+    Time getMaxTime() const override;
+    Time getMinResolution() const override;
 
     void rewind() override;
 
-    StateModel* next_state() override;
-    GroupModel* next_group() override;
-    std::auto_ptr<EventModel> next_event_unsorted();
-    EventModel* next_event() override;
+    StateModel* getNextState() override;
+    GroupModel* getNextGroup() override;
+    EventModel* getNextEvent() override;
 
     TraceModelPtr root();
-    TraceModelPtr set_parent_component(int component);
-    TraceModelPtr set_range(const Time& min, const Time& max);
+    TraceModelPtr setParentComponent(int component);
+    TraceModelPtr setRange(const Time& min, const Time& max);
 
-    const Selection& components() const;
-    TraceModelPtr filter_components(const Selection & filter);
+    const Selection& getComponents() const;
+    TraceModelPtr filterComponents(const Selection & filter);
 
-    const Selection& events() const;
-    const Selection& states() const;
-    const Selection& available_states() const;
+    const Selection& getEvents() const;
+    const Selection& getStates() const;
+    const Selection& getAvailableStates() const;
 
-    TraceModelPtr filter_states(const Selection& filter);
+    TraceModelPtr filterStates(const Selection& filter);
 
-    TraceModelPtr filter_events(const Selection& filter);
+    TraceModelPtr filterEvents(const Selection& filter);
 
     QString save() const override;
     bool groupsEnabled() const;
@@ -103,8 +102,8 @@ private:    /** members */
     Selection states_;
     Selection available_states_;
 
-    Time min_time_;
-    Time max_time_;
+    Time minTime;
+    Time maxTime;
 
     OTF_HandlerArray* handlers;
     HandlerArgument ha;
@@ -191,10 +190,10 @@ static int handleDefMarker(void *userData, uint32_t stream, uint32_t token, cons
 static int handleEnter (void *userData, uint64_t time, uint32_t function, uint32_t process, uint32_t source, OTF_KeyValueList *list)
 {
     auto arg = static_cast<HandlerArgument*>(userData);
-    StateModel* sm = new StateModel(process, function, scalarTime<int>(time), scalarTime<int>(-1), Qt::yellow);
+    StateModel* sm = new StateModel(process, function, Time(time), Time(0), Qt::yellow);
     arg->states->push_back(sm);
 
-    EventModel* em = new EventModel(scalarTime<int>(time), process, "ENTER", 'E');
+    EventModel* em = new EventModel(Time(time), process, "ENTER", 'E');
     arg->events->push_back(em);
 
     qDebug() << "ENTER: " << function << "time: " << time << " type: " << function;
@@ -209,11 +208,11 @@ static int handleLeave (void *userData, uint64_t time, uint32_t function, uint32
         //TEST
         if (process == (*arg->states)[i]->component)
         {
-            (*arg->states)[i]->end = scalarTime<int>(time);
+            (*arg->states)[i]->end = Time(time);
         }
     }
 
-    EventModel* em = new EventModel(scalarTime<int>(time), process, "LEAVE", 'L');
+    EventModel* em = new EventModel(Time(time), process, "LEAVE", 'L');
     arg->events->push_back(em);
 
     qDebug() << "LEAVE: " << function << "time: " << time << " type: " << function;
