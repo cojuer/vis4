@@ -88,7 +88,7 @@ private:
      * помощью вызовов функций installTool, installBrowser и
      * installFreestandingTool.
      */
-    virtual void xinitialize(QWidget* toolContainer, Canvas* canvas) = 0;//? strange func name
+    virtual void xinitialize(QWidget* toolContainer, Canvas* canvas);//? strange func name
 
     void addShortcuts(QWidget*);
     void moveEvent(QMoveEvent*);

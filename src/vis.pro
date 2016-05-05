@@ -24,12 +24,15 @@ SOURCES += vis4.cpp \
     timeline.cpp \
     timeunit_control.cpp \
     tools/tool.cpp \
-    otf_main_window.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
     time_vis.cpp \
     otf2_tracemodel.cpp \
-    message_model.cpp
+    message_model.cpp \
+    otfreader.cpp \
+    otf2reader.cpp \
+    trace_reader.cpp \
+    trace_data.cpp
 HEADERS += trace_model.h \
     selection.h \
     otf_trace_model.h \
@@ -44,7 +47,6 @@ HEADERS += trace_model.h \
     timeline.h \
     timeunit_control.h \
     tools/tool.h \
-    otf_main_window.h \
     tools/browser.h \
     tools/measure.h \
     tools/goto.h \
@@ -55,7 +57,10 @@ HEADERS += trace_model.h \
     time_vis.h \
     otf2_tracemodel.h \
     message_model.h \
-    trace_data.h
+    trace_data.h \
+    trace_reader.h \
+    otfreader.h \
+    otf2reader.h
 
 RESOURCES += vis3.qrc
 OTHER_FILES += 
