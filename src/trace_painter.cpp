@@ -653,7 +653,6 @@ void TracePainter::drawEvents(int from_component, int to_component)
     // list, and draw only after all events are processed.
     QVector <QList<Event_letter_drawing> > letters_to_draw;
     letters_to_draw.resize(model->getVisibleComponents().size());
-
     // With large scales, many events might want to the same pixel.
     // Drawing line for each is very slow -- because the line drawing
     // code in Qt is not trivial. Also, paining all trace in event lines

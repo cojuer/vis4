@@ -4,6 +4,18 @@ namespace vis4 {
 
 const int Selection::ROOT;
 
+Selection::Selection() {}
+
+Selection::Selection(const Selection& another)
+{
+    items_ = another.items_;
+    filter_ = another.filter_;
+    links_ = another.links_;
+    parents_ = another.parents_;
+    properties_ = another.properties_;
+    topLevelItems_ = another.topLevelItems_;
+}
+
 int Selection::addItem(const QString& title, int parent)
 {
     int link = items_.size();

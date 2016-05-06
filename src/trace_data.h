@@ -15,6 +15,7 @@ namespace vis4 {
 class TraceData
 {
 public:
+    TraceData();
     TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events);
     ~TraceData();
 
@@ -33,9 +34,9 @@ public:
     GroupModel* getNextGroup();
     EventModel* getNextEvent();
 
-    const Selection& getComponents() const;//?
-    const Selection& getEventTypes() const;
-    const Selection& getStateTypes() const;
+    const Selection getComponents() const;//?
+    const Selection getEventTypes() const;
+    const Selection getStateTypes() const;
 
 private:
     Selection* componentsPtr;

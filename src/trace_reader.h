@@ -8,7 +8,7 @@ namespace vis4 {
 class TraceReader
 {
 public:
-    virtual TraceData* read(QString tracePath) = 0;
+    virtual TraceData* read(QString tracePath);
 };
 
 }

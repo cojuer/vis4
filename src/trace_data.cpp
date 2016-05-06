@@ -2,13 +2,35 @@
 
 namespace vis4 {
 
+TraceData::TraceData() {}
+
 TraceData::TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events) :
     componentsPtr(componentsPtr),
     stateTypesPtr(stateTypesPtr),
     eventTypesPtr(eventTypesPtr),
     states(states),
-    events(events)
-{}
+    events(events),
+    currentState(0),
+    currentEvent(0),
+    currentGroup(0)
+{
+    groups = new QVector<GroupModel*>();//should be arg
+    start = (*events)[0]->time;
+    end = (*events)[events->size() - 1]->time;
+
+    for (int i = 0; i < states->size(); ++i)
+    {
+        if ((*states)[i]->end.getData().tv_sec == 0 &&
+             (*states)[i]->end.getData().tv_nsec == 0)
+        {
+            (*states)[i]->end = end;
+        }
+    }
+
+    std::cout << "TraceData constructor:" << std::endl;
+    std::cout << start.toULL() << " : " << end.toULL() << std::endl;
+    std::cout << events->size() << " events" << std::endl;
+}
 
 TraceData::~TraceData()
 {}
@@ -79,17 +101,17 @@ EventModel* TraceData::getNextEvent()
     }
 }
 
-const Selection& TraceData::getComponents() const
+const Selection TraceData::getComponents() const
 {
     return *componentsPtr;
 }
 
-const Selection& TraceData::getEventTypes() const
+const Selection TraceData::getEventTypes() const
 {
     return *eventTypesPtr;
 }
 
-const Selection& TraceData::getStateTypes() const
+const Selection TraceData::getStateTypes() const
 {
     return *stateTypesPtr;
 }

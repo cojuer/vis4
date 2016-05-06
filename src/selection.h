@@ -20,6 +20,8 @@ public: /* static constants */
     static const int ROOT = -1;
 
 public: /* methods */
+    Selection();
+    Selection(const Selection&);
 
     bool hasSubitems() const;
 

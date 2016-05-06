@@ -95,7 +95,6 @@ static OTF2_CallbackCode regionReader(void *userData, OTF2_RegionRef self, OTF2_
 
 TraceData* OTF2Reader::read(QString tracePath)
 {
-
     TestData testData;
 
     Selection* componentsPtr = new Selection();

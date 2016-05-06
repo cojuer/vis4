@@ -32,7 +32,8 @@ SOURCES += vis4.cpp \
     otfreader.cpp \
     otf2reader.cpp \
     trace_reader.cpp \
-    trace_data.cpp
+    trace_data.cpp \
+    newtracemodel.cpp
 HEADERS += trace_model.h \
     selection.h \
     otf_trace_model.h \
@@ -60,7 +61,8 @@ HEADERS += trace_model.h \
     trace_data.h \
     trace_reader.h \
     otfreader.h \
-    otf2reader.h
+    otf2reader.h \
+    newtracemodel.h
 
 RESOURCES += vis3.qrc
 OTHER_FILES += 

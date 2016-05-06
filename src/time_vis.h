@@ -67,9 +67,11 @@ public:
 
     Time(const timespec time) : data(time) {}
     Time(const Time& another) : data(another.data) {}
-    Time(unsigned long time)
+    Time(unsigned long long time)
     {
-        timespec new_data = {.tv_sec = time / MAX_NSEC, .tv_nsec = time - static_cast<int>(time / MAX_NSEC) * MAX_NSEC};
+        struct timespec new_data;
+        new_data.tv_sec = time / MAX_NSEC;
+        new_data.tv_nsec = time - new_data.tv_sec * MAX_NSEC;
         data = new_data;
     }
 

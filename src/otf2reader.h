@@ -4,7 +4,6 @@
 #include <otf2/otf2.h>
 
 #include "trace_reader.h"
-#include "trace_model.h"
 
 namespace vis4 {
 
