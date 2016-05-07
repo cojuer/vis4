@@ -101,8 +101,8 @@ TraceData* OTF2Reader::read(QString tracePath)
     Selection* stateTypesPtr = new Selection();
     Selection* eventTypesPtr = new Selection();
 
-    QVector<EventModel*>* eventsPtr;
-    QVector<StateModel*>* statesPtr;
+    QVector<EventModel*>* eventsPtr = new QVector<EventModel*>();
+    QVector<StateModel*>* statesPtr = new QVector<StateModel*>();
 
     OTF2_NewHandlerArgument ha = {componentsPtr, stateTypesPtr, eventTypesPtr, statesPtr, eventsPtr};
 
