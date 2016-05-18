@@ -18,7 +18,7 @@ typedef struct {
     QVector<EventModel*>* events;
 } NewHandlerArgument;
 
-class OTFReader : TraceReader
+class OTFReader : public TraceReader
 {
 public:
     TraceData* read(QString tracePath) override;

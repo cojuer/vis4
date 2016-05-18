@@ -1,11 +1,10 @@
 #include <QtWidgets/QApplication>
-#include <boost/enable_shared_from_this.hpp>
 
-#include "otf_trace_model.h"
-#include "otf2_tracemodel.h"
-#include "otf2tracemodel.h"
-#include "newtracemodel.h"
 #include "main_window.h"
+#include "tracemodelimpl.h"
+#include "xmlreader.h"
+#include "otfreader.h"
+#include "otf2reader.h"
 
 int main(int ac, char* av[])
 {
@@ -15,10 +14,9 @@ int main(int ac, char* av[])
     app.setOrganizationDomain("lvk.cs.msu.su");
     app.setApplicationName("vis4");
 
-    TraceModelPtr model(new OTF2TraceModel("../otf_traces/ArchivePath2/ArchiveName.otf2"));
-    //TraceModelPtr model(new NewTraceModel("../otf_traces/philosophers/philosophers.otf"));
-    //TraceModelPtr model(new OTF_trace_model("../otf_traces/philosophers/philosophers.otf"));
-    //TraceModelPtr model(new OTF2_TraceModel("../otf_traces/ArchivePath/ArchiveName.otf2"));
+    //TraceModelPtr model(new TraceModelImpl("../otf_traces/ArchivePath2/ArchiveName.otf2", new OTF2Reader()));
+    //TraceModelPtr model(new TraceModelImpl("../otf_traces/testotftrace/testotftrace.otf", new OTFReader()));
+    TraceModelPtr model(new TraceModelImpl("../otf_traces/trace.xml", new XMLReader()));
 
     MainWindow mw;
     mw.initialize(model);

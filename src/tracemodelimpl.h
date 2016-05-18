@@ -1,8 +1,7 @@
-#ifndef OTF2_TRACEMODEL_H
-#define OTF2_TRACEMODEL_H
+#ifndef TRACEMODELIMPL_H
+#define TRACEMODELIMPL_H
 
 #include <QVector>
-#include <QFile>
 #include <QMap>
 #include <QDebug>
 #include <QTextCodec>
@@ -16,42 +15,31 @@
 #include <memory>
 
 #include <boost/enable_shared_from_this.hpp>
-#include <otf2/otf2.h>
 #include <otf.h>
+
 #include "trace_model.h"
 #include "state_model.h"
 #include "event_model.h"
+#include "message_model.h"
 #include "canvas_item.h"
 #include "group_model.h"
 #include "event_list.h"
+#include "trace_data.h"
+#include "otfreader.h"
+#include "otf2reader.h"
 
 namespace vis4 {
 
-class OTF2_TraceModel;
-
-typedef struct
-{
-    uint64_t count;
-    int parent_component;
-    Selection* components;
-    Selection* state_types;
-    QVector<StateModel*>* states;
-    QVector<EventModel*>* events;
-    uint64_t countSend;
-    uint64_t countRecv;
-    QMap<int, QString> strings;
-} OTF2_HandlerArgument;
-
-class OTF2_TraceModel :
+class TraceModelImpl :
     public TraceModel,
-    public std::enable_shared_from_this<OTF2_TraceModel>
+    public std::enable_shared_from_this<TraceModelImpl>
 {
 public: /** members */
-    typedef std::shared_ptr<OTF2_TraceModel> OTF2TraceModelPtr;
+    typedef std::shared_ptr<TraceModelImpl> TraceModelImplPtr;
 
 public: /** methods */
-    OTF2_TraceModel(const QString& filename);
-    ~OTF2_TraceModel();
+    TraceModelImpl(const QString& filename, TraceReader* readerPtr);
+    ~TraceModelImpl();
 
     int getParentComponent() const;
     const QList<int>& getVisibleComponents() const;
@@ -82,6 +70,7 @@ public: /** methods */
     const Selection& getAvailableStates() const;
 
     TraceModelPtr filterStates(const Selection& filter);
+
     TraceModelPtr filterEvents(const Selection& filter);
 
     QString save() const override;
@@ -90,62 +79,27 @@ public: /** methods */
     void restore(const QString& s);
 
 private:    /** members */
-    OTF_FileManager* manager;
-    OTF2_Reader* reader;
+    TraceData* dataPtr;
 
     int parent_component_;
-    Selection components_;//? processes?
+    Selection components_;
     Selection events_;
     bool groups_enabled_;
     Selection states_;
     Selection available_states_;
+    QList<int> visible_components_;
+    QMap<int, int> lifeline_map_;
+    int currentSubcomponent;
 
-    Time min_time_;
-    Time max_time_;
-
-    OTF_HandlerArray* handlers;
-    OTF2_HandlerArgument ha;
-    uint64_t ret;
-
+    Time minTime;
+    Time maxTime;
 private:    /** methods */
     Time getTime(int t) const;
     void initialize();
     void adjust_components();
     void initialize_component_list();
-
-    void findNextItem(const QString& elementName);
-
-    void testAddMessages();
-    void updateTime();
-
-    QList<int> visible_components_;
-    QMap<int, int> lifeline_map_;
-
-    int currentSubcomponent;
-
-    QVector<EventModel*> allEvents;
-    int currentEvent;
-
-    QVector<StateModel*> allStates;
-    int currentState;
-
-    QVector<GroupModel*> allGroups;
-    int currentGroup;
 };
 
-/** OTF2 callbacks */
-static OTF2_CallbackCode
-handleSetState( OTF2_LocationRef    location,
-                OTF2_TimeStamp      time,
-                void*               userData,
-                OTF2_AttributeList* attributes,
-                OTF2_RegionRef      region )
-{
-    std::cout << "Entering region " << region << " at location " << location <<
-                 " at time " << time << std::endl;
-    return OTF2_CALLBACK_SUCCESS;
 }
 
-}   //namespace
-
-#endif // OTF2_TRACEMODEL_H
+#endif // TRACEMODELIMPL_H

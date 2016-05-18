@@ -18,18 +18,10 @@ TraceData::TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selecti
     start = (*events)[0]->time;
     end = (*events)[events->size() - 1]->time;
 
-    for (int i = 0; i < states->size(); ++i)
-    {
-        if ((*states)[i]->end.getData().tv_sec == 0 &&
-             (*states)[i]->end.getData().tv_nsec == 0)
-        {
-            (*states)[i]->end = end;
-        }
-    }
-
     std::cout << "TraceData constructor:" << std::endl;
     std::cout << start.toULL() << " : " << end.toULL() << std::endl;
     std::cout << events->size() << " events" << std::endl;
+    std::cout << stateTypesPtr->size() << " state types" <<std::endl;
 }
 
 TraceData::~TraceData()

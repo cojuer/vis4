@@ -39,7 +39,7 @@ Enter_print( OTF2_LocationRef    location,
     EventModel* em = new EventModel(Time(time), location, "ENTER", 'E');
     arg->events->push_back(em);
 
-    std::cout << "Entering region " << region << " at location " << location << " at time " << time << std::endl;
+    //std::cout << "Entering region " << region << " at location " << location << " at time " << time << std::endl;
     return OTF2_CALLBACK_SUCCESS;
 }
 static OTF2_CallbackCode
@@ -56,13 +56,14 @@ Leave_print( OTF2_LocationRef    location,
         if (location == (*arg->states)[i]->component)
         {
             (*arg->states)[i]->end = Time(time);
+            break;
         }
     }
 
     EventModel* em = new EventModel(Time(time), location, "LEAVE", 'L');
     arg->events->push_back(em);
 
-    std::cout << "Leaving region " << region << " at location " << location << " at time " << time << std::endl;
+    //std::cout << "Leaving region " << region << " at location " << location << " at time " << time << std::endl;
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -74,7 +75,7 @@ GlobDefLocation_Register( void*                 userData,
                           uint64_t              numberOfEvents,
                           OTF2_LocationGroupRef locationGroup )
 {
-    std::cout << name << std::endl;
+    //std::cout << name << std::endl;
     OTF2Location loc = {location, name, locationType, numberOfEvents, locationGroup};
     static_cast<TestData*>(userData)->locations.push_back(loc);
     return OTF2_CALLBACK_SUCCESS;

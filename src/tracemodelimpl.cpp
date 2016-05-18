@@ -1,56 +1,59 @@
-#include "otf2tracemodel.h"
+#include "tracemodelimpl.h"
 
 #include <QDebug>
 #include <OTF_RBuffer.h>
+#include <QElapsedTimer>
 
 namespace vis4 {
 
-OTF2TraceModel::OTF2TraceModel(const QString& filename) :
-    minTime(Time(0))
+TraceModelImpl::TraceModelImpl(const QString& filename, TraceReader* readerPtr)
 {
     initialize();
     initialize_component_list();
-    dataPtr = (new OTF2Reader())->read(filename);
+
+    QElapsedTimer timer;
+    timer.start();
+    dataPtr = readerPtr->read(filename);
+    qDebug() << timer.elapsed() << " time";
+
+    minTime = dataPtr->getMinTime();
+    maxTime = dataPtr->getMaxTime();
 
     components_ = dataPtr->getComponents();
     events_ = dataPtr->getEventTypes();
     states_ = dataPtr->getStateTypes();
-
-    //TEST
-    testAddMessages();
-    updateTime();
 }
 
-OTF2TraceModel::~OTF2TraceModel() {}
+TraceModelImpl::~TraceModelImpl() {}
 
-void OTF2TraceModel:: initialize_component_list()
+void TraceModelImpl::initialize_component_list()
 {
     components_.clear();
     int rootLink = components_.addItem("Stand", Selection::ROOT);
     parent_component_ = rootLink;
 }
 
-int OTF2TraceModel::getParentComponent() const
+int TraceModelImpl::getParentComponent() const
 {
     return parent_component_;
 }
 
-const QList<int>& OTF2TraceModel::getVisibleComponents() const
+const QList<int> & TraceModelImpl::getVisibleComponents() const
 {
     return visible_components_;
 }
 
-int OTF2TraceModel::lifeline(int component) const
+int TraceModelImpl::lifeline(int component) const
 {
     return lifeline_map_.contains(component) ? lifeline_map_[component] : -1;
 }
 
-TraceModel::ComponentType OTF2TraceModel::getComponentType(int component) const// deprecated
+TraceModel::ComponentType TraceModelImpl::getComponentType(int component) const// deprecated
 {
     return hasChildren(component) ? ComponentType::RCHM : ComponentType::CHM;
 }
 
-QString OTF2TraceModel::getComponentName(int component, bool full) const
+QString TraceModelImpl::getComponentName(int component, bool full) const
 {
     Q_ASSERT(component >= 0 && component < components_.size());
 
@@ -75,70 +78,49 @@ QString OTF2TraceModel::getComponentName(int component, bool full) const
     return fullname;
 }
 
-bool OTF2TraceModel::hasChildren(int component) const
+bool TraceModelImpl::hasChildren(int component) const
 {
     return components_.hasChildren(component);
 }
 
-Time OTF2TraceModel::getMinTime() const
+Time TraceModelImpl::getMinTime() const
 {
     return minTime;
 }
 
-Time OTF2TraceModel::getMaxTime() const
+Time TraceModelImpl::getMaxTime() const
 {
     return maxTime;
 }
 
-Time OTF2TraceModel::getMinResolution() const
+Time TraceModelImpl::getMinResolution() const
 {
     return Time(3);
 }
 
-void OTF2TraceModel::rewind()
+void TraceModelImpl::rewind()
 {
     currentSubcomponent = -1;
 }
 
-void OTF2TraceModel::testAddMessages()
-{
-
-}
-
-void OTF2TraceModel::updateTime()
-{
-    maxTime = dataPtr->getMaxTime();
-    //? TEST
-    /*
-    for (int i = 0; i < allStates.size(); ++i)
-    {
-        if (allStates[i]->end.getData().tv_sec == 0 &&
-             allStates[i]->end.getData().tv_nsec == 0)
-        {
-            allStates[i]->end = maxTime;
-        }
-    }
-    */
-}
-
-StateModel* OTF2TraceModel::getNextState()
+StateModel* TraceModelImpl::getNextState()
 {
     dataPtr->getNextState();
 }
 
-GroupModel* OTF2TraceModel::getNextGroup()
+GroupModel* TraceModelImpl::getNextGroup()
 {
     dataPtr->getNextGroup();
 }
 
-EventModel* OTF2TraceModel::getNextEvent()
+EventModel* TraceModelImpl::getNextEvent()
 {
     dataPtr->getNextEvent();
 }
 
-TraceModelPtr OTF2TraceModel::root()
+TraceModelPtr TraceModelImpl::root()
 {
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->parent_component_ = Selection::ROOT;
 
     n->minTime = dataPtr->getMinTime();
@@ -150,7 +132,7 @@ TraceModelPtr OTF2TraceModel::root()
     return n;
 }
 
-TraceModelPtr OTF2TraceModel::setParentComponent(int component)
+TraceModelPtr TraceModelImpl::setParentComponent(int component)
 {
     if (parent_component_ == component)
     {
@@ -158,14 +140,14 @@ TraceModelPtr OTF2TraceModel::setParentComponent(int component)
     }
     if (component == Selection::ROOT)
     {
-        OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+        TraceModelImplPtr n(new TraceModelImpl(*this));
         n->parent_component_ = Selection::ROOT;
         n->adjust_components();
         return n;
     }
     if (component == components_.itemParent(parent_component_))
     {
-        OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+        TraceModelImplPtr n(new TraceModelImpl(*this));
         n->parent_component_ = component;
         n->adjust_components();
         return n;
@@ -173,14 +155,14 @@ TraceModelPtr OTF2TraceModel::setParentComponent(int component)
 
     if (components_.itemParent(component) == parent_component_)
     {
-        OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+        TraceModelImplPtr n(new TraceModelImpl(*this));
 
         n->parent_component_ = component;
         n->adjust_components();
         return n;
     }
 
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
 
     QList<int> parents; parents << component;
     while (parents.front() != component)
@@ -192,57 +174,57 @@ TraceModelPtr OTF2TraceModel::setParentComponent(int component)
     return n;
 }
 
-TraceModelPtr OTF2TraceModel::setRange(const Time& min, const Time& max)
+TraceModelPtr TraceModelImpl::setRange(const Time& min, const Time& max)
 {
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->minTime = min;
     n->maxTime = max;
     return n;
 }
 
-const Selection& OTF2TraceModel::getComponents() const
+const Selection & TraceModelImpl::getComponents() const
 {
     return components_;
 }
 
-TraceModelPtr OTF2TraceModel::filterComponents(const Selection & filter)
+TraceModelPtr TraceModelImpl::filterComponents(const Selection & filter)
 {
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->components_ = filter;
     n->adjust_components();
     return n;
 }
 
-const Selection& OTF2TraceModel::getEvents() const
+const Selection& TraceModelImpl::getEvents() const
 {
     return events_;
 }
 
-const Selection& OTF2TraceModel::getStates() const
+const Selection& TraceModelImpl::getStates() const
 {
     return states_;
 }
 
-const Selection& OTF2TraceModel::getAvailableStates() const
+const Selection& TraceModelImpl::getAvailableStates() const
 {
     return available_states_;
 }
 
-TraceModelPtr OTF2TraceModel::filterStates(const Selection& filter)
+TraceModelPtr TraceModelImpl::filterStates(const Selection& filter)
 {
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->states_ = filter;
     return n;
 }
 
-TraceModelPtr OTF2TraceModel::filterEvents(const Selection& filter)
+TraceModelPtr TraceModelImpl::filterEvents(const Selection& filter)
 {
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->events_ = filter;
     return n;
 }
 
-QString OTF2TraceModel::save() const
+QString TraceModelImpl::save() const
 {
     QString componentPos;
     componentPos = "/" + componentPos;
@@ -251,30 +233,30 @@ QString OTF2TraceModel::save() const
         minTime.toString() + ":" + maxTime.toString();
 }
 
-bool OTF2TraceModel::groupsEnabled() const
+bool TraceModelImpl::groupsEnabled() const
 {
     return groups_enabled_;
 }
 
-TraceModelPtr OTF2TraceModel::setGroupsEnabled(bool enabled)
+TraceModelPtr TraceModelImpl::setGroupsEnabled(bool enabled)
 {
     if (groups_enabled_ == enabled)
     {
         return shared_from_this();
     }
 
-    OTF2TraceModelPtr n(new OTF2TraceModel(*this));
+    TraceModelImplPtr n(new TraceModelImpl(*this));
     n->groups_enabled_ = enabled;
     return n;
 }
 
-void OTF2TraceModel::restore(const QString& s)
+void TraceModelImpl::restore(const QString& s)
 {
     parent_component_ = Selection::ROOT;
     adjust_components();
 }
 
-void OTF2TraceModel::initialize()
+void TraceModelImpl::initialize()
 {
     // Initialize events
     events_.clear();
@@ -285,7 +267,7 @@ void OTF2TraceModel::initialize()
     events_.addItem("Stop");
 }
 
-void OTF2TraceModel::adjust_components()
+void TraceModelImpl::adjust_components()
 {
     visible_components_ = components_.enabledItems(parent_component_);
     components_.setItemProperty(0, "current_parent", parent_component_);
@@ -309,9 +291,5 @@ void OTF2TraceModel::adjust_components()
 
 }
 
-void OTF2TraceModel::findNextItem(const QString& elementName)
-{
-
-}
 }
 

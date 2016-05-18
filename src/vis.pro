@@ -15,7 +15,6 @@ INCLUDEPATH += /opt/otf2/include \
 SOURCES += vis4.cpp \
     trace_model.cpp \
     selection.cpp \
-    otf_trace_model.cpp \
     event_list.cpp \
     canvas_item.cpp \
     main_window.cpp \
@@ -27,17 +26,15 @@ SOURCES += vis4.cpp \
     tools/timeedit.cpp \
     tools/selection_widget.cpp \
     time_vis.cpp \
-    otf2_tracemodel.cpp \
     message_model.cpp \
     otfreader.cpp \
     otf2reader.cpp \
     trace_reader.cpp \
     trace_data.cpp \
-    newtracemodel.cpp \
-    otf2tracemodel.cpp
+    xmlreader.cpp \
+    tracemodelimpl.cpp
 HEADERS += trace_model.h \
     selection.h \
-    otf_trace_model.h \
     state_model.h \
     group_model.h \
     event_model.h \
@@ -57,14 +54,13 @@ HEADERS += trace_model.h \
     tools/timeedit.h \
     tools/selection_widget.h \
     time_vis.h \
-    otf2_tracemodel.h \
     message_model.h \
     trace_data.h \
     trace_reader.h \
     otfreader.h \
     otf2reader.h \
-    newtracemodel.h \
-    otf2tracemodel.h
+    xmlreader.h \
+    tracemodelimpl.h
 
 RESOURCES += vis3.qrc
 OTHER_FILES += 

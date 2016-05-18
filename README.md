@@ -1,42 +1,23 @@
 # otf-vis
-Visualizer for Open Trace Format (OTF) files.
+Visualizer for Open Trace Format(OTF)[1] and Open Trace Format 2(OTF2)[2] traces.
 
 ## Description
 
 ## Key Features
-* Open Trace Format (OTF) [1][3] files visualization
-* XML trace files visualization
-* based on vis3 [4]
+* OTF and OTF2 files visualization
+* based on vis3 [3]
 * Qt 5 and C++
 * IDE Qt Creator
 
 ## Building
 
-```
-# Build prerequirements
-$ sudo apt-get install libopen-trace-format-dev otf-trace libotf-trace-dev
-$ sudo apt-get install libxml2 libxml2-dev
-$ sudo apt-get install libboost ...
-```
-
-To build otf-vis you must:
-```
-qmake
-make
-make install
-```
-
 ## See also / Documentation
 
 ## References
 
-[1] A. Knupfer, H. Brunst, A. D. Malony, S. S. Shende. Open Trace Format API Specification Version 1.1. Dresden University of Technology, Germany, 2006.
-http://www.paratools.com/otf?action=AttachFile&do=get&target=specification.pdf
+[1] https://tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/otf/
 
-[2] Пашков В., Волканов Д. О подходах к трассировке распределённых вычислительных систем реального времени // Материалы 17-ой международной конференции по вычислительной механике и современным прикладным программным системам (ВМСППС'2011). — МАИ-ПРИНТ Москва, 2011. — С. 36–38. 
+[2] http://www.vi-hps.org/projects/score-p/
 
-[3] Open Trace Format Project.
-http://www.tu-dresden.de/zih/otf
-
-[4] Vladimir Prus. vis3.
+[3] Vladimir Prus. vis3.
 https://github.com/vprus/vis3

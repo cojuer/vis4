@@ -5,8 +5,8 @@ namespace vis4 {
 static int handleDefProcess (void* userData, uint32_t stream, uint32_t process, const char *name, uint32_t parent)
 {
     auto arg = static_cast<NewHandlerArgument*>(userData);
-    int current_link = arg->components->addItem(QString(name), static_cast<int>(parent));
-    qDebug() << "stream = " << stream << " process: " << process << " name: " << name << " parent: " << parent;
+    int current_link = arg->components->addItem(QString(name), -1);//parent -1
+    //qDebug() << "stream = " << stream << " process: " << process << " name: " << name << " parent: " << parent;
     return OTF_RETURN_OK;
 }
 
@@ -18,7 +18,7 @@ static int handleDefFunction (void* userData, uint32_t stream, uint32_t func, co
     QTextCodec* codec1 = QTextCodec::codecForName( "UTF-8" );
     tr_name = codec1->fromUnicode(tr_name);
     arg->stateTypes->addItem(tr_name, -1);
-    qDebug() << "stream = " << stream << " func: " << func << " name: " << tr_name << " funcGroup: " << funcGroup << " source: " << source;
+    //qDebug() << "stream = " << stream << " func: " << func << " name: " << tr_name << " funcGroup: " << funcGroup << " source: " << source;
     return OTF_RETURN_OK;
 }
 
@@ -32,7 +32,7 @@ static int handleEnter (void* userData, uint64_t time, uint32_t function, uint32
     EventModel* em = new EventModel(Time(time), process, "ENTER", 'E');
     arg->events->push_back(em);
 
-    qDebug() << "ENTER: " << function << "time: " << time << " type: " << function;
+    //qDebug() << "ENTER: " << function << "time: " << time << " type: " << function;
     return OTF_RETURN_OK;
 }
 
@@ -45,13 +45,14 @@ static int handleLeave (void* userData, uint64_t time, uint32_t function, uint32
         if (process == (*arg->states)[i]->component)
         {
             (*arg->states)[i]->end = Time(time);
+            break;
         }
     }
 
     EventModel* em = new EventModel(Time(time), process, "LEAVE", 'L');
     arg->events->push_back(em);
 
-    qDebug() << "LEAVE: " << function << "time: " << time << " type: " << function;
+    //qDebug() << "LEAVE: " << function << "time: " << time << " type: " << function;
     return OTF_RETURN_OK;
 }
 
@@ -94,7 +95,7 @@ TraceData* OTFReader::read(QString tracePath)
     auto ret = OTF_Reader_readDefinitions( reader, handlers );
 
     // чтение событий Events
-    OTF_Reader_setRecordLimit(reader, 1000);
+    OTF_Reader_setRecordLimit(reader, 100000);
     OTF_Reader_readEvents(reader, handlers);
     OTF_Reader_readMarkers(reader, handlers);
     OTF_Reader_readStatistics(reader, handlers);
