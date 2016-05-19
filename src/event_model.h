@@ -63,7 +63,8 @@ public:
         time(time),
         component(component),
         kind(kind),
-        letter(letter)
+        letter(letter),
+        subletter(' ')
     {}
 
     virtual ~EventModel() {}

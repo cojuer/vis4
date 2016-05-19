@@ -16,7 +16,7 @@ class TraceData
 {
 public:
     TraceData();
-    TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events);
+    TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events, QVector<GroupModel*>* groups);
     ~TraceData();
 
     /** Returns number of lifeline adjusted to location number. */

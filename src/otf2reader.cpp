@@ -63,7 +63,60 @@ Leave_print( OTF2_LocationRef    location,
     EventModel* em = new EventModel(Time(time), location, "LEAVE", 'L');
     arg->events->push_back(em);
 
-    //std::cout << "Leaving region " << region << " at location " << location << " at time " << time << std::endl;
+    return OTF2_CALLBACK_SUCCESS;
+}
+
+static OTF2_CallbackCode
+handleSendMsg(OTF2_LocationRef location,
+              OTF2_TimeStamp time,
+              void *userData,
+              OTF2_AttributeList *attributeList,
+              uint32_t receiver,
+              OTF2_CommRef communicator,
+              uint32_t tag,
+              uint64_t length)
+{
+    auto arg = static_cast<OTF2_NewHandlerArgument*>(userData);
+
+    GroupModel* gm = new GroupModel();
+    gm->id = length;
+    QVector<GroupModel::Point> gmvec;
+    GroupModel::Point sendPoint;
+    sendPoint.component = location;
+    sendPoint.time = Time(time);
+    gmvec.push_back(sendPoint);
+    gm->points = gmvec;
+    gm->type = GroupModel::arrow;
+
+    arg->groups->push_back(gm);
+
+    return OTF2_CALLBACK_SUCCESS;
+}
+
+static OTF2_CallbackCode
+handleRecvMsg(OTF2_LocationRef location,
+              OTF2_TimeStamp time,
+              void *userData,
+              OTF2_AttributeList *attributeList,
+              uint32_t sender,
+              OTF2_CommRef communicator,
+              uint32_t tag,
+              uint64_t length)
+{
+    auto arg = static_cast<OTF2_NewHandlerArgument*>(userData);
+
+    for (int i = arg->groups->size() - 1; i > 0; --i)
+    {
+        if ((*arg->groups)[i]->id == length)
+        {
+            GroupModel::Point recvPoint;
+            recvPoint.component = location;
+            recvPoint.time = Time(time);
+            (*arg->groups)[i]->points.push_back(recvPoint);
+            break;
+        }
+    }
+
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -75,7 +128,6 @@ GlobDefLocation_Register( void*                 userData,
                           uint64_t              numberOfEvents,
                           OTF2_LocationGroupRef locationGroup )
 {
-    //std::cout << name << std::endl;
     OTF2Location loc = {location, name, locationType, numberOfEvents, locationGroup};
     static_cast<TestData*>(userData)->locations.push_back(loc);
     return OTF2_CALLBACK_SUCCESS;
@@ -104,8 +156,9 @@ TraceData* OTF2Reader::read(QString tracePath)
 
     QVector<EventModel*>* eventsPtr = new QVector<EventModel*>();
     QVector<StateModel*>* statesPtr = new QVector<StateModel*>();
+    QVector<GroupModel*>* groupsPtr = new QVector<GroupModel*>();
 
-    OTF2_NewHandlerArgument ha = {componentsPtr, stateTypesPtr, eventTypesPtr, statesPtr, eventsPtr};
+    OTF2_NewHandlerArgument ha = {componentsPtr, stateTypesPtr, eventTypesPtr, statesPtr, eventsPtr, groupsPtr};
 
     auto reader = OTF2_Reader_Open(tracePath.toUtf8().constData());//should not use QString here
     OTF2_Reader_SetSerialCollectiveCallbacks(reader);
@@ -169,6 +222,10 @@ TraceData* OTF2Reader::read(QString tracePath)
                                                    &Enter_print );
     OTF2_GlobalEvtReaderCallbacks_SetLeaveCallback(event_callbacks,
                                                    &Leave_print);
+    OTF2_GlobalEvtReaderCallbacks_SetMpiSendCallback(event_callbacks,
+                                                    &handleSendMsg);
+    OTF2_GlobalEvtReaderCallbacks_SetMpiRecvCallback(event_callbacks,
+                                                    &handleRecvMsg);
     OTF2_Reader_RegisterGlobalEvtCallbacks(reader,
                                            global_evt_reader,
                                            event_callbacks,
@@ -181,7 +238,7 @@ TraceData* OTF2Reader::read(QString tracePath)
     OTF2_Reader_CloseGlobalEvtReader(reader, global_evt_reader);
     OTF2_Reader_CloseEvtFiles(reader);
     OTF2_Reader_Close(reader);
-    return new TraceData(componentsPtr, stateTypesPtr, eventTypesPtr, statesPtr, eventsPtr);
+    return new TraceData(componentsPtr, stateTypesPtr, eventTypesPtr, statesPtr, eventsPtr, groupsPtr);
 }
 
 }

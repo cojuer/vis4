@@ -25,6 +25,7 @@ public:
 
     int type;//? what is this time?
     QVector<Point> points;
+    unsigned int id;
 };
 
 }

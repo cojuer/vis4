@@ -16,6 +16,7 @@ typedef struct {
     Selection* eventTypes;
     QVector<StateModel*>* states;
     QVector<EventModel*>* events;
+    QVector<GroupModel*>* groups;
 } NewHandlerArgument;
 
 class OTFReader : public TraceReader

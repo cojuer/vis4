@@ -4,12 +4,13 @@ namespace vis4 {
 
 TraceData::TraceData() {}
 
-TraceData::TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events) :
+TraceData::TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selection* eventTypesPtr, QVector<StateModel*>* states, QVector<EventModel*>* events, QVector<GroupModel*>* groups) :
     componentsPtr(componentsPtr),
     stateTypesPtr(stateTypesPtr),
     eventTypesPtr(eventTypesPtr),
     states(states),
     events(events),
+    groups(groups),
     currentState(0),
     currentEvent(0),
     currentGroup(0)
@@ -21,7 +22,8 @@ TraceData::TraceData(Selection* componentsPtr, Selection* stateTypesPtr, Selecti
     std::cout << "TraceData constructor:" << std::endl;
     std::cout << start.toULL() << " : " << end.toULL() << std::endl;
     std::cout << events->size() << " events" << std::endl;
-    std::cout << stateTypesPtr->size() << " state types" <<std::endl;
+    std::cout << stateTypesPtr->size() << " state types" << std::endl;
+    std::cout << componentsPtr->size() << " components" << std::endl;
 }
 
 TraceData::~TraceData()
